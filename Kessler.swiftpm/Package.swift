@@ -4,18 +4,20 @@ import PackageDescription
 import AppleProductTypes
 
 let package = Package(
-    name: "Meine App",
+    name: "Kessler",
     platforms: [
-        .iOS("18.1")
+        .iOS("16.0")
     ],
     products: [
         .iOSApplication(
-            name: "Meine App",
+            name: "Kessler",
             targets: ["AppModule"],
+            bundleIdentifier: "pwiez.Kessler",
+            teamIdentifier: "",
             displayVersion: "1.0",
             bundleVersion: "1",
-            appIcon: .placeholder(icon: .smiley),
-            accentColor: .presetColor(.orange),
+            appIcon: .placeholder(icon: .gamepad),
+            accentColor: .presetColor(.yellow),
             supportedDeviceFamilies: [
                 .pad,
                 .phone
@@ -31,10 +33,8 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AppModule",
-            path: ".",
-            swiftSettings: [
-                .enableUpcomingFeature("BareSlashRegexLiterals")
-            ]
+            path: "."
         )
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )

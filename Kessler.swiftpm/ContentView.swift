@@ -70,7 +70,7 @@ class Simulation: NSObject, SCNSceneRendererDelegate, ObservableObject {
         node.camera = SCNCamera()
         node.camera?.zFar = 5000
         node.camera?.zNear = 1.0
-        node.position = SCNVector3(0, 250, 350)
+        node.position = SCNVector3(0, 400, 400)
         node.look(at: SCNVector3(0,0,0))
         return node
     }()
