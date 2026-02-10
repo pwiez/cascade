@@ -108,10 +108,27 @@ class Simulation: NSObject, SCNSceneRendererDelegate, ObservableObject {
         scene.rootNode.addChildNode(ambient)
         
         let earthGeo = SCNSphere(radius: CGFloat(earthRadius))
-        earthGeo.firstMaterial?.diffuse.contents = UIColor.systemBlue
-        earthGeo.firstMaterial?.emission.contents = UIColor.systemBlue.withAlphaComponent(0.2)
+        let earthNode = SCNNode(geometry: earthGeo)
+        let material = SCNMaterial()
+        material.diffuse.contents = UIImage(named: "earthTopographicMap.heic")
+        earthGeo.materials = [material]
         earthGeo.segmentCount = 80
-        scene.rootNode.addChildNode(SCNNode(geometry: earthGeo))
+        let rotationAction = SCNAction.rotate(by: .pi * 2, around: SCNVector3(0, 1, 0), duration: 60)
+        let repeatForeverAction = SCNAction.repeatForever(rotationAction)
+        earthNode.runAction(repeatForeverAction)
+        scene.rootNode.addChildNode(earthNode)
+        
+        let atmosphereGeometry = SCNSphere(radius: CGFloat(earthRadius) + 2)
+        let atmosphereNode = SCNNode(geometry: atmosphereGeometry)
+
+        let atmosphereMaterial = SCNMaterial()
+        atmosphereMaterial.diffuse.contents = UIColor.systemBlue.withAlphaComponent(0.4)
+        atmosphereMaterial.blendMode = .add
+        atmosphereMaterial.transparencyMode = .singleLayer
+        atmosphereMaterial.isDoubleSided = false
+
+        atmosphereGeometry.materials = [atmosphereMaterial]
+        earthNode.addChildNode(atmosphereNode)
     }
     
     func resetSimulation() {
