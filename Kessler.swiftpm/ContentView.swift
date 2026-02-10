@@ -31,9 +31,9 @@ class Simulation: NSObject, SCNSceneRendererDelegate, ObservableObject {
     @Published var currentFact: SpaceFact? = nil
     @Published var isPaused: Bool = false
     
-    @Published var leoCount: Double = 12 { didSet { needsRespawn = true } }
-    @Published var meoCount: Double = 12 { didSet { needsRespawn = true } }
-    @Published var debrisPerCrash: Double = 20
+    @Published var leoCount: Double = 24 { didSet { needsRespawn = true } }
+    @Published var meoCount: Double = 24 { didSet { needsRespawn = true } }
+    @Published var debrisPerCrash: Double = 50
     @Published var explosionForce: Double = 1.0
     
     @Published var debrisCount: Int = 0
@@ -42,9 +42,9 @@ class Simulation: NSObject, SCNSceneRendererDelegate, ObservableObject {
     @Published var geoRemaining: Int = 0
     var totalSatellites: Int { leoRemaining + meoRemaining + geoRemaining }
     
-    @Published var spreadX: Double = 0.4
-    @Published var spreadY: Double = 0.1
-    @Published var spreadZ: Double = 0.4
+    @Published var spreadX: Double = 0.5
+    @Published var spreadY: Double = 1
+    @Published var spreadZ: Double = 0.5
     
     var needsRespawn = false
     var scene: SCNScene
@@ -137,7 +137,7 @@ class Simulation: NSObject, SCNSceneRendererDelegate, ObservableObject {
         for i in 0..<count {
             let angle = (Float(i) / Float(count)) * 2 * .pi + offset
             
-            let inclination = Float.random(in: -0.25...0.25)
+            let inclination = Float.random(in: -1...1)
             
             let x = radius * cos(angle)
             let z = radius * sin(angle)
