@@ -1,0 +1,122 @@
+Cascade
+Copyright (c) 2026 Pedro Wiezel. All rights reserved.
+
+1. Notice and Scope
+
+This software, including its source code, build configuration, assets,
+documentation, and any other materials contained in this repository
+(collectively, the "Software"), is published in a public repository solely so
+that interested parties may inspect and learn from the code. The Software is
+"source-available." It is NOT "open source" as that term is defined by the
+Open Source Initiative (https://opensource.org/osd) and it is NOT "free
+software" as that term is defined by the Free Software Foundation. No license
+commonly known as open source — including, without limitation, the MIT, BSD,
+Apache 2.0, MPL, GPL, LGPL, or AGPL families — is granted, implied, or
+substituted under this notice.
+
+2. Rights Reserved
+
+All rights, title, and interest in and to the Software, including all
+intellectual property rights therein, are and shall remain the exclusive
+property of Pedro Wiezel ("the Author"). No rights are granted to any person
+or entity by implication, estoppel, exhaustion, statutory presumption, or
+otherwise, except as expressly stated in this notice.
+
+3. Prohibited Activities
+
+Without the prior express written permission of the Author, no person or
+entity may, in whole or in part, directly or indirectly:
+
+  (a) use the Software for any purpose, commercial or non-commercial,
+      including but not limited to running, executing, deploying, compiling,
+      packaging, or distributing the resulting binaries;
+  (b) copy, reproduce, mirror, archive, host, or republish the Software,
+      including by reposting it on another code-hosting service or by
+      distributing it as part of any other work, dataset, or collection;
+  (c) modify, adapt, translate, port, refactor, decompile, or create
+      derivative works based on the Software, whether in source form or
+      compiled form;
+  (d) merge or incorporate the Software, in whole or in part, into any other
+      software or project, whether proprietary, source-available, or open
+      source;
+  (e) distribute, sublicense, lend, rent, lease, sell, offer for sale, or
+      otherwise transfer the Software or any rights in it to any third party;
+  (f) use the Software, or any portion of it, as training data, input, prompt
+      context, retrieval source, fine-tuning corpus, evaluation set, or
+      reference material for any machine learning model, large language
+      model, generative artificial intelligence system, code-suggestion or
+      code-completion system, or any similar automated system, whether
+      operated by a human, an organization, or another automated system;
+  (g) remove, obscure, alter, or fail to reproduce any copyright,
+      attribution, license, or proprietary notice contained in the Software;
+  (h) use the name "Cascade," the name of the Author, or any associated
+      trademark, trade dress, or visual identity to endorse, promote, or
+      identify any product, service, fork, derivative, or other work, without
+      separate written permission.
+
+4. Narrowly Permitted Activities
+
+Notwithstanding Section 3, the following activities are permitted:
+
+  (a) viewing and reading the source code through the hosted repository for
+      personal, non-commercial study; and
+  (b) quoting short, attributed excerpts of the source code in independent
+      commentary, criticism, review, journalism, academic writing, or
+      educational materials, to the extent permitted by applicable fair use
+      or fair dealing law.
+
+Nothing in this Section 4 shall be construed to grant any right to run,
+compile, deploy, redistribute, sublicense, or train any model on the Software.
+
+5. GitHub Forks and Downloads
+
+The GitHub platform, and other code hosts that mirror it, provide features
+such as "Fork," "Download ZIP," and clone access. Using any such feature does
+NOT, by itself, grant any right to use, copy, modify, redistribute, or
+otherwise exploit the Software beyond what is expressly permitted by Section
+4. Any fork, mirror, archive, or local copy created by such features remains
+subject to this notice in its entirety.
+
+6. Termination
+
+Any breach of Section 3 automatically and immediately terminates any rights
+granted under Section 4 with respect to the breaching party, without prejudice
+to any other remedy available at law or in equity. Upon termination, the
+breaching party must promptly destroy all copies of the Software in its
+possession or under its control.
+
+7. No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. IN NO EVENT
+SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+8. Severability
+
+If any provision of this notice is held to be unenforceable or invalid by a
+court of competent jurisdiction, the remaining provisions shall continue in
+full force and effect.
+
+9. Requests for Permission
+
+Requests for permission beyond the scope of Section 4 may be directed to the
+Author via their GitHub profile (https://github.com/pwiez).
+
+----------------------------------------------------------------------
+Third-party assets
+----------------------------------------------------------------------
+
+This notice applies to the source code authored by Pedro Wiezel. It does NOT
+apply to bundled third-party assets, which remain the property of their
+respective creators and are governed by their own licenses:
+
+  - Earth texture & clouds: Tom Patterson (https://shadedrelief.com/natural3/),
+    based on NASA imaging.
+  - Normal & specular maps: Solar System Scope
+    (https://www.solarsystemscope.com), based on NASA imaging.
+
+See the "Credits" section of README.md for full attribution. You must comply
+with those creators' licenses independently of this notice.
