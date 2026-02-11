@@ -3,48 +3,65 @@ import SwiftUI
 struct SimMetrics: View {
     @ObservedObject var sim: Simulation
     
-    var threatColor: Color {
+    var statusColor: Color {
         sim.debrisCount > 1000 ? .red : .white
     }
     
     var body: some View {
-        VStack(spacing: 8) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Satellites Remaining")
-                    .font(.system(size: 10, weight: .bold))
+        VStack(spacing: 12) {
+            
+            VStack(spacing: 2) {
+                Text("ACTIVE SATELLITES")
+                    .font(.caption2)
+                    .fontWeight(.bold)
                     .foregroundStyle(.cyan)
-                    .opacity(0.8)
+                    .opacity(0.9)
                 
                 if #available(iOS 17.0, *) {
-                    Text("\(sim.leoRemaining)")
-                        .font(.system(size: 24, weight: .light, design: .monospaced))
+                    Text("\(sim.activeSatellites)")
+                        .font(.system(size: 28, weight: .light, design: .monospaced))
                         .foregroundStyle(.white)
-                        .contentTransition(.numericText(value: Double(sim.leoRemaining)))
-                        .animation(.snappy, value: sim.leoRemaining)
+                        .contentTransition(.numericText(value: Double(sim.activeSatellites)))
+                        .animation(.snappy, value: sim.activeSatellites)
                 } else {
+                    Text("\(sim.activeSatellites)")
+                        .font(.system(size: 28, weight: .light, design: .monospaced))
+                        .foregroundStyle(.white)
                 }
             }
             
-            VStack(spacing: 0) {
-                Text("Debris Pieces")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(threatColor)
-                    .opacity(0.8)
+            Divider()
+                .background(.white.opacity(0.2))
+                .padding(.horizontal, 20)
+            
+            VStack(spacing: 2) {
+                Text("TRACKED DEBRIS")
+                    .font(.caption2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(statusColor)
+                    .opacity(0.9)
                 
                 if #available(iOS 17.0, *) {
                     Text("\(sim.debrisCount)")
-                        .font(.system(size: 24, weight: .light, design: .monospaced))
-                        .foregroundStyle(threatColor)
+                        .font(.system(size: 28, weight: .light, design: .monospaced))
+                        .foregroundStyle(statusColor)
                         .contentTransition(.numericText(value: Double(sim.debrisCount)))
                         .animation(.snappy, value: sim.debrisCount)
                 } else {
+                    Text("\(sim.debrisCount)")
+                        .font(.system(size: 28, weight: .light, design: .monospaced))
+                        .foregroundStyle(statusColor)
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.vertical, 16)
+        .frame(width: 160)
         .background(.ultraThinMaterial)
-        .cornerRadius(8)
-        .shadow(radius: 5)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(.white.opacity(0.15), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
     }
 }
