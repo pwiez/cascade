@@ -12,7 +12,7 @@ struct SimSettings {
     var timeScale: Double = 0
     var showSatellites: Bool = true
     
-    var maxDebris: Int = 4000
+    var maxDebris: Int = 7000
     var useRandomInclination: Bool = true
     var satelliteScale: Double = 1.0
     var debrisScale: Double = 1.0
@@ -57,7 +57,7 @@ class Simulation: ObservableObject {
         didSet { syncSettingsWithEngine() }
     }
     
-    @Published var maxDebris: Double = 4000 {
+    @Published var maxDebris: Double = 7000 {
         didSet {
             enforceSatelliteLimit()
             syncSettingsWithEngine()
@@ -148,7 +148,7 @@ class Simulation: ObservableObject {
         spreadVertical = 0.6
         spreadRadial = 0.2
         satelliteCount = 256
-        maxDebris = 4000
+        maxDebris = 7000
         useRandomInclination = true
         satelliteScale = 1.0
         debrisScale = 1.0
