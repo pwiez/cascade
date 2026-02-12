@@ -8,25 +8,8 @@ struct SpaceFact: Identifiable, Equatable {
     let title, description, icon: String
 }
 
-class PhysicsBody: Identifiable {
-    let id = UUID()
-    
-    var position: SIMD3<Float>
+struct OrbitalData: Component {
     var velocity: SIMD3<Float>
     var radius: Float
     var type: BodyType
-    
-    var entity: ModelEntity
-    
-    var isDebris: Bool { return type == .debris }
-    
-    init(entity: ModelEntity, pos: SIMD3<Float>, vel: SIMD3<Float>, radius: Float, type: BodyType) {
-        self.entity = entity
-        self.position = pos
-        self.velocity = vel
-        self.radius = radius
-        self.type = type
-        
-        self.entity.position = pos
-    }
 }

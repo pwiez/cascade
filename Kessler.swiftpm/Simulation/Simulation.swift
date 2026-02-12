@@ -18,7 +18,6 @@ struct SimSettings {
     var debrisScale: Double = 1.0
     var gravityMultiplier: Double = 1.0
     var orbitAltitude: Double = 120.0
-    
     var useOmniLight: Bool = false
 }
 
@@ -39,15 +38,45 @@ class Simulation: ObservableObject {
     let engine = PhysicsEngine()
     private var cancellables = Set<AnyCancellable>()
     
-    @Published var satelliteCount: Double = 256 { didSet { syncSettingsWithEngine() } }
-    @Published var maxDebris: Double = 4000 { didSet { syncSettingsWithEngine() } }
+    
+    var maxSafeSatellites: Double {
+        let piecesPerBody = Double(min(Int(debrisPerCollision), 20) + 1)
+        
+        let debrisCostPerSat = (2.0 * piecesPerBody) - 1.0
+        
+        return floor(maxDebris / max(1.0, debrisCostPerSat))
+    }
+    
+    func enforceSatelliteLimit() {
+        if satelliteCount > maxSafeSatellites {
+            satelliteCount = maxSafeSatellites
+        }
+    }
+    
+    @Published var satelliteCount: Double = 256 {
+        didSet { syncSettingsWithEngine() }
+    }
+    
+    @Published var maxDebris: Double = 4000 {
+        didSet {
+            enforceSatelliteLimit()
+            syncSettingsWithEngine()
+        }
+    }
+    
     @Published var useRandomInclination: Bool = true { didSet { syncSettingsWithEngine() } }
     
     @Published var satelliteScale: Double = 1.0 { didSet { syncSettingsWithEngine() } }
     @Published var debrisScale: Double = 1.0 { didSet { syncSettingsWithEngine() } }
     @Published var useOmniLight: Bool = false { didSet { syncSettingsWithEngine() } }
     
-    @Published var debrisPerCollision: Double = 4 { didSet { syncSettingsWithEngine() } }
+    @Published var debrisPerCollision: Double = 4 {
+        didSet {
+            enforceSatelliteLimit()
+            syncSettingsWithEngine()
+        }
+    }
+    
     @Published var explosionForce: Double = 1.1 { didSet { syncSettingsWithEngine() } }
     @Published var collisionRadius: Double = 1.5 { didSet { syncSettingsWithEngine() } }
     @Published var gravityMultiplier: Double = 1.0 { didSet { syncSettingsWithEngine() } }

@@ -11,7 +11,7 @@ struct PopulationSection: View {
     @ObservedObject var simulation: Simulation
     
     var body: some View {
-        Section(header: Text("Active Satellites"), footer: Text("Higher satellite counts increase the probability of accidental collisions, speeding up the cascade.")) {
+        Section(header: Text("Active Satellites"), footer: Text("Satellite count is strictly capped to ensure 100% of debris can be rendered without deletions.")) {
             
             Toggle(isOn: $simulation.showSatellites) {
                 HStack {
@@ -44,13 +44,18 @@ struct PopulationSection: View {
                     Text("\(Int(simulation.satelliteCount))")
                         .bold()
                         .monospacedDigit()
-                        .foregroundStyle(simulation.satelliteCount > 2000 ? .orange : .secondary)
+                        .foregroundStyle(simulation.satelliteCount >= simulation.maxSafeSatellites ? .red : .secondary)
                 }
-                Slider(value: $simulation.satelliteCount, in: 100...5000, step: 50)
+                
+                Slider(value: $simulation.satelliteCount, in: 10...max(10, simulation.maxSafeSatellites), step: 10)
                     .tint(.green)
                 
-                if simulation.satelliteCount > 2000 {
-                    Text("More satellites will lead to more debris, which may lower framerates.")
+                if simulation.maxSafeSatellites < 500 {
+                    Text("Cap is low due to high collision multiplier.")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                } else if simulation.satelliteCount > 2000 {
+                    Text("High object count may affect framerate.")
                         .font(.caption)
                         .foregroundStyle(.orange)
                 }
