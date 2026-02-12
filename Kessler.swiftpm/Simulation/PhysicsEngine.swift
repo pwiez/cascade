@@ -22,12 +22,13 @@ class PhysicsEngine: ObservableObject {
     let cameraPivot = Entity()
     let cameraEntity = Entity()
     
-    var satellites: [PhysicsBody] = []
-    var debris: [PhysicsBody] = []
+    var satellites: [ModelEntity] = []
+    var debris: [ModelEntity] = []
+    
     var settings = SimSettings()
     var frameCounter = 0
     
-    private var collisionGrid: [Int: [PhysicsBody]] = [:]
+    private var collisionGrid: [Int: [ModelEntity]] = [:]
     private let gridCellSize: Float = 10.0
     
     var cameraZoomLevel: Float = 350.0
@@ -39,7 +40,7 @@ class PhysicsEngine: ObservableObject {
     var debrisMeshLarge: MeshResource
     var satelliteMesh: MeshResource
     
-    var debrisMaterialDark, debrisMaterialLight, debrisMaterialWhite: PhysicallyBasedMaterial
+    var debrisMaterialDark, debrisMaterialLight, debrisMaterialWhite: UnlitMaterial
     var satelliteMaterial: PhysicallyBasedMaterial
     
     let earthRadius: Float = 100.0
@@ -50,17 +51,11 @@ class PhysicsEngine: ObservableObject {
     private var sceneUpdateSubscription: Cancellable?
     
     init() {
-        debrisMaterialDark = PhysicallyBasedMaterial()
-        debrisMaterialDark.baseColor = .init(tint: .gray)
-        debrisMaterialDark.roughness = .init(floatLiteral: 0.8)
+        OrbitalData.registerComponent()
         
-        debrisMaterialLight = PhysicallyBasedMaterial()
-        debrisMaterialLight.baseColor = .init(tint: .lightGray)
-        debrisMaterialLight.roughness = .init(floatLiteral: 0.8)
-        
-        debrisMaterialWhite = PhysicallyBasedMaterial()
-        debrisMaterialWhite.baseColor = .init(tint: .white)
-        debrisMaterialWhite.roughness = .init(floatLiteral: 0.8)
+        debrisMaterialDark = UnlitMaterial(color: .gray)
+        debrisMaterialLight = UnlitMaterial(color: .lightGray)
+        debrisMaterialWhite = UnlitMaterial(color: .white)
         
         satelliteMaterial = PhysicallyBasedMaterial()
         satelliteMaterial.baseColor = .init(tint: .purple)
@@ -141,24 +136,19 @@ class PhysicsEngine: ObservableObject {
             
             let roll = Float.random(in: 0...1)
             let mesh: MeshResource = roll < 0.5 ? debrisMeshSmall : (roll < 0.9 ? debrisMeshMedium : debrisMeshLarge)
-            let material: PhysicallyBasedMaterial = roll < 0.5 ? debrisMaterialDark : (roll < 0.9 ? debrisMaterialLight : debrisMaterialWhite)
+            let material: UnlitMaterial = roll < 0.5 ? debrisMaterialDark : (roll < 0.9 ? debrisMaterialLight : debrisMaterialWhite)
             
             let debrisEntity = ModelEntity(mesh: mesh, materials: [material])
             
             let scale = Float(settings.debrisScale)
             debrisEntity.scale = [scale, scale, scale]
-            
             debrisEntity.position = finalPosition
             debrisEntity.orientation = simd_quatf(angle: Float.random(in: 0...3), axis: [1, 1, 0])
             
-            rootAnchor.addChild(debrisEntity)
+            debrisEntity.components.set(OrbitalData(velocity: finalVelocity, radius: 1 * scale, type: .debris))
             
-            let newDebris = PhysicsBody(entity: debrisEntity,
-                                        pos: finalPosition,
-                                        vel: finalVelocity,
-                                        radius: 1 * scale,
-                                        type: .debris)
-            debris.append(newDebris)
+            rootAnchor.addChild(debrisEntity)
+            debris.append(debrisEntity)
         }
     }
     
@@ -177,7 +167,6 @@ class PhysicsEngine: ObservableObject {
             
             setupEarth()
             setupCamera()
-            
             updateLighting()
         }
         
@@ -253,8 +242,10 @@ class PhysicsEngine: ObservableObject {
         if isPaused { return }
         
         processCommandQueue()
-        updateSatellites()
-        updateDebris()
+        
+        updatePhysics(for: &satellites, renderModels: settings.showSatellites)
+        updatePhysics(for: &debris, renderModels: true)
+        
         updateEarthRotation()
         detectCollisions()
         
@@ -295,15 +286,15 @@ class PhysicsEngine: ObservableObject {
     func detectCollisions() {
         collisionGrid.removeAll(keepingCapacity: true)
         
-        func addBodyToGrid(_ body: PhysicsBody) {
-            guard body.entity.isEnabled else { return }
-            let gridX = Int((body.position.x / gridCellSize) + 50)
-            let gridY = Int((body.position.y / gridCellSize) + 50)
-            let gridZ = Int((body.position.z / gridCellSize) + 50)
+        func addBodyToGrid(_ entity: ModelEntity) {
+            guard entity.isEnabled else { return }
+            let gridX = Int((entity.position.x / gridCellSize) + 50)
+            let gridY = Int((entity.position.y / gridCellSize) + 50)
+            let gridZ = Int((entity.position.z / gridCellSize) + 50)
             
             if gridX >= 0 && gridX < 100 && gridY >= 0 && gridY < 100 && gridZ >= 0 && gridZ < 100 {
                 let cellKey = gridX | (gridY << 10) | (gridZ << 20)
-                collisionGrid[cellKey, default: []].append(body)
+                collisionGrid[cellKey, default: []].append(entity)
             }
         }
         
@@ -314,11 +305,13 @@ class PhysicsEngine: ObservableObject {
         let thresholdSquared = Float(settings.collisionRadius * settings.collisionRadius)
         let neighborOffsets = [0, 1, -1, 1024, -1024, 1048576, -1048576]
         
-        for primaryBody in satellites {
-            guard primaryBody.entity.isEnabled else { continue }
-            let gridX = Int((primaryBody.position.x / gridCellSize) + 50)
-            let gridY = Int((primaryBody.position.y / gridCellSize) + 50)
-            let gridZ = Int((primaryBody.position.z / gridCellSize) + 50)
+        for primary in satellites {
+            guard primary.isEnabled else { continue }
+            guard let primaryData = primary.components[OrbitalData.self] else { continue }
+            
+            let gridX = Int((primary.position.x / gridCellSize) + 50)
+            let gridY = Int((primary.position.y / gridCellSize) + 50)
+            let gridZ = Int((primary.position.z / gridCellSize) + 50)
             
             if gridX < 0 || gridX >= 100 || gridY < 0 || gridY >= 100 || gridZ < 0 || gridZ >= 100 { continue }
             let centerKey = gridX | (gridY << 10) | (gridZ << 20)
@@ -327,15 +320,18 @@ class PhysicsEngine: ObservableObject {
                 let checkKey = centerKey + offset
                 guard let cellContents = collisionGrid[checkKey] else { continue }
                 
-                for neighborBody in cellContents {
-                    if primaryBody === neighborBody || !neighborBody.entity.isEnabled { continue }
-                    if !neighborBody.isDebris && primaryBody.id > neighborBody.id { continue }
+                for neighbor in cellContents {
+                    if primary === neighbor || !neighbor.isEnabled { continue }
                     
-                    if length_squared(primaryBody.position - neighborBody.position) < thresholdSquared {
-                        primaryBody.entity.isEnabled = false
-                        neighborBody.entity.isEnabled = false
-                        confirmedCollisions.append((primaryBody.position, primaryBody.velocity))
-                        confirmedCollisions.append((neighborBody.position, neighborBody.velocity))
+                    guard let neighborData = neighbor.components[OrbitalData.self] else { continue }
+                    
+                    if neighborData.type != .debris && primary.id > neighbor.id { continue }
+                    
+                    if length_squared(primary.position - neighbor.position) < thresholdSquared {
+                        primary.isEnabled = false
+                        neighbor.isEnabled = false
+                        confirmedCollisions.append((primary.position, primaryData.velocity))
+                        confirmedCollisions.append((neighbor.position, neighborData.velocity))
                     }
                 }
             }
@@ -347,94 +343,86 @@ class PhysicsEngine: ObservableObject {
     }
     
     func triggerRandomExplosion() {
-        if let victim = satellites.filter({ $0.type == .leo }).randomElement() {
-            victim.entity.isEnabled = false
-            spawnExplosion(at: victim.position, velocity: victim.velocity)
+        let activeSats = satellites.filter { $0.isEnabled }
+        if let victim = activeSats.randomElement(),
+           let data = victim.components[OrbitalData.self] {
+            victim.isEnabled = false
+            spawnExplosion(at: victim.position, velocity: data.velocity)
         }
     }
     
-    func updateSatellites() {
-        let shouldRenderSatellites = settings.showSatellites
-        let targetScale = SIMD3<Float>(repeating: Float(settings.satelliteScale))
+    
+    private func updatePhysics(for entities: inout [ModelEntity], renderModels: Bool) {
+        let maxDebris = settings.maxDebris
+        let debrisLimitCheck = (entities.count > maxDebris) && (entities.first?.components[OrbitalData.self]?.type == .debris)
         
-        for i in (0..<satellites.count).reversed() {
-            let body = satellites[i]
+        if debrisLimitCheck {
+            let overflow = entities.count - maxDebris
+            for _ in 0..<overflow {
+                entities.first?.removeFromParent()
+                entities.removeFirst()
+            }
+        }
+        
+        let targetScale = SIMD3<Float>(repeating: Float(settings.debrisScale))
+        let gravityMult = Float(settings.gravityMultiplier)
+        let deltaTime = (1.0 / 60.0) * Float(settings.timeScale)
+        
+        for i in (0..<entities.count).reversed() {
+            let entity = entities[i]
             
-            if !body.entity.isEnabled {
-                body.entity.removeFromParent()
-                satellites.remove(at: i)
+            guard var data = entity.components[OrbitalData.self] else { continue }
+            
+            if !entity.isEnabled || length(entity.position) < (earthRadius + 2.0) {
+                entity.removeFromParent()
+                entities.remove(at: i)
                 continue
             }
             
-            let hasModel = body.entity.components.has(ModelComponent.self)
-            if shouldRenderSatellites && !hasModel {
-                body.entity.components.set(ModelComponent(mesh: satelliteMesh, materials: [satelliteMaterial]))
-            } else if !shouldRenderSatellites && hasModel {
-                body.entity.components.remove(ModelComponent.self)
+            if data.type != .debris {
+                let hasModel = entity.components.has(ModelComponent.self)
+                if renderModels && !hasModel {
+                    entity.components.set(ModelComponent(mesh: satelliteMesh, materials: [satelliteMaterial]))
+                } else if !renderModels && hasModel {
+                    entity.components.remove(ModelComponent.self)
+                }
+                
+                let satScale = Float(settings.satelliteScale)
+                if entity.scale.x != satScale { entity.scale = [satScale, satScale, satScale] }
+            } else {
+                let debScale = Float(settings.debrisScale)
+                if entity.scale.x != debScale { entity.scale = [debScale, debScale, debScale] }
             }
+
+            let pos = entity.position
+            let distSq = length_squared(pos)
+            let invDist = 1.0 / sqrt(distSq)
             
-            if body.entity.scale != targetScale {
-                body.entity.scale = targetScale
-            }
+            let effectiveGravity = gravitationalConstant * earthMass * gravityMult
+            let gravityAcceleration = pos * (-effectiveGravity / distSq) * invDist
             
-            applyOrbitalPhysics(to: body)
+            data.velocity += gravityAcceleration * deltaTime
+            let newPos = pos + data.velocity * deltaTime
             
-            if length(body.position) < (earthRadius + 2.0) {
-                body.entity.removeFromParent()
-                satellites.remove(at: i)
+            entity.position = newPos
+            entity.components[OrbitalData.self] = data
+            
+            if data.type == .debris {
+                entity.orientation *= simd_quatf(angle: 0.05, axis: [1,0,0])
             }
         }
+    }
+    
+    
+    func updateSatellites() {
     }
     
     func updateDebris() {
-        let maxDebris = settings.maxDebris
-        let targetScale = SIMD3<Float>(repeating: Float(settings.debrisScale))
-        
-        if debris.count > maxDebris {
-            let overflow = debris.count - maxDebris
-            for _ in 0..<overflow {
-                debris.first?.entity.removeFromParent()
-                debris.removeFirst()
-            }
-        }
-        
-        for i in (0..<debris.count).reversed() {
-            let body = debris[i]
-            
-            if length(body.position) < (earthRadius + 2.0) {
-                body.entity.removeFromParent()
-                debris.remove(at: i)
-                continue
-            }
-            
-            if body.entity.scale != targetScale {
-                body.entity.scale = targetScale
-            }
-            
-            applyOrbitalPhysics(to: body)
-        }
-    }
-    
-    private func applyOrbitalPhysics(to body: PhysicsBody) {
-        let deltaTime = (1.0 / 60.0) * Float(settings.timeScale)
-        let distSq = length_squared(body.position)
-        let invDist = 1.0 / sqrt(distSq)
-        
-        let effectiveGravity = gravitationalConstant * earthMass * Float(settings.gravityMultiplier)
-        let gravityAcceleration = body.position * (-effectiveGravity / distSq) * invDist
-        
-        body.velocity += gravityAcceleration * deltaTime
-        body.position += body.velocity * deltaTime
-        body.entity.position = body.position
-        
-        if body.isDebris {
-            body.entity.orientation *= simd_quatf(angle: 0.05, axis: [1,0,0])
-        }
     }
     
     func resetUniverse(satelliteCount: Int) {
-        satellites.forEach { $0.entity.removeFromParent() }
-        debris.forEach { $0.entity.removeFromParent() }
+        satellites.forEach { $0.removeFromParent() }
+        debris.forEach { $0.removeFromParent() }
         satellites.removeAll()
         debris.removeAll()
         collisionGrid.removeAll(keepingCapacity: true)
@@ -466,9 +454,11 @@ class PhysicsEngine: ObservableObject {
             let scale = Float(settings.satelliteScale)
             entity.scale = [scale, scale, scale]
             entity.position = finalPosition
-            rootAnchor.addChild(entity)
             
-            satellites.append(PhysicsBody(entity: entity, pos: finalPosition, vel: finalVelocity, radius: 0.5 * scale, type: .leo))
+            entity.components.set(OrbitalData(velocity: finalVelocity, radius: 0.5 * scale, type: .leo))
+            
+            rootAnchor.addChild(entity)
+            satellites.append(entity)
         }
     }
     
@@ -486,12 +476,35 @@ class PhysicsEngine: ObservableObject {
     }
     
     func resetCamera() {
-        cameraAngleX = -0.35
-        cameraAngleY = 3.25
-        cameraZoomLevel = 350.0
-        updateCameraTransform()
-        cameraEntity.position.z = cameraZoomLevel
-    }
+            let targetAngleX: Float = -0.35
+            let targetAngleY: Float = 3.25
+            let targetZoom: Float = 350.0
+            
+            self.cameraAngleX = targetAngleX
+            self.cameraAngleY = targetAngleY
+            self.cameraZoomLevel = targetZoom
+            
+            let rotationY = simd_quatf(angle: targetAngleY, axis: [0, 1, 0])
+            let rotationX = simd_quatf(angle: targetAngleX, axis: [1, 0, 0])
+            let targetOrientation = rotationY * rotationX
+            
+            let targetCameraTransform = Transform(scale: .one, rotation: .init(), translation: [0, 0, targetZoom])
+            
+            
+            cameraPivot.move(
+                to: Transform(rotation: targetOrientation),
+                relativeTo: rootAnchor,
+                duration: 1.5,
+                timingFunction: .easeInOut
+            )
+            
+            cameraEntity.move(
+                to: targetCameraTransform,
+                relativeTo: cameraPivot,
+                duration: 1.5,
+                timingFunction: .easeInOut
+            )
+        }
     
     private func updateCameraTransform() {
         let rotationY = simd_quatf(angle: cameraAngleY, axis: [0, 1, 0])
