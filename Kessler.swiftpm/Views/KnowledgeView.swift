@@ -4,260 +4,291 @@ struct KnowledgeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 32) {
+                VStack(alignment: .center, spacing: 40) {
                     
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(spacing: 16) {
                         Text("Kessler Syndrome")
-                            .font(.system(size: 42, weight: .bold, design: .serif))
-                            .foregroundStyle(.white)
+                            .font(.system(.largeTitle, design: .serif))
+                            .fontWeight(.bold)
+                            .multilineTextAlignment(.center)
+                            .accessibilityAddTraits(.isHeader)
                         
-                        Text("It's less scary than this simulation, but still very worrisome!")
-                            .font(.title2)
+                        Text("A chain reaction where each collision generates debris that causes further collisions, potentially trapping us on Earth.")
+                            .font(.title3)
                             .foregroundStyle(.secondary)
-                        
-                        Rectangle()
-                            .frame(height: 1)
-                            .foregroundStyle(.gray.opacity(0.45))
-                            .padding(.top, 8)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: 600)
+                    }
+                    .padding(.top, 40)
+                    .accessibilityElement(children: .combine)
+                    
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 16)], spacing: 16) {
+                        AccessibleStatCard(
+                            value: "27,000+",
+                            label: "Tracked Objects",
+                            icon: "binoculars.fill",
+                            color: .cyan,
+                            a11yLabel: "Over 27,000 Tracked Objects"
+                        )
+                        AccessibleStatCard(
+                            value: "17,500",
+                            label: "Speed (mph)",
+                            icon: "speedometer",
+                            color: .orange,
+                            a11yLabel: "Speed of 17,500 miles per hour"
+                        )
+                        AccessibleStatCard(
+                            value: "100M+",
+                            label: "Untracked Debris",
+                            icon: "exclamationmark.triangle.fill",
+                            color: .red,
+                            a11yLabel: "Over 100 Million Untracked Debris Pieces"
+                        )
                     }
                     .padding(.horizontal)
-                    .padding(.top)
-                    
-                    ImageSlot(imageName: "orbit_visual", caption: "Not-to-scale view of tracked orbital debris. By NASA image - NASA Orbital Debris Program Office.")
-                    
-                    ContentSection(title: "Where does the concept come from?") {
-                        Text("In 1978, NASA scientist **Donald Kessler** proposed a terrifying scenario: a future where the density of objects in Low Earth Orbit (LEO) becomes so high that collisions between objects could cause a cascade.")
+                    .frame(maxWidth: 800)
+
+                    VStack(alignment: .leading, spacing: 48) {
                         
-                        Text("Each collision generates space debris that increases the likelihood of further collisions. One satellite breaks into thousands of pieces, each capable of destroying another satellite.")
-                    }
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            StatCard(value: "27,000+", label: "Tracked Objects", icon: "binoculars.fill", color: .cyan)
-                            StatCard(value: "17,500", label: "Speed (mph)", icon: "speedometer", color: .orange)
-                            StatCard(value: "100M+", label: "Untracked Debris", icon: "circle.grid.3x3.fill", color: .red)
+                        InfoSection(
+                            title: "The Origin",
+                            icon: "person.text.rectangle",
+                            image: "orbit_visual",
+                            imageCaption: "NASA simulation of orbital debris density."
+                        ) {
+                            Text("In 1978, NASA scientist **Donald Kessler** proposed a terrifying scenario: the density of objects in Low Earth Orbit (LEO) could become so high that collisions between objects would cause a cascade.")
+                            
+                            Text("One satellite breaking apart creates thousands of shrapnel pieces. Each piece becomes a bullet, capable of destroying another satellite, which creates *more* bullets. This feedback loop could render orbit unusable for generations.")
                         }
-                        .padding(.horizontal)
-                    }
-                    
-                    ContentSection(title: "Hypervelocity Impacts") {
-                        Text("In orbit, objects travel at **17,500 mph** (7.8 km/s). At these speeds, even a paint fleck strikes with the force of a 550lb anvil dropped from 100 feet.")
                         
-                        Text("A collision doesn't just damage a satellite; it completely atomizes it, turning a single functional unit into a shotgun blast of shrapnel.")
-                    }
-                    
-                    ImageSlot(imageName: "impact_visual", caption: "Damage caused by a millimeter-sized debris impact on the Space Shuttle window.")
-                    
-                    ContentSection(title: "Avoiding The Cage") {
-                        Text("If the Kessler Syndrome reaches a critical point, specific orbital ranges could become unusable for generations, trapping us on Earth and preventing space exploration.")
+                        InfoSection(
+                            title: "The Physics",
+                            icon: "atom",
+                            image: "impact_visual",
+                            imageCaption: "Hypervelocity impact damage on a shuttle window."
+                        ) {
+                            Text("Objects in orbit travel at **17,500 mph** (7.8 km/s). At this speed, a paint fleck hits with the force of a 550lb anvil dropped from a building.")
+                            
+                            Text("There is no 'fender bender' in space. Impacts vaporize the target, turning a functional machine into a cloud of high-speed shotgun pellets.")
+                        }
                         
-                        Text("Current mitigation strategies include:")
+                        VStack(alignment: .leading, spacing: 20) {
+                            SectionHeader(title: "Mitigation Strategies", icon: "shield.checkered")
+                            
+                            VStack(spacing: 16) {
+                                MitigationRow(
+                                    title: "Graveyard Orbits",
+                                    description: "Pushing dead satellites 300km further out, away from active lanes."
+                                )
+                                MitigationRow(
+                                    title: "Controlled Re-entry",
+                                    description: "Using remaining fuel to de-orbit satellites so they burn up in the atmosphere."
+                                )
+                                MitigationRow(
+                                    title: "Active Removal",
+                                    description: "Experimental missions using nets, harpoons, and lasers to capture debris."
+                                )
+                            }
+                        }
                     }
-                    
-                    VStack(spacing: 12) {
-                        FactRow(title: "Graveyard Orbits", desc: "Pushing dying satellites 300km above GEO to get them out of the way.")
-                        FactRow(title: "Atmospheric Re-entry", desc: "Using remaining fuel to push LEO satellites down to burn up in the atmosphere.")
-                        FactRow(title: "Active Debris Removal", desc: "Experimental missions (nets, harpoons, magnets) to capture large debris.")
-                    }
+                    .frame(maxWidth: 700)
                     .padding(.horizontal)
                     
-                    Divider().padding(.vertical)
+                    Divider()
+                        .padding(.vertical)
                     
                     VStack(alignment: .leading, spacing: 16) {
-                        Label("Simulation Constraints", systemImage: "macpro.gen3.fill")
+                        Text("About This Simulation")
                             .font(.headline)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal)
+                            .accessibilityAddTraits(.isHeader)
                         
-                        VStack(spacing: 0) {
-                            CompromiseRow(
-                                icon: "clock.arrow.2.circlepath",
-                                title: "Time Dilation",
-                                desc: "Orbits are calculated in real-time physics, but the simulation speed is accelerated (up to 5x) to make centuries of decay visible in seconds."
-                            )
-                            Divider().background(.gray.opacity(0.2))
-                            CompromiseRow(
-                                icon: "ruler.fill",
-                                title: "Scale Factors",
-                                desc: "In reality, space is mostly empty. To make satellites visible on an iPad screen, they are rendered ~1000x larger than reality. Hitboxes are adjusted accordingly."
-                            )
-                            Divider().background(.gray.opacity(0.2))
-                            CompromiseRow(
-                                icon: "cube.transparent",
-                                title: "Spatial Hashing",
-                                desc: "To maintain 60 FPS with 4,000 objects, the engine uses a spatial hash grid to perform collision checks only against nearby neighbors."
-                            )
+                        Text("To make this phenomenon visible on a screen, this app makes several scientific compromises:")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            BulletPoint(text: "**Time:** Accelerated up to 10x to show decay effects.")
+                            BulletPoint(text: "**Scale:** Satellites are rendered ~1000x larger than reality.")
+                            BulletPoint(text: "**Physics:** Collision detection uses a spatial hash grid for performance.")
                         }
-                        .background(Color(uiColor: .secondarySystemBackground).opacity(0.5))
-                        .cornerRadius(16)
-                        .padding(.horizontal)
                     }
-                    
-                    Color.clear.frame(height: 50)
+                    .padding()
+                    .background(Color(uiColor: .secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .frame(maxWidth: 700)
+                    .padding(.bottom, 40)
                 }
             }
-            .background(Color.black)
+            .background(Color(uiColor: .systemBackground))
             .navigationTitle("Encyclopedia")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
 
-struct ContentSection<Content: View>: View {
+struct InfoSection<Content: View>: View {
     let title: String
+    let icon: String
+    let image: String?
+    let imageCaption: String?
     let content: Content
     
-    init(title: String, @ViewBuilder content: () -> Content) {
+    init(title: String, icon: String, image: String? = nil, imageCaption: String? = nil, @ViewBuilder content: () -> Content) {
         self.title = title
+        self.icon = icon
+        self.image = image
+        self.imageCaption = imageCaption
         self.content = content()
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(title)
-                .font(.title2)
-                .bold()
-                .foregroundStyle(.white)
+            SectionHeader(title: title, icon: icon)
             
-            VStack(alignment: .leading, spacing: 12) {
+            if let imageName = image {
+                AccessibleImage(name: imageName, caption: imageCaption)
+            }
+            
+            VStack(alignment: .leading, spacing: 16) {
                 content
             }
-            .font(.system(.body, design: .serif))
-            .foregroundStyle(.gray)
-            .lineSpacing(4)
+            .font(.body)
+            .foregroundStyle(.primary)
+            .lineSpacing(6)
         }
-        .padding(.horizontal)
     }
 }
 
-struct ImageSlot: View {
-    let imageName: String
-    let caption: String
+struct SectionHeader: View {
+    let title: String
+    let icon: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if UIImage(named: imageName) != nil {
-                Image(imageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: 220)
-                    .clipped()
-                    .cornerRadius(12)
-            } else {
-                ZStack {
-                    Color.gray.opacity(0.15)
-                    VStack {
-                        Image(systemName: "photo")
-                            .font(.largeTitle)
-                            .foregroundStyle(.gray)
-                        Text("Place Image Here")
-                            .font(.caption)
-                            .foregroundStyle(.gray)
-                        Text("\"\(imageName)\"")
-                            .font(.caption2)
-                            .monospaced()
-                            .foregroundStyle(.gray.opacity(0.5))
-                    }
-                }
-                .frame(height: 220)
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(.white.opacity(0.1), lineWidth: 1)
-                )
-            }
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(.blue)
+                .accessibilityHidden(true)
             
-            Text(caption)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
         }
-        .padding(.horizontal)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+        .padding(.bottom, 8)
     }
 }
 
-struct StatCard: View {
+struct AccessibleStatCard: View {
     let value: String
     let label: String
     let icon: String
     let color: Color
+    let a11yLabel: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                Spacer()
+        VStack(alignment: .leading, spacing: 12) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(color)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(value)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.primary)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
+                
+                Text(label)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
             }
-            
-            Text(value)
-                .font(.title2)
-                .bold()
-                .foregroundStyle(.white)
-                .minimumScaleFactor(0.8)
-                .lineLimit(1)
-            
-            Text(label)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(.gray)
         }
-        .padding(16)
-        .frame(width: 140, height: 110)
-        .background(Color(uiColor: .secondarySystemBackground).opacity(0.3))
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(.white.opacity(0.1), lineWidth: 1)
-        )
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(uiColor: .secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(a11yLabel)
     }
 }
 
-struct FactRow: View {
+struct MitigationRow: View {
     let title: String
-    let desc: String
+    let description: String
     
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Image(systemName: "circle.fill")
-                .font(.system(size: 6))
-                .foregroundStyle(.blue)
-                .padding(.top, 6)
+        HStack(alignment: .top, spacing: 16) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .font(.title3)
+                .padding(.top, 2)
+                .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
-                    .foregroundStyle(.white)
-                Text(desc)
+                Text(description)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+struct BulletPoint: View {
+    let text: LocalizedStringKey
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text("•")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
     }
 }
 
-struct CompromiseRow: View {
-    let icon: String, title: String, desc: String
+struct AccessibleImage: View {
+    let name: String
+    let caption: String?
+    
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            Image(systemName: icon)
-                .font(.title3)
-                .frame(width: 24)
-                .foregroundStyle(.secondary)
-                .padding(.top, 2)
+        VStack(alignment: .leading, spacing: 8) {
+            if UIImage(named: name) != nil {
+                Image(name)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxHeight: 300)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .accessibilityLabel(caption ?? "Illustration")
+            } else {
+                ZStack {
+                    Color(uiColor: .secondarySystemBackground)
+                    Image(systemName: "photo")
+                        .font(.largeTitle)
+                        .foregroundStyle(.tertiary)
+                }
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
             
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.callout)
-                    .bold()
-                    .foregroundStyle(.primary)
-                Text(desc)
+            if let caption {
+                Text(caption)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
             }
-            Spacer()
         }
-        .padding()
+        .padding(.vertical, 8)
     }
 }
