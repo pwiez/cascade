@@ -75,9 +75,9 @@ class PhysicsEngine: ObservableObject {
         
         self.satelliteMesh = .generateBox(size: 1.2)
         self.debrisMeshes = [
-            MeshResource.generateDebrisPyramid(size: 0.5),
-            MeshResource.generateDebrisPyramid(size: 0.6),
-            MeshResource.generateDebrisPyramid(size: 0.7)
+            MeshResource.generateDebrisTetrahedron(size: 0.5),
+            MeshResource.generateDebrisTetrahedron(size: 0.6),
+            MeshResource.generateDebrisTetrahedron(size: 0.7)
         ]
         
         self.debrisPool = DebrisPool(capacity: 3_000, prototypeMeshes: debrisMeshes, materials: standardDebrisMaterials)

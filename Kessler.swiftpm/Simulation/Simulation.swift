@@ -44,8 +44,8 @@ class Simulation: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    @Published var satelliteCount: Double = 256 { didSet { syncSettings() } }
-    @Published var maxDebris: Double = 3000 { didSet { enforceLimit(); syncSettings() } }
+    @Published var satelliteCount: Double = 350 { didSet { syncSettings() } }
+    @Published var maxDebris: Double = 1500 { didSet { enforceLimit(); syncSettings() } }
     
     @Published var useRandomInclination: Bool = true { didSet { syncSettings() } }
     @Published var satelliteScale: Double = 1.0 { didSet { syncSettings() } }
@@ -59,9 +59,9 @@ class Simulation: ObservableObject {
             }
         }
     
-    @Published var debrisPerCollision: Double = 4 { didSet { enforceLimit(); syncSettings() } }
-    @Published var explosionForce: Double = 1.1 { didSet { syncSettings() } }
-    @Published var collisionRadius: Double = 1.5 { didSet { syncSettings() } }
+    @Published var debrisPerCollision: Double = 5 { didSet { enforceLimit(); syncSettings() } }
+    @Published var explosionForce: Double = 10 { didSet { syncSettings() } }
+    @Published var collisionRadius: Double = 2 { didSet { syncSettings() } }
     @Published var gravityMultiplier: Double = 1.0 { didSet { syncSettings() } }
     @Published var orbitAltitude: Double = 120.0 { didSet { syncSettings() } }
     
@@ -145,13 +145,13 @@ class Simulation: ObservableObject {
     func resetSettingsToDefaults() {
         isCameraLocked = false
         timeScale = 1.0
-        debrisPerCollision = 4
-        explosionForce = 1.1
-        collisionRadius = 1.0
-        spreadTangential = 1.0
-        spreadVertical = 0.6
+        debrisPerCollision = 5
+        explosionForce = 1.0
+        collisionRadius = 2.0
+        spreadTangential = 0.9
+        spreadVertical = 0.7
         spreadRadial = 0.2
-        satelliteCount = 256
+        satelliteCount = 350
         maxDebris = 3000
         useRandomInclination = true
         satelliteScale = 1.0
