@@ -3,7 +3,6 @@ import RealityKit
 
 class ARViewContainer: UIView {
     var arView: ARView?
-    
     override func layoutSubviews() {
         super.layoutSubviews()
         arView?.frame = self.bounds
@@ -12,7 +11,6 @@ class ARViewContainer: UIView {
 
 struct SimulationView: UIViewRepresentable {
     @ObservedObject var simulation: Simulation
-    
     func makeUIView(context: Context) -> ARViewContainer {
         let wrapper = ARViewContainer()
         let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
@@ -22,153 +20,125 @@ struct SimulationView: UIViewRepresentable {
         wrapper.addSubview(arView)
         return wrapper
     }
-    
     func updateUIView(_ uiView: ARViewContainer, context: Context) { }
 }
 
 struct ContentView: View {
     @StateObject var simulation = Simulation()
     @State private var selectedTab: Int = 0
-    
-    @State private var showRespawnAlert = false
+    @State private var showSettings = false
     
     let respawnTip = RespawnTip()
     let detonateTip = DetonateTip()
-    
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .medium)
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            
-            ZStack {
-                SimulationContainer(simulation: simulation)
+        GeometryReader { geo in
+            ZStack(alignment: .topTrailing) {
                 
-                VStack {
-                    HStack(alignment: .top) {
-                        SimMetrics(sim: simulation)
-                            .accessibilityElement(children: .combine)
-                            .accessibilityLabel("Simulation Status")
-                            .accessibilityValue("\(simulation.debrisCount) debris pieces, \(simulation.activeSatellites) satellites active.")
+                HStack(spacing: 0) {
+                    
+                    ZStack {
+                        SimulationContainer(simulation: simulation)
+                            .ignoresSafeArea()
                         
-                        Spacer()
-                        
-                        HStack(spacing: 12) {
+                        VStack {
+                            HStack(alignment: .top) {
+                                SimMetrics(sim: simulation)
+                                Spacer()
+                            }
+                            .padding()
+                            .padding(.top, 20)
+                            
+                            Spacer()
                             
                             Button(action: {
-                                showRespawnAlert = true
-                            }) {
-                                Image(systemName: "arrow.counterclockwise")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 44, height: 44)
-                                    .background(.red.opacity(0.8))
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
-                            }
-                            .glassEffect()
-                            .accessibilityLabel("Respawn Simulation")
-                            .popoverTip(respawnTip, arrowEdge: .top)
-                            .confirmationDialog(
-                                "Restart Simulation?",
-                                isPresented: $showRespawnAlert,
-                                titleVisibility: .visible
-                            ) {
-                                Button("Respawn", role: .destructive) {
-                                    let impact = UIImpactFeedbackGenerator(style: .heavy)
-                                    impact.impactOccurred()
-                                    simulation.resetSimulation()
-                                }
-                                Button("Cancel", role: .cancel) { }
-                            } message: {
-                                Text("This will delete all current debris and reset the simulation.")
-                            }
-                            
-                            Button(action: {
-                                simulation.isPaused.toggle()
+                                simulation.triggerDetonation()
                                 hapticFeedback.impactOccurred()
                             }) {
-                                Image(systemName: simulation.isPaused ? "play.fill" : "pause.fill")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 44, height: 44)
-                                    .background(.orange.opacity(0.9))
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
-                                
-                            }
-                            .glassEffect()
-                            .accessibilityLabel(simulation.isPaused ? "Resume Simulation" : "Pause Simulation")
-                            
-                            Button(action: {
-                                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                                    simulation.resetCamera()
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                    Text("DETONATE")
+                                        .fontWeight(.heavy)
+                                        .font(.headline)
                                 }
-                                UIAccessibility.post(notification: .announcement, argument: "Camera reset to default orbit")
-                            }) {
-                                Image(systemName: "camera.viewfinder")
-                                    .font(.system(size: 21, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 44, height: 44)
-                                    .background(.blue.opacity(0.9))
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                                .padding()
+                                .frame(maxWidth: 300)
+                                .foregroundStyle(.white)
+                                .background(Color.red.opacity(0.9))
+                                .clipShape(Capsule())
+                                .shadow(radius: 10)
                             }
-                            .glassEffect()
-                            .accessibilityLabel("Reset Camera")
+                            .popoverTip(detonateTip, arrowEdge: .bottom)
+                            .padding(.bottom, 30)
                         }
                     }
-                    .padding()
+                    .frame(width: showSettings ? geo.size.width * 0.65 : geo.size.width)
+                    .clipped()
                     
-                    Spacer()
+                    if showSettings {
+                        VStack(spacing: 0) {
+                            Spacer()
+                                .frame(height: 100)
+                            
+                            UnifiedSettingsView(simulation: simulation, isPresented: $showSettings)
+                                .padding(.bottom, 20)
+                                .padding(.trailing, 16)
+                                .padding(.leading, 8)
+                        }
+                        .frame(width: geo.size.width * 0.35)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                        .zIndex(1)
+                    }
+                }
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: showSettings)
+                
+                HStack(spacing: 12) {
                     
                     Button(action: {
-                        simulation.triggerDetonation()
+                        withAnimation { showSettings.toggle() }
                         hapticFeedback.impactOccurred()
-                        UIAccessibility.post(notification: .announcement, argument: "Detonation triggered")
                     }) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                            Text("DETONATE A SATELLITE")
-                                .fontWeight(.heavy)
-                                .font(.headline)
-                        }
-                        .padding()
-                        .frame(maxWidth: 300)
-                        .foregroundStyle(.white)
-                        .background(Color.red.opacity(0.9))
-                        .clipShape(Capsule())
-                        .shadow(radius: 10)
+                        Image(systemName: showSettings ? "chevron.right" : "slider.horizontal.3")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
                     }
-                    .popoverTip(detonateTip, arrowEdge: .bottom)
-                    .padding(.bottom, 20)
-                    .accessibilityLabel("Trigger Detonation")
+                    
+                    Button(action: {
+                        simulation.isPaused.toggle()
+                        hapticFeedback.impactOccurred()
+                    }) {
+                        Image(systemName: simulation.isPaused ? "play.fill" : "pause.fill")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.orange.opacity(0.9))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                    }
+                    
+                    Button(action: {
+                        simulation.resetCamera()
+                    }) {
+                        Image(systemName: "camera.viewfinder")
+                            .font(.system(size: 21, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.blue.opacity(0.9))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                    }
                 }
+                .padding()
+                .padding(.top, 10)
+                .zIndex(2)
             }
-            .tabItem {
-                Label("Simulation", systemImage: "play.circle.fill")
-            }
-            .tag(0)
-            
-            SettingsView(simulation: simulation)
-                .tabItem {
-                    Label("Parameters", systemImage: "slider.horizontal.3")
-                }
-                .tag(1)
-            
-            KnowledgeView()
-                .tabItem {
-                    Label("Learn More", systemImage: "book.fill")
-                }
-                .tag(2)
         }
         .preferredColorScheme(.dark)
-        .onChange(of: selectedTab) { newTab in
-            if newTab == 0 {
-                simulation.resumeSimulation()
-            } else {
-                simulation.pauseSimulation()
-            }
-        }
     }
 }
 
