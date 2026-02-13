@@ -1,21 +1,14 @@
-//
-//  PerformanceSection.swift
-//  Kessler
-//
-//  Created by Pedro Wiezel on 11/02/26.
-//
-
 import SwiftUI
 
 struct PerformanceSection: View {
     @ObservedObject var simulation: Simulation
     
     var body: some View {
-        Section(header: Text("Performance Limit"), footer: Text("Capping the debris count prevents the simulation from lagging on older devices. Excess debris will be automatically removed.")) {
+        Section(header: Text("Performance Limit"), footer: Text("Capping the debris count prevents the simulation from lagging on older devices.")) {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Image(systemName: "cpu")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(simulation.maxDebris > 2500 ? .orange : .green)
                     Text("Max Debris Limit")
                         .fontWeight(.medium)
                     Spacer()
@@ -25,13 +18,13 @@ struct PerformanceSection: View {
                         .foregroundStyle(.secondary)
                 }
                 
-                Slider(value: $simulation.maxDebris, in: 500...7000, step: 100)
-                    .tint(.red)
+                Slider(value: $simulation.maxDebris, in: 500...3000, step: 100)
+                    .tint(simulation.maxDebris > 2500 ? .orange : .green)
                 
-                if simulation.maxDebris > 5000 {
-                    Text("Warning: High object counts may reduce frame rate.")
+                if simulation.maxDebris >= 3000 {
+                    Text("Maximum limit reached.")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(.secondary)
                 }
             }
             .padding(.vertical, 4)

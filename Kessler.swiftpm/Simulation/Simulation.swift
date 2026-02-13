@@ -12,7 +12,7 @@ struct SimSettings {
     var timeScale: Double = 0
     var showSatellites: Bool = true
     
-    var maxDebris: Int = 7000
+    var maxDebris: Int = 3000
     var useRandomInclination: Bool = true
     var satelliteScale: Double = 1.0
     var debrisScale: Double = 1.0
@@ -57,12 +57,12 @@ class Simulation: ObservableObject {
         didSet { syncSettingsWithEngine() }
     }
     
-    @Published var maxDebris: Double = 7000 {
-        didSet {
-            enforceSatelliteLimit()
-            syncSettingsWithEngine()
+    @Published var maxDebris: Double = 3000 {
+            didSet {
+                enforceSatelliteLimit()
+                syncSettingsWithEngine()
+            }
         }
-    }
     
     @Published var useRandomInclination: Bool = true { didSet { syncSettingsWithEngine() } }
     
@@ -140,7 +140,7 @@ class Simulation: ObservableObject {
     func zoomCamera(scaleFactor: Float) { engine.zoomCamera(scaleFactor: scaleFactor) }
     
     func resetSettingsToDefaults() {
-        timeScale = 0.1
+        timeScale = 1
         debrisPerCollision = 4
         explosionForce = 1.1
         collisionRadius = 1.5
@@ -148,7 +148,7 @@ class Simulation: ObservableObject {
         spreadVertical = 0.6
         spreadRadial = 0.2
         satelliteCount = 256
-        maxDebris = 7000
+        maxDebris = 3000
         useRandomInclination = true
         satelliteScale = 1.0
         debrisScale = 1.0
