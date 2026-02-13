@@ -20,7 +20,6 @@ struct SimMetrics: View {
                         .font(.system(size: 28, weight: .light, design: .monospaced))
                         .foregroundStyle(.white)
                         .contentTransition(.numericText(value: Double(sim.stats.satellites)))
-                        .animation(.snappy, )
             }
             
             Divider()

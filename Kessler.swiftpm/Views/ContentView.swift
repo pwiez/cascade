@@ -34,114 +34,117 @@ struct ContentView: View {
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .medium)
     
     var body: some View {
-            ZStack(alignment: .trailing) {
-                
-                SimulationContainer(simulation: simulation)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        if showSettings {
-                            withAnimation { showSettings = false }
-                            hapticFeedback.impactOccurred()
-                        }
-                    }
-                
-                VStack {
-                    HStack(alignment: .top) {
-                        SimMetrics(sim: simulation)
-                            .padding(.leading, 20)
-                        Spacer()
-                    }
-                    .padding(.top, 20)
-                    
-                    Spacer()
-                    
-                    if !showSettings {
-                        Button(action: {
-                            simulation.triggerDetonation()
-                            hapticFeedback.impactOccurred()
-                        }) {
-                            HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                Text("DETONATE")
-                                    .fontWeight(.heavy)
-                                    .font(.headline)
-                            }
-                            .padding()
-                            .frame(maxWidth: 300)
-                            .foregroundStyle(.white)
-                            .background(Color.red.opacity(0.9))
-                            .clipShape(Capsule())
-                            .shadow(radius: 10)
-                        }
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, 30)
+        ZStack(alignment: .trailing) {
+            
+            SimulationContainer(simulation: simulation)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    if showSettings {
+                        withAnimation { showSettings = false }
+                        hapticFeedback.impactOccurred()
                     }
                 }
-
-                            if showSettings {
-                                
-                                UnifiedSettingsView(simulation: simulation, isPresented: $showSettings)
-                                    .frame(width: 380)
-                                    .padding(.trailing, 16)
-                                    .padding(.bottom, 20)
-                                    .padding(.top, 80)
-                                    .transition(.move(edge: .trailing))
-                                    .zIndex(2)
-                            }
+            
+            VStack {
+                HStack(alignment: .top) {
+                    if simulation.showStats {
+                        SimMetrics(sim: simulation)
+                            .padding(.leading, 20)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
+                    Spacer()
+                }
+                .padding(.top, 20)
                 
-                            VStack {
-                                HStack(spacing: 12) {
-                                    Spacer()
-                                    
-                                    Button(action: {
-                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                            showSettings.toggle()
-                                        }
-                                        hapticFeedback.impactOccurred()
-                                    }) {
-                                        Image(systemName: showSettings ? "xmark" : "gear")
-                                            .font(.system(size: 18, weight: .bold))
-                                            .foregroundStyle(.white)
-                                            .frame(width: 44, height: 44)
-                                            .background(.ultraThinMaterial)
-                                            .clipShape(Circle())
-                                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
-                                    }
-                                    
-                                    Button(action: {
-                                        simulation.isPaused.toggle()
-                                        hapticFeedback.impactOccurred()
-                                    }) {
-                                        Image(systemName: simulation.isPaused ? "play.fill" : "pause.fill")
-                                            .font(.system(size: 18, weight: .bold))
-                                            .foregroundStyle(.white)
-                                            .frame(width: 44, height: 44)
-                                            .background(.orange.opacity(0.9))
-                                            .clipShape(Circle())
-                                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
-                                    }
-                                    
-                                    Button(action: {
-                                        simulation.resetCamera()
-                                    }) {
-                                        Image(systemName: "camera.viewfinder")
-                                            .font(.system(size: 21, weight: .bold))
-                                            .foregroundStyle(.white)
-                                            .frame(width: 44, height: 44)
-                                            .background(.blue.opacity(0.9))
-                                            .clipShape(Circle())
-                                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
-                                    }
-                                }
-                                .padding()
-                                Spacer()
-                            }
+                Spacer()
+                
+                if !showSettings {
+                    Button(action: {
+                        simulation.triggerDetonation()
+                        hapticFeedback.impactOccurred()
+                    }) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                            Text("DETONATE")
+                                .fontWeight(.heavy)
+                                .font(.headline)
+                        }
+                        .padding()
+                        .frame(maxWidth: 300)
+                        .foregroundStyle(.white)
+                        .background(Color.red.opacity(0.9))
+                        .clipShape(Capsule())
+                        .shadow(radius: 10)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, 30)
+                }
             }
-            .onChange(of: showSettings) {
-                simulation.setSettingsOpen(showSettings)
+            
+            if showSettings {
+                
+                UnifiedSettingsView(simulation: simulation, isPresented: $showSettings)
+                    .frame(width: 380)
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 20)
+                    .padding(.top, 80)
+                    .transition(.move(edge: .trailing))
+                    .zIndex(2)
             }
-            .preferredColorScheme(.dark)
+            
+            VStack {
+                HStack(spacing: 12) {
+                    Spacer()
+                    
+                    Button(action: {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            showSettings.toggle()
+                        }
+                        hapticFeedback.impactOccurred()
+                    }) {
+                        Image(systemName: showSettings ? "xmark" : "gear")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                    }
+                    
+                    Button(action: {
+                        simulation.isPaused.toggle()
+                        hapticFeedback.impactOccurred()
+                    }) {
+                        Image(systemName: simulation.isPaused ? "play.fill" : "pause.fill")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.orange.opacity(0.9))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                    }
+                    
+                    Button(action: {
+                        simulation.resetCamera()
+                    }) {
+                        Image(systemName: "camera.viewfinder")
+                            .font(.system(size: 21, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.blue.opacity(0.9))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                    }
+                }
+                .padding()
+                Spacer()
+            }
         }
+        .onChange(of: showSettings) {
+            simulation.setSettingsOpen(showSettings)
+        }
+        .preferredColorScheme(.dark)
+    }
 }
 
 struct SimulationContainer: View {

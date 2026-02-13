@@ -19,6 +19,12 @@ struct UnifiedSettingsView: View {
                         .fontWeight(.bold)
                         .foregroundStyle(.white)
                     Spacer()
+                    
+                    Button(action: { isPresented = false }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.white.opacity(0.6))
+                    }
                 }
                 .padding(.horizontal)
                 
@@ -26,7 +32,7 @@ struct UnifiedSettingsView: View {
                     HStack {
                         Label("Time Scale", systemImage: "clock")
                         Spacer()
-                        Text(String(format: "%.1fx", simulation.timeScale))
+                        Text(String(format: "%.0fx", simulation.timeScale))
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
                     }
@@ -35,7 +41,7 @@ struct UnifiedSettingsView: View {
                     
                     HStack {
                         Image(systemName: "tortoise.fill").font(.caption).foregroundStyle(.secondary)
-                        Slider(value: $simulation.timeScale, in: 0.1...5.0, step: 0.1)
+                        Slider(value: $simulation.timeScale, in: 1.0...10.0, step: 0.5)
                         Image(systemName: "hare.fill").font(.caption).foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 4)
@@ -62,6 +68,10 @@ struct UnifiedSettingsView: View {
                     .tint(simulation.maxDebris > 2500 ? .orange : .green)
                 }
                 
+                GlassSection(header: "GRAVITY") {
+                    LabeledSlider(label: "Strength", value: $simulation.gravityMultiplier, range: 0.0...3.0, format: "%.1fx")
+                }
+                
                 GlassSection(header: "SATELLITES") {
                     Toggle("Show Satellites", isOn: $simulation.showSatellites)
                     
@@ -79,7 +89,7 @@ struct UnifiedSettingsView: View {
                                 .monospacedDigit()
                                 .foregroundStyle(.secondary)
                         }
-                        Slider(value: $simulation.satelliteCount, in: 10...max(10, simulation.maxSafeSatellites), step: 10)
+                        Slider(value: $simulation.satelliteCount, in: 10...500, step: 10)
                     }
                 }
                 
@@ -92,19 +102,45 @@ struct UnifiedSettingsView: View {
                     
                     Divider()
                     
-                    LabeledSlider(label: "Hitbox Size", value: $simulation.collisionRadius, range: 0.5...5.0, format: "%.1f km")
+                    LabeledSlider(label: "Hitbox Size", value: $simulation.collisionRadius, range: 0.5...5.0, format: "%.1f units")
                 }
                 
-                GlassSection(header: "VISUALS") {
-                    Toggle("Omni Light", isOn: $simulation.useOmniLight)
+                GlassSection(header: "EXPLOSION SPREAD") {
+                    LabeledSlider(label: "Tangential", value: $simulation.spreadTangential, range: 0.1...3.0, format: "%.1f")
+                    Divider()
+                    LabeledSlider(label: "Vertical", value: $simulation.spreadVertical, range: 0.1...3.0, format: "%.1f")
+                    Divider()
+                    LabeledSlider(label: "Radial", value: $simulation.spreadRadial, range: 0.1...3.0, format: "%.1f")
+                }
+                
+                GlassSection(header: "ACCESSIBILITY") {
+                    Toggle(isOn: $simulation.highContrast) {
+                        Label("High Contrast", systemImage: "circle.lefthalf.filled")
+                    }
                     
                     Divider()
                     
-                    LabeledSlider(label: "Sat Size", value: $simulation.satelliteScale, range: 0.5...5.0, format: "%.1fx")
+                    Toggle(isOn: $simulation.useOmniLight) {
+                        Label("Bidirectional Light", systemImage: "light.max")
+                    }
                     
                     Divider()
                     
-                    LabeledSlider(label: "Debris Size", value: $simulation.debrisScale, range: 0.5...5.0, format: "%.1fx")
+                    Toggle(isOn: $simulation.showEarth) {
+                        Label("Show Earth", systemImage: "globe.europe.africa")
+                    }
+                    
+                    Divider()
+                    
+                    Toggle(isOn: $simulation.showStats) {
+                        Label("Show Statistics", systemImage: "chart.bar.xaxis")
+                    }
+                }
+
+                GlassSection(header: "SCALE") {
+                    LabeledSlider(label: "Sat Size", value: $simulation.satelliteScale, range: 0.5...3.0, format: "%.1fx")
+                    Divider()
+                    LabeledSlider(label: "Debris Size", value: $simulation.debrisScale, range: 0.5...3.0, format: "%.1fx")
                 }
                 
                 VStack(spacing: 12) {
@@ -130,7 +166,7 @@ struct UnifiedSettingsView: View {
                             .foregroundStyle(.red)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .confirmationDialog("Restart?", isPresented: $showRestartConfirmation) {
+                    .confirmationDialog("Reset the simulation?", isPresented: $showRestartConfirmation) {
                         Button("Respawn", role: .destructive) {
                             simulation.resetSimulation()
                         }
@@ -140,9 +176,8 @@ struct UnifiedSettingsView: View {
                 .padding(.bottom, 40)
             }
         }
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 24))
-        .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+        .background(.thinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -193,12 +228,14 @@ struct LabeledSlider: View {
         VStack(spacing: 8) {
             HStack {
                 Text(label)
+                    .font(.subheadline)
                 Spacer()
                 Text(String(format: format, value))
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
+                    .font(.subheadline)
             }
-            Slider(value: $value, in: range, step: 0.1)
+            Slider(value: $value, in: range)
         }
     }
 }

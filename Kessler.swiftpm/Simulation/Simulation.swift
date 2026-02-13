@@ -95,7 +95,7 @@ class Simulation: ObservableObject {
     @Published var timeScale: Double = 0.1 { didSet { syncSettingsWithEngine() } }
     @Published var showSatellites: Bool = true { didSet { syncSettingsWithEngine() } }
     
-    Published var highContrast: Bool = false { didSet { syncSettingsWithEngine() } }
+    @Published var highContrast: Bool = false { didSet { syncSettingsWithEngine() } }
         @Published var showEarth: Bool = true { didSet { syncSettingsWithEngine() } }
         @Published var showStats: Bool = true
     
@@ -148,7 +148,7 @@ class Simulation: ObservableObject {
     func zoomCamera(scaleFactor: Float) { engine.zoomCamera(scaleFactor: scaleFactor) }
     
     func resetSettingsToDefaults() {
-        timeScale = 1
+        timeScale = 1.0
         debrisPerCollision = 4
         explosionForce = 1.1
         collisionRadius = 1.0
