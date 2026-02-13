@@ -1,61 +1,194 @@
-//
-//  PhysicsEngine.swift
-//  Kessler
-//
-//  Created by Pedro Wiezel on 11/02/26.
-//
-
-import Foundation
-import RealityKit
+import simd
 import Combine
 import UIKit
+import RealityKit
+
+class DebrisPool {
+    var positions: ContiguousArray<SIMD3<Float>>
+    var velocities: ContiguousArray<SIMD3<Float>>
+    var orientations: ContiguousArray<simd_quatf>
+    var entities: ContiguousArray<ModelEntity>
+    
+    var activeCount: Int = 0
+    let capacity: Int
+    
+    init(capacity: Int, prototypeMeshes: [MeshResource], materials: [Material]) {
+        self.capacity = capacity
+        self.positions = ContiguousArray(repeating: .zero, count: capacity)
+        self.velocities = ContiguousArray(repeating: .zero, count: capacity)
+        self.orientations = ContiguousArray(repeating: simd_quatf(ix: 0, iy: 0, iz: 0, r: 1), count: capacity)
+        self.entities = ContiguousArray()
+        self.entities.reserveCapacity(capacity)
+        
+        for _ in 0..<capacity {
+            let mesh = prototypeMeshes.randomElement() ?? prototypeMeshes[0]
+            let material = materials.randomElement() ?? materials[0]
+            let entity = ModelEntity(mesh: mesh, materials: [material])
+            entity.isEnabled = false
+            self.entities.append(entity)
+        }
+    }
+    
+    func reset() {
+        activeCount = 0
+        for i in 0..<entities.count { entities[i].isEnabled = false }
+    }
+    
+    func spawn(at position: SIMD3<Float>, velocity: SIMD3<Float>, orientation: simd_quatf, scale: Float) {
+        guard activeCount < capacity else { return }
+        let index = activeCount
+        
+        positions[index] = position
+        velocities[index] = velocity
+        orientations[index] = orientation
+        
+        let entity = entities[index]
+        entity.position = position
+        entity.orientation = orientation
+        entity.scale = SIMD3<Float>(repeating: scale)
+        entity.isEnabled = true
+        
+        activeCount += 1
+    }
+    
+    func kill(at index: Int) {
+        guard index < activeCount else { return }
+        let lastIndex = activeCount - 1
+        
+        entities[index].isEnabled = false
+        
+        if index != lastIndex {
+            positions[index] = positions[lastIndex]
+            velocities[index] = velocities[lastIndex]
+            orientations[index] = orientations[lastIndex]
+            entities.swapAt(index, lastIndex)
+        }
+        
+        activeCount -= 1
+    }
+    
+    func updatePhysics(dt: Float, earthMass: Float, killRadiusSq: Float, maxRadiusSq: Float, scale: Float, rotDelta: simd_quatf) {
+        
+        positions.withUnsafeMutableBufferPointer { posPtr in
+            velocities.withUnsafeMutableBufferPointer { velPtr in
+                
+                DispatchQueue.concurrentPerform(iterations: activeCount) { i in
+                    let pos = posPtr[i]
+                    let distSq = length_squared(pos)
+                    
+                    if distSq < killRadiusSq || distSq > maxRadiusSq { return }
+                    
+                    let invDist = simd_rsqrt(distSq)
+                    let gravityAccel = -(earthMass * pos) * (invDist * invDist * invDist)
+                    
+                    velPtr[i] += gravityAccel * dt
+                    posPtr[i] += velPtr[i] * dt
+                }
+            }
+        }
+        
+        var killList: [Int] = []
+        killList.reserveCapacity(100)
+        
+        for i in 0..<activeCount {
+            let distSq = length_squared(positions[i])
+            
+            if distSq < killRadiusSq || distSq > maxRadiusSq {
+                killList.append(i)
+                continue
+            }
+            
+            let entity = entities[i]
+            entity.position = positions[i]
+            
+            orientations[i] *= rotDelta
+            entity.orientation = orientations[i]
+            
+            if entity.scale.x != scale {
+                entity.scale = SIMD3<Float>(repeating: scale)
+            }
+        }
+        
+        for index in killList.sorted(by: >) {
+            self.kill(at: index)
+        }
+    }
+}
 
 struct SpatialGrid {
-    private var headCell: [Int32]
-    private var nextParticle: [Int32]
+    private var headCell: ContiguousArray<Int32>
+    private var nextParticle: ContiguousArray<Int32>
+    private var usedCells: [Int] = []
     
-    let gridSize: Int = 100
-    let cellCount: Int = 1_000_000
-    let offset: Float = 500.0
+    let neighborOffsets: [Int]
+    
+    let gridSize: Int = 64
+    let shiftY: Int = 6
+    let shiftZ: Int = 12
+    let mask: Int = 63
+    
+    let offset: Float
     let cellSize: Float
+    let inverseCellSize: Float
+    let cellCount: Int
     
-    init(maxObjects: Int, cellSize: Float) {
+    init(maxObjects: Int, cellSize: Float = 10.0) {
         self.cellSize = cellSize
-        self.headCell = Array(repeating: -1, count: cellCount)
-        self.nextParticle = Array(repeating: -1, count: maxObjects)
+        self.inverseCellSize = 1.0 / cellSize
+        self.offset = (Float(128) * cellSize) / 2.0
+        self.cellCount = 128 * 128 * 128
+        
+        self.headCell = ContiguousArray(repeating: -1, count: cellCount)
+        self.nextParticle = ContiguousArray(repeating: -1, count: maxObjects)
+        self.usedCells.reserveCapacity(maxObjects)
+        
+        var offsets: [Int] = []
+        offsets.reserveCapacity(27)
+        let gs = 128
+        let gs2 = 128 * 128
+        for x in -1...1 {
+            for y in -1...1 {
+                for z in -1...1 {
+                    offsets.append(x + (y * gs) + (z * gs2))
+                }
+            }
+        }
+        self.neighborOffsets = offsets
     }
     
     mutating func clear() {
-        headCell.withUnsafeMutableBufferPointer { buffer in
-            buffer.initialize(repeating: -1)
+        for cellIndex in usedCells {
+            headCell[cellIndex] = -1
+        }
+        usedCells.removeAll(keepingCapacity: true)
+    }
+    
+    mutating func add(objectIndex: Int, position: SIMD3<Float>) {
+        let cellID = getCellIndex(for: position)
+        if cellID != -1 {
+            if headCell[cellID] == -1 {
+                usedCells.append(cellID)
+            }
+            nextParticle[objectIndex] = headCell[cellID]
+            headCell[cellID] = Int32(objectIndex)
         }
     }
     
     @inline(__always)
     func getCellIndex(for position: SIMD3<Float>) -> Int {
-        let x = Int((position.x + offset) / cellSize)
-        let y = Int((position.y + offset) / cellSize)
-        let z = Int((position.z + offset) / cellSize)
+        let x = Int((position.x + offset) * inverseCellSize)
+        let y = Int((position.y + offset) * inverseCellSize)
+        let z = Int((position.z + offset) * inverseCellSize)
         
-        if x >= 0 && x < gridSize && y >= 0 && y < gridSize && z >= 0 && z < gridSize {
-            return x + (y * gridSize) + (z * gridSize * gridSize)
+        if x & ~mask == 0 && y & ~mask == 0 && z & ~mask == 0 {
+            return x | (y << shiftY) | (z << shiftZ)
         }
         return -1
     }
     
-    mutating func add(objectIndex: Int, position: SIMD3<Float>) {
-        let cellID = getCellIndex(for: position)
-        guard cellID != -1 else { return }
-        
-        nextParticle[objectIndex] = headCell[cellID]
-        headCell[cellID] = Int32(objectIndex)
-    }
-    
     @inline(__always)
     func firstObject(inCell cellIndex: Int) -> Int {
-        if cellIndex >= 0 && cellIndex < cellCount {
-            return Int(headCell[cellIndex])
-        }
+        if cellIndex >= 0 && cellIndex < cellCount { return Int(headCell[cellIndex]) }
         return -1
     }
     
@@ -80,13 +213,31 @@ class PhysicsEngine: ObservableObject {
     let cameraPivot = Entity()
     let cameraEntity = Entity()
     
+    
+    private let standardSatMaterial = UnlitMaterial(color: .systemPink)
+    private let standardDebrisMaterials = [
+        UnlitMaterial(color: .gray),
+        UnlitMaterial(color: .lightGray),
+        UnlitMaterial(color: .white)
+    ]
+    
+    private let highContrastSatMaterial = UnlitMaterial(color: .systemPink)
+    private let highContrastDebrisMaterial = UnlitMaterial(color: .systemIndigo)
+    
+    var satelliteMaterial: Material
+    var debrisMaterials: [Material]
+    
     var satellites: [ModelEntity] = []
-    
-    var debris: [ModelEntity] = []
-    var debrisVelocities: [SIMD3<Float>] = []
-    
-    private var allEntities: [ModelEntity] = []
+    var debrisPool: DebrisPool!
     private var grid: SpatialGrid
+    
+    private var satPosCache: [SIMD3<Float>] = []
+    private var satVelCache: [SIMD3<Float>] = []
+    
+    struct CollisionEvent {
+        let position: SIMD3<Float>
+        let velocity: SIMD3<Float>
+    }
     
     var settings = SimSettings()
     var frameCounter = 0
@@ -94,51 +245,47 @@ class PhysicsEngine: ObservableObject {
     var cameraZoomLevel: Float = 350.0
     var cameraAngleX: Float = -0.35
     var cameraAngleY: Float = 3.25
+    private var isSettingsOpen: Bool = false
     
-    var debrisMeshSmall: MeshResource
-    var debrisMeshMedium: MeshResource
-    var debrisMeshLarge: MeshResource
+    var debrisMeshes: [MeshResource] = []
     var satelliteMesh: MeshResource
-    
-    var debrisMaterialDark, debrisMaterialLight, debrisMaterialWhite: UnlitMaterial
-    var satelliteMaterial: PhysicallyBasedMaterial
     
     let earthRadius: Float = 100.0
     let gravitationalConstant: Float = 1.0
     let earthMass: Float = 50000
     
     let debrisRotationDelta = simd_quatf(angle: 0.05, axis: [1, 0, 0])
+    var killRadiusSq: Float = 0
+    let maxRadiusSq: Float = 250.0 * 250.0
     
     private var sceneUpdateSubscription: Cancellable?
     
     init() {
         OrbitalData.registerComponent()
-        self.grid = SpatialGrid(maxObjects: 15_000, cellSize: 10.0)
         
-        debrisMaterialDark = UnlitMaterial(color: .gray)
-        debrisMaterialLight = UnlitMaterial(color: .lightGray)
-        debrisMaterialWhite = UnlitMaterial(color: .white)
+        self.grid = SpatialGrid(maxObjects: 3_500, cellSize: 10.0)
+        self.killRadiusSq = pow(earthRadius + 2.0, 2)
         
-        satelliteMaterial = PhysicallyBasedMaterial()
-        satelliteMaterial.baseColor = .init(tint: .purple)
-        satelliteMaterial.metallic = .init(floatLiteral: 0.6)
-        satelliteMaterial.roughness = .init(floatLiteral: 0.4)
+        self.satelliteMaterial = standardSatMaterial
+        self.debrisMaterials = standardDebrisMaterials
         
-        satelliteMesh = .generateBox(size: 0.75)
-        debrisMeshSmall = Self.generateDebrisPyramid(size: 0.35)
-        debrisMeshMedium = Self.generateDebrisPyramid(size: 0.45)
-        debrisMeshLarge = Self.generateDebrisPyramid(size: 0.55)
+        satelliteMesh = .generateBox(size: 1.2)
         
-        debris.reserveCapacity(7000)
-        debrisVelocities.reserveCapacity(7000)
-        allEntities.reserveCapacity(8000)
+        debrisMeshes = [
+            Self.generateDebrisPyramid(size: 0.5),
+            Self.generateDebrisPyramid(size: 0.6),
+            Self.generateDebrisPyramid(size: 0.7)
+        ]
+        
+        self.debrisPool = DebrisPool(capacity: 3_000, prototypeMeshes: debrisMeshes, materials: standardDebrisMaterials)
     }
     
     static func generateDebrisPyramid(size: Float) -> MeshResource {
         let halfSize = size / 2
         let height = size
-        let yBase = -height / 2
-        let yTip = height / 2
+        
+        let yBase = -(height * 0.25)
+        let yTip = height * 0.75
         
         let tipVertex = SIMD3<Float>(0, yTip, 0)
         let baseVertex1 = SIMD3<Float>(-halfSize, yBase, halfSize)
@@ -174,6 +321,8 @@ class PhysicsEngine: ObservableObject {
     }
     
     private func spawnExplosion(at position: SIMD3<Float>, velocity: SIMD3<Float>) {
+        if debrisPool.activeCount >= settings.maxDebris { return }
+        
         let debrisCount = min(Int(settings.debrisPerCollision), 20)
         let explosionImpulse = Float(settings.explosionForce) * 3.0
         
@@ -186,6 +335,8 @@ class PhysicsEngine: ObservableObject {
         let scaleRadial = Float(settings.spreadRadial) * 0.05
         
         for _ in 0...debrisCount {
+            if debrisPool.activeCount >= settings.maxDebris { break }
+            
             let randomTangential = Float.random(in: -1...1) * scaleTangential
             let randomVertical = Float.random(in: -1...1) * scaleVertical
             let randomRadial = Float.random(in: -1...1) * scaleRadial
@@ -198,32 +349,26 @@ class PhysicsEngine: ObservableObject {
             let finalVelocity = velocity + (impulseVector * explosionImpulse * speedVariance)
             let finalPosition = position + (impulseVector * 1.2)
             
-            let roll = Float.random(in: 0...1)
-            let mesh: MeshResource = roll < 0.5 ? debrisMeshSmall : (roll < 0.9 ? debrisMeshMedium : debrisMeshLarge)
-            let material: UnlitMaterial = roll < 0.5 ? debrisMaterialDark : (roll < 0.9 ? debrisMaterialLight : debrisMaterialWhite)
-            
-            let debrisEntity = ModelEntity(mesh: mesh, materials: [material])
-            let scale = Float(settings.debrisScale)
-            debrisEntity.scale = [scale, scale, scale]
-            debrisEntity.position = finalPosition
-            debrisEntity.orientation = simd_quatf(angle: Float.random(in: 0...3), axis: [1, 1, 0])
-            
-            debrisEntity.components.set(OrbitalData(velocity: finalVelocity, radius: 1 * scale, type: .debris))
-            
-            rootAnchor.addChild(debrisEntity)
-            
-            debris.append(debrisEntity)
-            debrisVelocities.append(finalVelocity)
+            debrisPool.spawn(
+                at: finalPosition,
+                velocity: finalVelocity,
+                orientation: simd_quatf(angle: Float.random(in: 0...3), axis: [1, 1, 0]),
+                scale: Float(settings.debrisScale)
+            )
         }
     }
-
+    
     func runSimulationFrame() {
-        if isPaused { return }
-        
         processCommandQueue()
         
-        updateSatellites()
-        updateDebrisFast()
+        if isPaused { return }
+        
+        let gravityMult = Float(settings.gravityMultiplier)
+        let deltaTime = (1.0 / 600.0) * Float(settings.timeScale)
+        let earthMassVal = earthMass * gravityMult
+        
+        updateSatellites(dt: deltaTime, earthMass: earthMassVal)
+        updateDebrisFast(dt: deltaTime, earthMass: earthMassVal)
         updateEarthRotation()
         detectCollisions()
         
@@ -231,9 +376,8 @@ class PhysicsEngine: ObservableObject {
         if frameCounter % 15 == 0 { publishStats() }
     }
     
-    func updateSatellites() {
-        let gravityMult = Float(settings.gravityMultiplier)
-        let deltaTime = (1.0 / 60.0) * Float(settings.timeScale)
+    
+    func updateSatellites(dt: Float, earthMass: Float) {
         let satScale = Float(settings.satelliteScale)
         let showModels = settings.showSatellites
         
@@ -257,165 +401,226 @@ class PhysicsEngine: ObservableObject {
             
             let pos = entity.position
             let distSq = length_squared(pos)
-            let effectiveGravity = gravitationalConstant * earthMass * gravityMult
-            let gravityAcceleration = pos * (-effectiveGravity / (distSq * sqrt(distSq)))
+            let gravityAcceleration = pos * (-earthMass / (distSq * sqrt(distSq)))
             
-            data.velocity += gravityAcceleration * deltaTime
-            entity.position += data.velocity * deltaTime
+            data.velocity += gravityAcceleration * dt
+            entity.position += data.velocity * dt
             entity.components[OrbitalData.self] = data
         }
     }
     
-    func updateDebrisFast() {
-        let gravityMult = Float(settings.gravityMultiplier)
-        let deltaTime = (1.0 / 60.0) * Float(settings.timeScale)
-        let debScale = Float(settings.debrisScale)
-        let killRadius = earthRadius + 2.0
+    func updateDebrisFast(dt: Float, earthMass: Float) {
+        let scale = Float(settings.debrisScale)
+        let rotDelta = debrisRotationDelta
         
-        for i in (0..<debris.count).reversed() {
-            let entity = debris[i]
-            
-            var velocity = debrisVelocities[i]
-            let pos = entity.position
-            
-            if !entity.isEnabled || length(pos) < killRadius {
-                entity.removeFromParent()
-                debris.remove(at: i)
-                debrisVelocities.remove(at: i)
-                continue
-            }
-            
-            if entity.scale.x != debScale { entity.scale = [debScale, debScale, debScale] }
-            
-            let distSq = length_squared(pos)
-            let gravityFactor = -(gravitationalConstant * earthMass * gravityMult) / (distSq * sqrt(distSq))
-            
-            velocity += pos * gravityFactor * deltaTime
-            let newPos = pos + velocity * deltaTime
-            
-            entity.position = newPos
-            entity.orientation *= debrisRotationDelta
-            
-            debrisVelocities[i] = velocity
-        }
+        debrisPool.updatePhysics(
+            dt: dt,
+            earthMass: earthMass,
+            killRadiusSq: killRadiusSq,
+            maxRadiusSq: maxRadiusSq,
+            scale: scale,
+            rotDelta: rotDelta
+        )
         
-        if debris.count > settings.maxDebris {
-            let overflow = debris.count - settings.maxDebris
-            for _ in 0..<overflow {
-                debris.first?.removeFromParent()
-                debris.removeFirst()
-                debrisVelocities.removeFirst()
-            }
+        if debrisPool.activeCount > settings.maxDebris {
+            let excess = debrisPool.activeCount - settings.maxDebris
+            for _ in 0..<excess { debrisPool.kill(at: 0) }
         }
     }
     
     func detectCollisions() {
-        allEntities.removeAll(keepingCapacity: true)
-        allEntities.append(contentsOf: satellites)
-        allEntities.append(contentsOf: debris)
+        if frameCounter % 2 != 0 { return }
         
-        grid.clear()
+        let satCount = satellites.count
+        let totalCount = satCount + debrisPool.activeCount
+        if totalCount == 0 { return }
         
-        for i in 0..<allEntities.count {
-            let entity = allEntities[i]
-            if entity.isEnabled {
-                grid.add(objectIndex: i, position: entity.position)
+        satPosCache.removeAll(keepingCapacity: true)
+        satVelCache.removeAll(keepingCapacity: true)
+        
+        var activeSatIndices: [Int] = []
+        activeSatIndices.reserveCapacity(satCount)
+        
+        for i in 0..<satCount {
+            let sat = satellites[i]
+            if sat.isEnabled {
+                satPosCache.append(sat.position)
+                satVelCache.append(sat.components[OrbitalData.self]?.velocity ?? .zero)
+                activeSatIndices.append(i)
             }
         }
         
-        var confirmedCollisions: [(position: SIMD3<Float>, velocity: SIMD3<Float>)] = []
-        let thresholdSq = Float(settings.collisionRadius * settings.collisionRadius)
+        grid.clear()
         
-        let gs = grid.gridSize
-        let gs2 = gs * gs
-        let neighborOffsets = [0, 1, -1, gs, -gs, gs2, -gs2]
+        for i in 0..<satPosCache.count {
+            grid.add(objectIndex: i, position: satPosCache[i])
+        }
         
-        let satCount = satellites.count
+        debrisPool.positions.withUnsafeBufferPointer { posPtr in
+            for i in 0..<debrisPool.activeCount {
+                grid.add(objectIndex: satPosCache.count + i, position: posPtr[i])
+            }
+        }
         
-        for i in 0..<satCount {
-            let primary = allEntities[i]
-            guard primary.isEnabled else { continue }
-            
-            let cellID = grid.getCellIndex(for: primary.position)
-            if cellID == -1 { continue }
-            
-            for offset in neighborOffsets {
-                let targetCell = cellID + offset
-                var neighborIndex = grid.firstObject(inCell: targetCell)
+        let collisionLock = NSLock()
+        var deaths: [Int] = []
+        var debrisKills: [Int] = []
+        var explosions: [CollisionEvent] = []
+        
+        let radius = Float(settings.collisionRadius)
+        let radiusSq = radius * radius
+        let cacheCount = satPosCache.count
+        
+        debrisPool.positions.withUnsafeBufferPointer { debrisPosPtr in
+            debrisPool.velocities.withUnsafeBufferPointer { debrisVelPtr in
                 
-                while neighborIndex != -1 {
-                    if i != neighborIndex {
-                        let neighbor = allEntities[neighborIndex]
+                DispatchQueue.concurrentPerform(iterations: cacheCount) { i in
+                    let posA = satPosCache[i]
+                    let cellID = grid.getCellIndex(for: posA)
+                    if cellID == -1 { return }
+                    
+                    for offset in grid.neighborOffsets {
+                        let targetCell = cellID + offset
+                        var neighborIdx = grid.firstObject(inCell: targetCell)
                         
-                        let isNeighborSatellite = neighborIndex < satCount
-                        let shouldCheck = !isNeighborSatellite || (isNeighborSatellite && primary.id > neighbor.id)
-                        
-                        if shouldCheck && neighbor.isEnabled {
-                            if length_squared(primary.position - neighbor.position) < thresholdSq {
-                                primary.isEnabled = false
-                                neighbor.isEnabled = false
+                        while neighborIdx != -1 {
+                            
+                            if neighborIdx > i {
+                                var posB: SIMD3<Float> = .zero
+                                var velB: SIMD3<Float> = .zero
+                                var isDebris = false
                                 
-                                let v1 = primary.components[OrbitalData.self]?.velocity ?? .zero
-                                
-                                var v2: SIMD3<Float> = .zero
-                                if isNeighborSatellite {
-                                    v2 = neighbor.components[OrbitalData.self]?.velocity ?? .zero
+                                if neighborIdx < cacheCount {
+                                    posB = satPosCache[neighborIdx]
+                                    velB = satVelCache[neighborIdx]
                                 } else {
-                                    let debrisIndex = neighborIndex - satCount
-                                    if debrisIndex >= 0 && debrisIndex < debrisVelocities.count {
-                                        v2 = debrisVelocities[debrisIndex]
+                                    let dIdx = neighborIdx - cacheCount
+                                    if dIdx < debrisPool.activeCount {
+                                        posB = debrisPosPtr[dIdx]
+                                        velB = debrisVelPtr[dIdx]
+                                        isDebris = true
+                                    } else {
+                                        neighborIdx = grid.nextObject(after: neighborIdx)
+                                        continue
                                     }
                                 }
                                 
-                                confirmedCollisions.append((primary.position, v1))
-                                confirmedCollisions.append((neighbor.position, v2))
+                                let deltaX = abs(posA.x - posB.x)
+                                if deltaX <= radius {
+                                    let deltaY = abs(posA.y - posB.y)
+                                    if deltaY <= radius {
+                                        let deltaZ = abs(posA.z - posB.z)
+                                        if deltaZ <= radius {
+                                            
+                                            if length_squared(posA - posB) < radiusSq {
+                                                collisionLock.lock()
+                                                
+                                                deaths.append(activeSatIndices[i])
+                                                explosions.append(CollisionEvent(position: posA, velocity: satVelCache[i]))
+                                                
+                                                if isDebris {
+                                                    debrisKills.append(neighborIdx - cacheCount)
+                                                    explosions.append(CollisionEvent(position: posB, velocity: velB))
+                                                } else {
+                                                    deaths.append(activeSatIndices[neighborIdx])
+                                                    explosions.append(CollisionEvent(position: posB, velocity: velB))
+                                                }
+                                                
+                                                collisionLock.unlock()
+                                            }
+                                        }
+                                    }
+                                }
                             }
+                            neighborIdx = grid.nextObject(after: neighborIdx)
                         }
                     }
-                    neighborIndex = grid.nextObject(after: neighborIndex)
                 }
             }
         }
         
-        for (pos, vel) in confirmedCollisions {
-            spawnExplosion(at: pos, velocity: vel)
+        for satIndex in deaths {
+            if satIndex < satellites.count && satellites[satIndex].isEnabled {
+                satellites[satIndex].isEnabled = false
+            }
+        }
+        
+        let uniqueDebrisKills = Set(debrisKills).sorted(by: >)
+        for debrisIndex in uniqueDebrisKills {
+            debrisPool.kill(at: debrisIndex)
+        }
+        
+        for boom in explosions {
+            spawnExplosion(at: boom.position, velocity: boom.velocity)
         }
     }
     
     func resetUniverse(satelliteCount: Int) {
         satellites.forEach { $0.removeFromParent() }
-        debris.forEach { $0.removeFromParent() }
         satellites.removeAll()
-        debris.removeAll()
-        debrisVelocities.removeAll()
+        debrisPool.reset()
         grid.clear()
         
         let orbitAlt = Float(settings.orbitAltitude)
         let gravityMult = Float(settings.gravityMultiplier)
         
-        for i in 0..<satelliteCount {
-            let angle = (Float(i) / Float(satelliteCount)) * 2 * .pi
-            let radius = orbitAlt + Float.random(in: -8.0...8.0)
-            let x = radius * cos(angle)
-            let z = radius * sin(angle)
+        var spawnedPositions: [SIMD3<Float>] = []
+        spawnedPositions.reserveCapacity(satelliteCount)
+        let minSpawnDistance: Float = 2.5
+        
+        for _ in 0..<satelliteCount {
+            var validPosition = false
+            var attempts = 0
+            var finalPos: SIMD3<Float> = .zero
+            var finalVel: SIMD3<Float> = .zero
+             
+            while !validPosition && attempts < 10 {
+                attempts += 1
+                
+                let anomaly = Float.random(in: 0...(2 * .pi))
+                let raan = Float.random(in: 0...(2 * .pi))
+                
+                let inclination = settings.useRandomInclination
+                ? Float.random(in: 0...(.pi))
+                : 0
+                
+                let radius = orbitAlt + Float.random(in: -8.0...8.0)
+                let x = radius * cos(anomaly)
+                let z = radius * sin(anomaly)
+                
+                let orbitalSpeed = sqrt((gravitationalConstant * earthMass * gravityMult) / radius)
+                let vx = -sin(anomaly) * orbitalSpeed
+                let vz = cos(anomaly) * orbitalSpeed
+                
+                let rotInclination = simd_quatf(angle: inclination, axis: [1, 0, 0])
+                let rotRAAN = simd_quatf(angle: raan, axis: [0, 1, 0])
+                let combinedRotation = rotRAAN * rotInclination
+                
+                let candidatePos = combinedRotation.act(SIMD3<Float>(x, 0, z))
+                let candidateVel = combinedRotation.act(SIMD3<Float>(vx, 0, vz))
+                
+                validPosition = true
+                for existing in spawnedPositions {
+                    if distance(existing, candidatePos) < minSpawnDistance {
+                        validPosition = false
+                        break
+                    }
+                }
+                
+                if validPosition || attempts == 10 {
+                    finalPos = candidatePos
+                    finalVel = candidateVel
+                }
+            }
             
-            let orbitalSpeed = sqrt((gravitationalConstant * earthMass * gravityMult) / radius)
-            let velocityX = -sin(angle) * orbitalSpeed
-            let velocityZ = cos(angle) * orbitalSpeed
-            
-            let orbitRotation: simd_quatf = settings.useRandomInclination
-                ? simd_quatf(angle: Float.random(in: 0...(.pi*2)), axis: [1, 0, 0])
-                : simd_quatf(angle: 0, axis: [1, 0, 0])
-            
-            let finalPosition = orbitRotation.act(SIMD3<Float>(x, 0, z))
-            let finalVelocity = orbitRotation.act(SIMD3<Float>(velocityX, 0, velocityZ))
+            spawnedPositions.append(finalPos)
             
             let entity = ModelEntity(mesh: satelliteMesh, materials: [satelliteMaterial])
             let scale = Float(settings.satelliteScale)
             entity.scale = [scale, scale, scale]
-            entity.position = finalPosition
+            entity.position = finalPos
             
-            entity.components.set(OrbitalData(velocity: finalVelocity, radius: 0.5 * scale, type: .leo))
+            entity.components.set(OrbitalData(velocity: finalVel, radius: 0.5 * scale, type: .leo))
             
             rootAnchor.addChild(entity)
             satellites.append(entity)
@@ -433,14 +638,20 @@ class PhysicsEngine: ObservableObject {
             case .reset(let count): resetUniverse(satelliteCount: count)
             case .detonate: triggerRandomExplosion()
             case .updateSettings(let newSettings):
+                let contrastChanged = (self.settings.highContrast != newSettings.highContrast)
+                let earthChanged = (self.settings.showEarth != newSettings.showEarth)
+                
                 self.settings = newSettings
                 updateLighting()
+                
+                if contrastChanged { updateHighContrastMode() }
+                if earthChanged { earthEntity?.isEnabled = newSettings.showEarth }
             }
         }
     }
     
     func publishStats() {
-        let stats = SimStats(debris: debris.count, satellites: satellites.count)
+        let stats = SimStats(debris: debrisPool.activeCount, satellites: satellites.count)
         DispatchQueue.main.async { self.simulationStats = stats }
     }
     
@@ -459,6 +670,36 @@ class PhysicsEngine: ObservableObject {
         }
     }
     
+    func updateHighContrastMode() {
+        guard let arView = arView else { return }
+        let isHighContrast = settings.highContrast
+        
+        DispatchQueue.main.async {
+            arView.environment.background = isHighContrast ? .color(.white) : .color(.black)
+        }
+        
+        let activeSatMat = isHighContrast ? highContrastSatMaterial : standardSatMaterial
+        let activeDebrisMats = isHighContrast ? [highContrastDebrisMaterial] : standardDebrisMaterials
+        
+        self.satelliteMaterial = activeSatMat
+        self.debrisMaterials = activeDebrisMats
+        
+        for sat in satellites {
+            if var model = sat.model {
+                model.materials = [activeSatMat]
+                sat.model = model
+            }
+        }
+        
+        for entity in debrisPool.entities {
+            if var model = entity.model {
+                let mat = activeDebrisMats.randomElement() ?? activeDebrisMats[0]
+                model.materials = [mat]
+                entity.model = model
+            }
+        }
+    }
+    
     func rotateCamera(deltaX: Float, deltaY: Float) {
         cameraAngleX += deltaX
         cameraAngleY += deltaY
@@ -469,7 +710,28 @@ class PhysicsEngine: ObservableObject {
     func zoomCamera(scaleFactor: Float) {
         cameraZoomLevel /= scaleFactor
         cameraZoomLevel = max(120, min(800, cameraZoomLevel))
-        cameraEntity.position.z = cameraZoomLevel
+        updateCameraPosition(animated: false)
+    }
+    
+    func setSidePanelOpen(_ isOpen: Bool) {
+        self.isSettingsOpen = isOpen
+        updateCameraPosition(animated: true)
+    }
+    
+    private func updateCameraPosition(animated: Bool = false) {
+        let targetX = isSettingsOpen ? (cameraZoomLevel * 0.20) : 0.0
+        
+        let targetTransform = Transform(
+            scale: .one,
+            rotation: .init(),
+            translation: SIMD3<Float>(targetX, 0, cameraZoomLevel)
+        )
+        
+        if animated {
+            cameraEntity.move(to: targetTransform, relativeTo: cameraPivot, duration: 0.4, timingFunction: .easeInOut)
+        } else {
+            cameraEntity.transform = targetTransform
+        }
     }
     
     func resetCamera() {
@@ -481,11 +743,13 @@ class PhysicsEngine: ObservableObject {
         self.cameraAngleY = targetAngleY
         self.cameraZoomLevel = targetZoom
         
+        let targetX = isSettingsOpen ? (targetZoom * 0.20) : 0.0
+        
         let rotationY = simd_quatf(angle: targetAngleY, axis: [0, 1, 0])
         let rotationX = simd_quatf(angle: targetAngleX, axis: [1, 0, 0])
         let targetOrientation = rotationY * rotationX
         
-        let targetCameraTransform = Transform(scale: .one, rotation: .init(), translation: [0, 0, targetZoom])
+        let targetCameraTransform = Transform(scale: .one, rotation: .init(), translation: [targetX, 0, targetZoom])
         
         cameraPivot.move(to: Transform(rotation: targetOrientation), relativeTo: rootAnchor, duration: 1.5, timingFunction: .easeInOut)
         cameraEntity.move(to: targetCameraTransform, relativeTo: cameraPivot, duration: 1.5, timingFunction: .easeInOut)
@@ -500,6 +764,8 @@ class PhysicsEngine: ObservableObject {
     func attach(to view: ARView) {
         self.arView = view
         
+        view.debugOptions.insert(.showStatistics)
+        
         if rootAnchor.children.isEmpty {
             mainSun.light.intensity = 5000
             mainSun.look(at: [0,0,0], from: [0, 50, -500], relativeTo: nil)
@@ -513,6 +779,10 @@ class PhysicsEngine: ObservableObject {
             setupEarth()
             setupCamera()
             updateLighting()
+            
+            for entity in debrisPool.entities {
+                rootAnchor.addChild(entity)
+            }
         }
         
         rootAnchor.removeFromParent()
@@ -543,34 +813,42 @@ class PhysicsEngine: ObservableObject {
     func setupEarth() {
         let earthMesh = MeshResource.generateSphere(radius: earthRadius)
         var earthMaterial = PhysicallyBasedMaterial()
-        earthMaterial.roughness = .init(floatLiteral: 0.9)
+        
+        earthMaterial.roughness = .init(floatLiteral: 0.8)
         earthMaterial.metallic = .init(floatLiteral: 0.0)
+        earthMaterial.specular = .init(floatLiteral: 0.1)
         
         if let texture = try? TextureResource.load(named: "earthTopographicMap") {
             earthMaterial.baseColor = .init(texture: .init(texture))
         } else {
-            earthMaterial.baseColor = .init(tint: .blue)
+            earthMaterial.baseColor = .init(tint: .systemBlue)
         }
         
         let earth = ModelEntity(mesh: earthMesh, materials: [earthMaterial])
+        
+        let axialTilt = simd_quatf(angle: 23.5 * .pi / 180, axis: [0, 0, 1])
+        earth.orientation = axialTilt
+        
         self.earthEntity = earth
         rootAnchor.addChild(earth)
         
-        let atmosphereMesh = MeshResource.generateSphere(radius: earthRadius + 1.75)
+        let atmosphereMesh = MeshResource.generateSphere(radius: earthRadius + 2.0)
         var atmosphereMaterial = PhysicallyBasedMaterial()
-        atmosphereMaterial.baseColor = .init(tint: .blue.withAlphaComponent(0.1))
+        let atmColor = UIColor(red: 0.2, green: 0.7, blue: 1.0, alpha: 0.3)
+        atmosphereMaterial.baseColor = .init(tint: atmColor)
         atmosphereMaterial.roughness = .init(floatLiteral: 1.0)
         atmosphereMaterial.metallic = .init(floatLiteral: 0.0)
-        atmosphereMaterial.blending = .transparent(opacity: 0.3)
+        atmosphereMaterial.blending = .transparent(opacity: 0.25)
         
         let atmosphere = ModelEntity(mesh: atmosphereMesh, materials: [atmosphereMaterial])
+        atmosphere.components.set(OpacityComponent(opacity: 0.5))
         earth.addChild(atmosphere)
     }
     
     func updateEarthRotation() {
         guard let earth = earthEntity else { return }
-        let deltaTime = (1.0 / 60.0) * Float(settings.timeScale)
-        let rotationSpeed: Float = 0.02
+        let deltaTime = (1.0 / 600.0) * Float(settings.timeScale)
+        let rotationSpeed: Float = 0.2
         earth.orientation *= simd_quatf(angle: rotationSpeed * deltaTime, axis: [0, 1, 0])
     }
     

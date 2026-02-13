@@ -1,9 +1,9 @@
 import SwiftUI
 import RealityKit
+import TipKit
 
 class ARViewContainer: UIView {
     var arView: ARView?
-    
     override func layoutSubviews() {
         super.layoutSubviews()
         arView?.frame = self.bounds
@@ -12,7 +12,6 @@ class ARViewContainer: UIView {
 
 struct SimulationView: UIViewRepresentable {
     @ObservedObject var simulation: Simulation
-    
     func makeUIView(context: Context) -> ARViewContainer {
         let wrapper = ARViewContainer()
         let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
@@ -22,114 +21,51 @@ struct SimulationView: UIViewRepresentable {
         wrapper.addSubview(arView)
         return wrapper
     }
-    
     func updateUIView(_ uiView: ARViewContainer, context: Context) { }
 }
 
 struct ContentView: View {
     @StateObject var simulation = Simulation()
     @State private var selectedTab: Int = 0
+    @State private var showSettings = false
     
-    @State private var showRespawnAlert = false
-    
-    let respawnTip = RespawnTip()
+    let settingsTip = SettingsTip()
     let detonateTip = DetonateTip()
-    
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .medium)
     
     var body: some View {
-        TabView(selection: $selectedTab) {
+        ZStack(alignment: .trailing) {
             
-            ZStack {
-                SimulationContainer(simulation: simulation)
-                
-                VStack {
-                    HStack(alignment: .top) {
-                        SimMetrics(sim: simulation)
-                            .accessibilityElement(children: .combine)
-                            .accessibilityLabel("Simulation Status")
-                            .accessibilityValue("\(simulation.debrisCount) debris pieces, \(simulation.activeSatellites) satellites active.")
-                        
-                        Spacer()
-                        
-                        HStack(spacing: 12) {
-                            
-                            Button(action: {
-                                showRespawnAlert = true
-                            }) {
-                                Image(systemName: "arrow.counterclockwise")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 44, height: 44)
-                                    .background(.red.opacity(0.8))
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
-                            }
-                            .accessibilityLabel("Respawn Simulation")
-                            .popoverTip(respawnTip, arrowEdge: .top)
-                            .confirmationDialog(
-                                "Restart Simulation?",
-                                isPresented: $showRespawnAlert,
-                                titleVisibility: .visible
-                            ) {
-                                Button("Respawn", role: .destructive) {
-                                    let impact = UIImpactFeedbackGenerator(style: .heavy)
-                                    impact.impactOccurred()
-                                    simulation.resetSimulation()
-                                }
-                                Button("Cancel", role: .cancel) { }
-                            } message: {
-                                Text("This will delete all current debris and reset the simulation.")
-                            }
-                            
-                            Button(action: {
-                                simulation.isPaused.toggle()
-                                hapticFeedback.impactOccurred()
-                            }) {
-                                Image(systemName: simulation.isPaused ? "play.fill" : "pause.fill")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 44, height: 44)
-                                    .background(.orange.opacity(0.9))
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
-                                    
-                            }
-                            .accessibilityLabel(simulation.isPaused ? "Resume Simulation" : "Pause Simulation")
-                            
-                            Button(action: {
-                                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                                    simulation.resetCamera()
-                                }
-                                UIAccessibility.post(notification: .announcement, argument: "Camera reset to default orbit")
-                            }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "camera.fill")
-                                    Text("Reset View")
-                                        .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                }
-                                .foregroundStyle(.cyan)
-                                .padding(.horizontal, 12)
-                                .frame(height: 44)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
-                                .overlay(Capsule().stroke(.white.opacity(0.3), lineWidth: 1))
-                            }
-                            .accessibilityLabel("Reset Camera")
-                        }
+            SimulationContainer(simulation: simulation)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    if showSettings {
+                        withAnimation { showSettings = false }
+                        hapticFeedback.impactOccurred()
                     }
-                    .padding()
-                    
+                }
+            
+            VStack {
+                HStack(alignment: .top) {
+                    if simulation.showStats {
+                        SimMetrics(sim: simulation)
+                            .padding(.leading, 20)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
                     Spacer()
-                    
+                }
+                .padding(.top, 20)
+                
+                Spacer()
+                
+                if !showSettings {
                     Button(action: {
                         simulation.triggerDetonation()
                         hapticFeedback.impactOccurred()
-                        UIAccessibility.post(notification: .announcement, argument: "Detonation triggered")
                     }) {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill")
-                            Text("DETONATE A SATELLITE")
+                            Text("DETONATE")
                                 .fontWeight(.heavy)
                                 .font(.headline)
                         }
@@ -140,36 +76,74 @@ struct ContentView: View {
                         .clipShape(Capsule())
                         .shadow(radius: 10)
                     }
-                    .popoverTip(detonateTip, arrowEdge: .bottom)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, 30)
+                }
+            }
+            
+            if showSettings {
+                
+                UnifiedSettingsView(simulation: simulation, isPresented: $showSettings)
+                    .frame(width: 380)
+                    .padding(.trailing, 16)
                     .padding(.bottom, 20)
-                    .accessibilityLabel("Trigger Detonation")
-                }
+                    .padding(.top, 80)
+                    .transition(.move(edge: .trailing))
+                    .zIndex(2)
             }
-            .tabItem {
-                Label("Simulation", systemImage: "play.circle.fill")
+            
+            VStack {
+                HStack(spacing: 12) {
+                    Spacer()
+                    
+                    Button(action: {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            showSettings.toggle()
+                        }
+                        hapticFeedback.impactOccurred()
+                    }) {
+                        Image(systemName: showSettings ? "xmark" : "gear")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                    }
+                    
+                    Button(action: {
+                        simulation.isPaused.toggle()
+                        hapticFeedback.impactOccurred()
+                    }) {
+                        Image(systemName: simulation.isPaused ? "play.fill" : "pause.fill")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.orange.opacity(0.9))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                    }
+                    
+                    Button(action: {
+                        simulation.resetCamera()
+                    }) {
+                        Image(systemName: "camera.viewfinder")
+                            .font(.system(size: 21, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.blue.opacity(0.9))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                    }
+                }
+                .padding()
+                Spacer()
             }
-            .tag(0)
-            
-            SettingsView(simulation: simulation)
-                .tabItem {
-                    Label("Parameters", systemImage: "slider.horizontal.3")
-                }
-                .tag(1)
-            
-            KnowledgeView()
-                .tabItem {
-                    Label("Learn More", systemImage: "book.fill")
-                }
-                .tag(2)
+        }
+        .onChange(of: showSettings) {
+            simulation.setSettingsOpen(showSettings)
         }
         .preferredColorScheme(.dark)
-        .onChange(of: selectedTab) { newTab in
-            if newTab == 0 {
-                simulation.resumeSimulation()
-            } else {
-                simulation.pauseSimulation()
-            }
-        }
     }
 }
 

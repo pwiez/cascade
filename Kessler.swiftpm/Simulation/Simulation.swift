@@ -12,13 +12,15 @@ struct SimSettings {
     var timeScale: Double = 0
     var showSatellites: Bool = true
     
-    var maxDebris: Int = 7000
+    var maxDebris: Int = 3000
     var useRandomInclination: Bool = true
     var satelliteScale: Double = 1.0
     var debrisScale: Double = 1.0
     var gravityMultiplier: Double = 1.0
     var orbitAltitude: Double = 120.0
     var useOmniLight: Bool = false
+    var highContrast: Bool = false
+        var showEarth: Bool = true
 }
 
 struct SimStats {
@@ -53,16 +55,20 @@ class Simulation: ObservableObject {
         }
     }
     
+    func setSettingsOpen(_ isOpen: Bool) {
+            engine.setSidePanelOpen(isOpen)
+        }
+    
     @Published var satelliteCount: Double = 256 {
         didSet { syncSettingsWithEngine() }
     }
     
-    @Published var maxDebris: Double = 7000 {
-        didSet {
-            enforceSatelliteLimit()
-            syncSettingsWithEngine()
+    @Published var maxDebris: Double = 3000 {
+            didSet {
+                enforceSatelliteLimit()
+                syncSettingsWithEngine()
+            }
         }
-    }
     
     @Published var useRandomInclination: Bool = true { didSet { syncSettingsWithEngine() } }
     
@@ -89,8 +95,11 @@ class Simulation: ObservableObject {
     @Published var timeScale: Double = 0.1 { didSet { syncSettingsWithEngine() } }
     @Published var showSatellites: Bool = true { didSet { syncSettingsWithEngine() } }
     
-    @Published var debrisCount: Int = 0
-    @Published var activeSatellites: Int = 0
+    @Published var highContrast: Bool = false { didSet { syncSettingsWithEngine() } }
+        @Published var showEarth: Bool = true { didSet { syncSettingsWithEngine() } }
+        @Published var showStats: Bool = true
+    
+    @Published var stats = SimStats()
     @Published var isPaused: Bool = false {
         didSet { engine.isPaused = isPaused }
     }
@@ -98,16 +107,15 @@ class Simulation: ObservableObject {
     
     init() {
         engine.$simulationStats
-            .receive(on: RunLoop.main)
-            .sink { [weak self] stats in
-                self?.debrisCount = stats.debris
-                self?.activeSatellites = stats.satellites
-            }
-            .store(in: &cancellables)
+                    .receive(on: RunLoop.main)
+                    .assign(to: &$stats)
             
         engine.queueCommand(.reset(256))
         syncSettingsWithEngine()
     }
+    
+    var debrisCount: Int { stats.debris }
+        var activeSatellites: Int { stats.satellites }
     
     func syncSettingsWithEngine() {
         let settings = SimSettings(
@@ -140,15 +148,15 @@ class Simulation: ObservableObject {
     func zoomCamera(scaleFactor: Float) { engine.zoomCamera(scaleFactor: scaleFactor) }
     
     func resetSettingsToDefaults() {
-        timeScale = 0.1
+        timeScale = 1.0
         debrisPerCollision = 4
         explosionForce = 1.1
-        collisionRadius = 1.5
+        collisionRadius = 1.0
         spreadTangential = 1.0
         spreadVertical = 0.6
         spreadRadial = 0.2
         satelliteCount = 256
-        maxDebris = 7000
+        maxDebris = 3000
         useRandomInclination = true
         satelliteScale = 1.0
         debrisScale = 1.0
