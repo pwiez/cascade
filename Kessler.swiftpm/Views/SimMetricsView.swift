@@ -4,12 +4,11 @@ struct SimMetrics: View {
     @ObservedObject var sim: Simulation
     
     var statusColor: Color {
-        sim.debrisCount > 1000 ? .red : .white
+        sim.stats.debris > 1000 ? .red : .white
     }
     
     var body: some View {
         VStack(spacing: 12) {
-            
             VStack(spacing: 2) {
                 Text("ACTIVE SATELLITES")
                     .font(.caption2)
@@ -17,17 +16,11 @@ struct SimMetrics: View {
                     .foregroundStyle(.cyan)
                     .opacity(0.9)
                 
-                if #available(iOS 17.0, *) {
-                    Text("\(sim.activeSatellites)")
+                    Text("\(sim.stats.satellites)")
                         .font(.system(size: 28, weight: .light, design: .monospaced))
                         .foregroundStyle(.white)
-                        .contentTransition(.numericText(value: Double(sim.activeSatellites)))
-                        .animation(.snappy, value: sim.activeSatellites)
-                } else {
-                    Text("\(sim.activeSatellites)")
-                        .font(.system(size: 28, weight: .light, design: .monospaced))
-                        .foregroundStyle(.white)
-                }
+                        .contentTransition(.numericText(value: Double(sim.stats.satellites)))
+                        .animation(.snappy, )
             }
             
             Divider()
@@ -42,14 +35,13 @@ struct SimMetrics: View {
                     .opacity(0.9)
                 
                 if #available(iOS 17.0, *) {
-                    Text("\(sim.debrisCount)")
+                    Text("\(sim.stats.debris)")
                         .font(.system(size: 28, weight: .light, design: .monospaced))
                         .foregroundStyle(statusColor)
-                        .contentTransition(.numericText(value: Double(sim.debrisCount)))
-                        .animation(.snappy, value: sim.debrisCount)
+                        .contentTransition(.numericText(value: Double(sim.stats.debris)))
                 } else {
-                    Text("\(sim.debrisCount)")
-                        .font(.system(size: 28, weight: .light, design: .monospaced))
+                    Text("\(sim.stats.debris)")
+                        .font(.monospaced(.body)())
                         .foregroundStyle(statusColor)
                 }
             }
@@ -58,10 +50,7 @@ struct SimMetrics: View {
         .frame(width: 160)
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(.white.opacity(0.15), lineWidth: 1)
-        )
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(.white.opacity(0.15), lineWidth: 1))
         .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
     }
 }
