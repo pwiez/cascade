@@ -65,6 +65,7 @@ struct ContentView: View {
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
                             }
+                            .glassEffect()
                             .accessibilityLabel("Respawn Simulation")
                             .popoverTip(respawnTip, arrowEdge: .top)
                             .confirmationDialog(
@@ -93,8 +94,9 @@ struct ContentView: View {
                                     .background(.orange.opacity(0.9))
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
-                                    
+                                
                             }
+                            .glassEffect()
                             .accessibilityLabel(simulation.isPaused ? "Resume Simulation" : "Pause Simulation")
                             
                             Button(action: {
@@ -103,18 +105,15 @@ struct ContentView: View {
                                 }
                                 UIAccessibility.post(notification: .announcement, argument: "Camera reset to default orbit")
                             }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "camera.fill")
-                                    Text("Reset View")
-                                        .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                }
-                                .foregroundStyle(.cyan)
-                                .padding(.horizontal, 12)
-                                .frame(height: 44)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
-                                .overlay(Capsule().stroke(.white.opacity(0.3), lineWidth: 1))
+                                Image(systemName: "camera.viewfinder")
+                                    .font(.system(size: 21, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 44, height: 44)
+                                    .background(.blue.opacity(0.9))
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
                             }
+                            .glassEffect()
                             .accessibilityLabel("Reset Camera")
                         }
                     }
