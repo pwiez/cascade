@@ -59,9 +59,9 @@ struct SettingsView: View {
                 }
                 
                 Section("Physics Parameters") {
-                    row(label: "Explosion Force", value: $simulation.explosionForce, range: 0.1...10.0, fmt: "%.1f")
-                    row(label: "Debris Per Hit", value: $simulation.debrisPerCollision, range: 1...30, fmt: "%.0f")
-                    row(label: "Hitbox Size", value: $simulation.collisionRadius, range: 0.5...5.0, fmt: "%.1f")
+                    row(label: "Explosion Force", value: $simulation.explosionForce, range: 1.0...10.0, fmt: "%.1f")
+                    row(label: "Debris Per Hit", value: $simulation.debrisPerCollision, range: 5...10, fmt: "%.0f")
+                    row(label: "Hitbox Size", value: $simulation.collisionRadius, range: 1.0...5.0, fmt: "%.1f")
                 }
                 
                 Section {

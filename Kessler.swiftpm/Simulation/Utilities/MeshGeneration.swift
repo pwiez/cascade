@@ -9,39 +9,38 @@ import RealityKit
 import simd
 
 extension MeshResource {
-    static func generateDebrisPyramid(size: Float) -> MeshResource {
-        let halfSize = size / 2
-        let height = size
+    static func generateDebrisTetrahedron(size: Float) -> MeshResource {
         
-        let yBase = -(height * 0.25)
-        let yTip = height * 0.75
+        let s = size
+        let h = size * 0.866
         
-        let tipVertex = SIMD3<Float>(0, yTip, 0)
-        let baseVertex1 = SIMD3<Float>(-halfSize, yBase, halfSize)
-        let baseVertex2 = SIMD3<Float>(halfSize, yBase, halfSize)
-        let baseVertex3 = SIMD3<Float>(halfSize, yBase, -halfSize)
-        let baseVertex4 = SIMD3<Float>(-halfSize, yBase, -halfSize)
+        let yTop = h * 0.5
+        let yBot = -h * 0.5
+        
+        let p0 = SIMD3<Float>(0, yTop, 0)
+        let p1 = SIMD3<Float>(s * 0.5, yBot, s * 0.289)
+        let p2 = SIMD3<Float>(-s * 0.5, yBot, s * 0.289)
+        let p3 = SIMD3<Float>(0, yBot, -s * 0.577)
         
         var positions: [SIMD3<Float>] = []
         var normals: [SIMD3<Float>] = []
         var indices: [UInt32] = []
         
-        func addTriangleFace(_ p1: SIMD3<Float>, _ p2: SIMD3<Float>, _ p3: SIMD3<Float>) {
+        func addFace(_ v1: SIMD3<Float>, _ v2: SIMD3<Float>, _ v3: SIMD3<Float>) {
             let startIndex = UInt32(positions.count)
-            positions.append(contentsOf: [p1, p2, p3])
+            positions.append(contentsOf: [v1, v2, v3])
             indices.append(contentsOf: [startIndex, startIndex + 1, startIndex + 2])
-            let faceNormal = normalize(cross(p2 - p1, p3 - p1))
-            normals.append(contentsOf: [faceNormal, faceNormal, faceNormal])
+            
+            let n = normalize(cross(v2 - v1, v3 - v1))
+            normals.append(contentsOf: [n, n, n])
         }
         
-        addTriangleFace(tipVertex, baseVertex1, baseVertex2)
-        addTriangleFace(tipVertex, baseVertex2, baseVertex3)
-        addTriangleFace(tipVertex, baseVertex3, baseVertex4)
-        addTriangleFace(tipVertex, baseVertex4, baseVertex1)
-        addTriangleFace(baseVertex1, baseVertex4, baseVertex3)
-        addTriangleFace(baseVertex1, baseVertex3, baseVertex2)
+        addFace(p0, p2, p1)
+        addFace(p0, p3, p2)
+        addFace(p0, p1, p3)
+        addFace(p1, p2, p3)
         
-        var descriptor = MeshDescriptor(name: "DebrisPyramid")
+        var descriptor = MeshDescriptor(name: "DebrisTetra")
         descriptor.positions = MeshBuffer(positions)
         descriptor.normals = MeshBuffer(normals)
         descriptor.primitives = .triangles(indices)
