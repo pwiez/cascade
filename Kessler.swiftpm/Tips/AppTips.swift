@@ -8,10 +8,10 @@
 import SwiftUI
 import TipKit
 
-struct RespawnTip: Tip {
-    var title: Text { Text("Reset Simulation") }
-    var message: Text? { Text("We moved this! Tap here to clear all debris and start a fresh simulation.") }
-    var image: Image? { Image(systemName: "arrow.counterclockwise") }
+struct SettingsTip: Tip {
+    var title: Text { Text("Change Parameters") }
+    var message: Text? { Text("You can open this menu to change a lot of simulation parameters.") }
+    var image: Image? { Image(systemName: "gear") }
 }
 
 struct DetonateTip: Tip {
