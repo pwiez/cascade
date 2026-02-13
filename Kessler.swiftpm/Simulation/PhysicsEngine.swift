@@ -215,7 +215,7 @@ class PhysicsEngine: ObservableObject {
     var satelliteMesh: MeshResource
     
     var debrisMaterials: [UnlitMaterial] = []
-    var satelliteMaterial: PhysicallyBasedMaterial
+    var satelliteMaterial: UnlitMaterial
     
     let earthRadius: Float = 100.0
     let gravitationalConstant: Float = 1.0
@@ -223,6 +223,8 @@ class PhysicsEngine: ObservableObject {
     
     let debrisRotationDelta = simd_quatf(angle: 0.05, axis: [1, 0, 0])
     var killRadiusSq: Float = 0
+    
+    private var isSettingsOpen: Bool = false
     
     private var sceneUpdateSubscription: Cancellable?
     
@@ -239,16 +241,13 @@ class PhysicsEngine: ObservableObject {
             UnlitMaterial(color: .white)
         ]
         
-        satelliteMaterial = PhysicallyBasedMaterial()
-        satelliteMaterial.baseColor = .init(tint: .purple)
-        satelliteMaterial.metallic = .init(floatLiteral: 0.6)
-        satelliteMaterial.roughness = .init(floatLiteral: 0.4)
+        satelliteMaterial = UnlitMaterial(color: .systemPink)
         
-        satelliteMesh = .generateBox(size: 0.75)
+        satelliteMesh = .generateBox(size: 0.6)
         debrisMeshes = [
-            Self.generateDebrisPyramid(size: 0.35),
-            Self.generateDebrisPyramid(size: 0.45),
-            Self.generateDebrisPyramid(size: 0.55)
+            Self.generateDebrisPyramid(size: 0.2),
+            Self.generateDebrisPyramid(size: 0.25),
+            Self.generateDebrisPyramid(size: 0.3)
         ]
         
         self.debrisPool = DebrisPool(capacity: 3_000, prototypeMeshes: debrisMeshes, materials: debrisMaterials)
@@ -257,11 +256,12 @@ class PhysicsEngine: ObservableObject {
     static func generateDebrisPyramid(size: Float) -> MeshResource {
         let halfSize = size / 2
         let height = size
-        let yBase = -height / 2
-        let yTip = height / 2
+        let yBase = -(height * 0.25)
+        let yTip = height * 0.75
         
         let tipVertex = SIMD3<Float>(0, yTip, 0)
         let baseVertex1 = SIMD3<Float>(-halfSize, yBase, halfSize)
+        
         let baseVertex2 = SIMD3<Float>(halfSize, yBase, halfSize)
         let baseVertex3 = SIMD3<Float>(halfSize, yBase, -halfSize)
         let baseVertex4 = SIMD3<Float>(-halfSize, yBase, -halfSize)
@@ -386,7 +386,7 @@ class PhysicsEngine: ObservableObject {
     func updateDebrisFast(dt: Float, earthMass: Float) {
         let scale = Float(settings.debrisScale)
         let rotDelta = debrisRotationDelta
-
+        
         debrisPool.updatePhysics(
             dt: dt,
             earthMass: earthMass,
@@ -449,12 +449,6 @@ class PhysicsEngine: ObservableObject {
                 grid.add(objectIndex: satCount + i, position: posPtr[i])
             }
         }
-        
-        var confirmedCollisions: [(position: SIMD3<Float>, velocity: SIMD3<Float>)] = []
-        let collisionLock = NSLock()
-        
-        let radius = Float(settings.collisionRadius)
-        let thresholdSq = radius * radius
         
         let gs = grid.gridSize
         let gs2 = 128 * 128
@@ -560,36 +554,73 @@ class PhysicsEngine: ObservableObject {
     func resetUniverse(satelliteCount: Int) {
         satellites.forEach { $0.removeFromParent() }
         satellites.removeAll()
-        
         debrisPool.reset()
         grid.clear()
         
         let orbitAlt = Float(settings.orbitAltitude)
         let gravityMult = Float(settings.gravityMultiplier)
         
-        for i in 0..<satelliteCount {
-            let angle = (Float(i) / Float(satelliteCount)) * 2 * .pi
-            let radius = orbitAlt + Float.random(in: -8.0...8.0)
-            let x = radius * cos(angle)
-            let z = radius * sin(angle)
+        var spawnedPositions: [SIMD3<Float>] = []
+        spawnedPositions.reserveCapacity(satelliteCount)
+        
+        let minSpawnDistance: Float = 4.0
+        
+        for _ in 0..<satelliteCount {
             
-            let orbitalSpeed = sqrt((gravitationalConstant * earthMass * gravityMult) / radius)
-            let velocityX = -sin(angle) * orbitalSpeed
-            let velocityZ = cos(angle) * orbitalSpeed
+            var validPosition = false
+            var attempts = 0
             
-            let orbitRotation: simd_quatf = settings.useRandomInclination
-            ? simd_quatf(angle: Float.random(in: 0...(.pi*2)), axis: [1, 0, 0])
-            : simd_quatf(angle: 0, axis: [1, 0, 0])
+            var finalPos: SIMD3<Float> = .zero
+            var finalVel: SIMD3<Float> = .zero
             
-            let finalPosition = orbitRotation.act(SIMD3<Float>(x, 0, z))
-            let finalVelocity = orbitRotation.act(SIMD3<Float>(velocityX, 0, velocityZ))
+            while !validPosition && attempts < 10 {
+                attempts += 1
+                
+                let anomaly = Float.random(in: 0...(2 * .pi))
+                
+                let raan = Float.random(in: 0...(2 * .pi))
+                let inclination = settings.useRandomInclination
+                ? Float.random(in: 0...(.pi))
+                : 0
+                
+                let radius = orbitAlt + Float.random(in: -8.0...8.0)
+                let x = radius * cos(anomaly)
+                let z = radius * sin(anomaly)
+                
+                let orbitalSpeed = sqrt((gravitationalConstant * earthMass * gravityMult) / radius)
+                let vx = -sin(anomaly) * orbitalSpeed
+                let vz = cos(anomaly) * orbitalSpeed
+                
+                let rotInclination = simd_quatf(angle: inclination, axis: [1, 0, 0])
+                let rotRAAN = simd_quatf(angle: raan, axis: [0, 1, 0])
+                let combinedRotation = rotRAAN * rotInclination
+                
+                let candidatePos = combinedRotation.act(SIMD3<Float>(x, 0, z))
+                let candidateVel = combinedRotation.act(SIMD3<Float>(vx, 0, vz))
+                
+                validPosition = true
+                
+                for existing in spawnedPositions {
+                    if distance(existing, candidatePos) < minSpawnDistance {
+                        validPosition = false
+                        break
+                    }
+                }
+                
+                if validPosition || attempts == 10 {
+                    finalPos = candidatePos
+                    finalVel = candidateVel
+                }
+            }
+            
+            spawnedPositions.append(finalPos)
             
             let entity = ModelEntity(mesh: satelliteMesh, materials: [satelliteMaterial])
             let scale = Float(settings.satelliteScale)
             entity.scale = [scale, scale, scale]
-            entity.position = finalPosition
+            entity.position = finalPos
             
-            entity.components.set(OrbitalData(velocity: finalVelocity, radius: 0.5 * scale, type: .leo))
+            entity.components.set(OrbitalData(velocity: finalVel, radius: 0.5 * scale, type: .leo))
             
             rootAnchor.addChild(entity)
             satellites.append(entity)
@@ -633,17 +664,44 @@ class PhysicsEngine: ObservableObject {
         }
     }
     
-    func rotateCamera(deltaX: Float, deltaY: Float) {
-        cameraAngleX += deltaX
-        cameraAngleY += deltaY
-        cameraAngleX = max(-1.4, min(1.4, cameraAngleX))
-        updateCameraTransform()
+    private func updateCameraPosition(animated: Bool = false) {
+        let targetX = isSettingsOpen ? (cameraZoomLevel * 0.25) : 0.0
+        
+        let targetTransform = Transform(
+            scale: .one,
+            rotation: .init(),
+            translation: SIMD3<Float>(targetX, 0, cameraZoomLevel)
+        )
+        
+        if animated {
+            cameraEntity.move(
+                to: targetTransform,
+                relativeTo: cameraPivot,
+                duration: 0.4,
+                timingFunction: .easeInOut
+            )
+        } else {
+            cameraEntity.transform = targetTransform
+        }
     }
     
     func zoomCamera(scaleFactor: Float) {
         cameraZoomLevel /= scaleFactor
         cameraZoomLevel = max(120, min(800, cameraZoomLevel))
-        cameraEntity.position.z = cameraZoomLevel
+        
+        updateCameraPosition(animated: false)
+    }
+    
+    func setSidePanelOpen(_ isOpen: Bool) {
+        self.isSettingsOpen = isOpen
+        updateCameraPosition(animated: true)
+    }
+    
+    func rotateCamera(deltaX: Float, deltaY: Float) {
+        cameraAngleX += deltaX
+        cameraAngleY += deltaY
+        cameraAngleX = max(-1.4, min(1.4, cameraAngleX))
+        updateCameraTransform()
     }
     
     func resetCamera() {
@@ -655,11 +713,17 @@ class PhysicsEngine: ObservableObject {
         self.cameraAngleY = targetAngleY
         self.cameraZoomLevel = targetZoom
         
+        let targetX = isSettingsOpen ? (targetZoom * 0.25) : 0.0
+        
         let rotationY = simd_quatf(angle: targetAngleY, axis: [0, 1, 0])
         let rotationX = simd_quatf(angle: targetAngleX, axis: [1, 0, 0])
         let targetOrientation = rotationY * rotationX
         
-        let targetCameraTransform = Transform(scale: .one, rotation: .init(), translation: [0, 0, targetZoom])
+        let targetCameraTransform = Transform(
+            scale: .one,
+            rotation: .init(),
+            translation: [targetX, 0, targetZoom]
+        )
         
         cameraPivot.move(to: Transform(rotation: targetOrientation), relativeTo: rootAnchor, duration: 1.5, timingFunction: .easeInOut)
         cameraEntity.move(to: targetCameraTransform, relativeTo: cameraPivot, duration: 1.5, timingFunction: .easeInOut)
@@ -721,27 +785,39 @@ class PhysicsEngine: ObservableObject {
     func setupEarth() {
         let earthMesh = MeshResource.generateSphere(radius: earthRadius)
         var earthMaterial = PhysicallyBasedMaterial()
-        earthMaterial.roughness = .init(floatLiteral: 0.9)
+        
+        earthMaterial.roughness = .init(floatLiteral: 0.8)
         earthMaterial.metallic = .init(floatLiteral: 0.0)
+        earthMaterial.specular = .init(floatLiteral: 0.1)
         
         if let texture = try? TextureResource.load(named: "earthTopographicMap") {
             earthMaterial.baseColor = .init(texture: .init(texture))
         } else {
-            earthMaterial.baseColor = .init(tint: .blue)
+            earthMaterial.baseColor = .init(tint: .systemBlue)
         }
         
         let earth = ModelEntity(mesh: earthMesh, materials: [earthMaterial])
+        
+        let axialTilt = simd_quatf(angle: 23.5 * .pi / 180, axis: [0, 0, 1])
+        earth.orientation = axialTilt
+        
         self.earthEntity = earth
         rootAnchor.addChild(earth)
         
-        let atmosphereMesh = MeshResource.generateSphere(radius: earthRadius + 1.75)
+        let atmosphereMesh = MeshResource.generateSphere(radius: earthRadius + 2.0)
         var atmosphereMaterial = PhysicallyBasedMaterial()
-        atmosphereMaterial.baseColor = .init(tint: .blue.withAlphaComponent(0.1))
+        
+        let atmColor = UIColor(red: 0.2, green: 0.7, blue: 1.0, alpha: 0.3)
+        atmosphereMaterial.baseColor = .init(tint: atmColor)
+        
         atmosphereMaterial.roughness = .init(floatLiteral: 1.0)
         atmosphereMaterial.metallic = .init(floatLiteral: 0.0)
-        atmosphereMaterial.blending = .transparent(opacity: 0.3)
+        
+        atmosphereMaterial.blending = .transparent(opacity: 0.25)
         
         let atmosphere = ModelEntity(mesh: atmosphereMesh, materials: [atmosphereMaterial])
+        atmosphere.components.set(OpacityComponent(opacity: 0.5))
+        
         earth.addChild(atmosphere)
     }
     

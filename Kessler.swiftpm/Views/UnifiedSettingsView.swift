@@ -11,7 +11,7 @@ struct UnifiedSettingsView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 24) {
                 
-                Spacer().frame(height: 60)
+                Spacer().frame(height: 20)
                 
                 HStack {
                     Text("Parameters")

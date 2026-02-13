@@ -19,6 +19,8 @@ struct SimSettings {
     var gravityMultiplier: Double = 1.0
     var orbitAltitude: Double = 120.0
     var useOmniLight: Bool = false
+    var highContrast: Bool = false
+        var showEarth: Bool = true
 }
 
 struct SimStats {
@@ -52,6 +54,10 @@ class Simulation: ObservableObject {
             satelliteCount = maxSafeSatellites
         }
     }
+    
+    func setSettingsOpen(_ isOpen: Bool) {
+            engine.setSidePanelOpen(isOpen)
+        }
     
     @Published var satelliteCount: Double = 256 {
         didSet { syncSettingsWithEngine() }
@@ -88,6 +94,10 @@ class Simulation: ObservableObject {
     
     @Published var timeScale: Double = 0.1 { didSet { syncSettingsWithEngine() } }
     @Published var showSatellites: Bool = true { didSet { syncSettingsWithEngine() } }
+    
+    Published var highContrast: Bool = false { didSet { syncSettingsWithEngine() } }
+        @Published var showEarth: Bool = true { didSet { syncSettingsWithEngine() } }
+        @Published var showStats: Bool = true
     
     @Published var stats = SimStats()
     @Published var isPaused: Bool = false {
@@ -141,7 +151,7 @@ class Simulation: ObservableObject {
         timeScale = 1
         debrisPerCollision = 4
         explosionForce = 1.1
-        collisionRadius = 1.5
+        collisionRadius = 1.0
         spreadTangential = 1.0
         spreadVertical = 0.6
         spreadRadial = 0.2
