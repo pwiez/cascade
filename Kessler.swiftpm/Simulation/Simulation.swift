@@ -89,8 +89,7 @@ class Simulation: ObservableObject {
     @Published var timeScale: Double = 0.1 { didSet { syncSettingsWithEngine() } }
     @Published var showSatellites: Bool = true { didSet { syncSettingsWithEngine() } }
     
-    @Published var debrisCount: Int = 0
-    @Published var activeSatellites: Int = 0
+    @Published var stats = SimStats()
     @Published var isPaused: Bool = false {
         didSet { engine.isPaused = isPaused }
     }
@@ -98,16 +97,15 @@ class Simulation: ObservableObject {
     
     init() {
         engine.$simulationStats
-            .receive(on: RunLoop.main)
-            .sink { [weak self] stats in
-                self?.debrisCount = stats.debris
-                self?.activeSatellites = stats.satellites
-            }
-            .store(in: &cancellables)
+                    .receive(on: RunLoop.main)
+                    .assign(to: &$stats)
             
         engine.queueCommand(.reset(256))
         syncSettingsWithEngine()
     }
+    
+    var debrisCount: Int { stats.debris }
+        var activeSatellites: Int { stats.satellites }
     
     func syncSettingsWithEngine() {
         let settings = SimSettings(
