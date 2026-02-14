@@ -12,7 +12,6 @@ import simd
 class DebrisPool {
     var positions: ContiguousArray<SIMD3<Float>>
     var velocities: ContiguousArray<SIMD3<Float>>
-    var orientations: ContiguousArray<simd_quatf>
     var entities: ContiguousArray<ModelEntity>
     
     var activeCount: Int = 0
@@ -22,7 +21,6 @@ class DebrisPool {
         self.capacity = capacity
         self.positions = ContiguousArray(repeating: .zero, count: capacity)
         self.velocities = ContiguousArray(repeating: .zero, count: capacity)
-        self.orientations = ContiguousArray(repeating: simd_quatf(ix: 0, iy: 0, iz: 0, r: 1), count: capacity)
         self.entities = ContiguousArray()
         self.entities.reserveCapacity(capacity)
         
@@ -46,7 +44,6 @@ class DebrisPool {
         
         positions[index] = position
         velocities[index] = velocity
-        orientations[index] = orientation
         
         let entity = entities[index]
         entity.position = position
@@ -66,7 +63,6 @@ class DebrisPool {
         if index != lastIndex {
             positions[index] = positions[lastIndex]
             velocities[index] = velocities[lastIndex]
-            orientations[index] = orientations[lastIndex]
             entities.swapAt(index, lastIndex)
         }
         
@@ -105,9 +101,6 @@ class DebrisPool {
             
             let entity = entities[i]
             entity.position = positions[i]
-            
-            orientations[i] *= rotDelta
-            entity.orientation = orientations[i]
             
             if entity.scale.x != scale {
                 entity.scale = SIMD3<Float>(repeating: scale)

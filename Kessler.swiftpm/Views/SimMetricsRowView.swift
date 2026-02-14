@@ -21,8 +21,6 @@ struct SimMetricsRow: View {
                 Text("\(value)")
                     .font(.body.monospacedDigit())
                     .bold()
-                    .contentTransition(.numericText(value: Double(value)))
-                    .animation(.snappy, value: value)
             } else {
             }
         }
