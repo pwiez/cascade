@@ -19,13 +19,13 @@ class PhysicsEngine: ObservableObject {
     let cameraEntity = Entity()
     
     private let standardSatMaterial = UnlitMaterial(color: .systemPink)
-        private let standardDebrisMaterials = [
-            UnlitMaterial(color: .gray),
-            UnlitMaterial(color: .lightGray),
-            UnlitMaterial(color: .white)
-        ]
-        
-        private let highContrastSatMaterial = UnlitMaterial(color: .yellow)
+    private let standardDebrisMaterials = [
+        UnlitMaterial(color: .gray),
+        UnlitMaterial(color: .lightGray),
+        UnlitMaterial(color: .white)
+    ]
+    
+    private let highContrastSatMaterial = UnlitMaterial(color: .yellow)
     private let highContrastDebrisMaterial = UnlitMaterial(color: .red)
     
     var satelliteMaterial: Material
@@ -94,10 +94,13 @@ class PhysicsEngine: ObservableObject {
         updateSatellites(dt: deltaTime, earthMass: earthMassVal)
         updateDebris(dt: deltaTime, earthMass: earthMassVal)
         updateEarthRotation()
-        detectCollisions()
+        
+        if frameCounter % 6 == 0 {
+            detectCollisions()
+        }
         
         frameCounter += 1
-        if frameCounter % 15 == 0 { publishStats() }
+        if frameCounter % 60 == 0 { publishStats() }
     }
     
     func updateSatellites(dt: Float, earthMass: Float) {
@@ -149,139 +152,139 @@ class PhysicsEngine: ObservableObject {
         }
     }
     
-        func detectCollisions() {
-            if frameCounter % 2 != 0 { return }
-            
-            let satCount = satellites.count
-            let totalCount = satCount + debrisPool.activeCount
-            if totalCount == 0 { return }
-            
-            satPosCache.removeAll(keepingCapacity: true)
-            satVelCache.removeAll(keepingCapacity: true)
-            var activeSatIndices: [Int] = []
-            activeSatIndices.reserveCapacity(satCount)
-            
-            for i in 0..<satCount {
-                let sat = satellites[i]
-                if sat.isEnabled {
-                    satPosCache.append(sat.position)
-                    satVelCache.append(sat.components[OrbitalData.self]?.velocity ?? .zero)
-                    activeSatIndices.append(i)
-                }
+    func detectCollisions() {
+        if frameCounter % 2 != 0 { return }
+        
+        let satCount = satellites.count
+        let totalCount = satCount + debrisPool.activeCount
+        if totalCount == 0 { return }
+        
+        satPosCache.removeAll(keepingCapacity: true)
+        satVelCache.removeAll(keepingCapacity: true)
+        var activeSatIndices: [Int] = []
+        activeSatIndices.reserveCapacity(satCount)
+        
+        for i in 0..<satCount {
+            let sat = satellites[i]
+            if sat.isEnabled {
+                satPosCache.append(sat.position)
+                satVelCache.append(sat.components[OrbitalData.self]?.velocity ?? .zero)
+                activeSatIndices.append(i)
             }
-            
-            grid.clear()
-            for i in 0..<satPosCache.count {
-                grid.add(objectIndex: i, position: satPosCache[i])
+        }
+        
+        grid.clear()
+        for i in 0..<satPosCache.count {
+            grid.add(objectIndex: i, position: satPosCache[i])
+        }
+        debrisPool.positions.withUnsafeBufferPointer { posPtr in
+            for i in 0..<debrisPool.activeCount {
+                grid.add(objectIndex: satPosCache.count + i, position: posPtr[i])
             }
-            debrisPool.positions.withUnsafeBufferPointer { posPtr in
-                for i in 0..<debrisPool.activeCount {
-                    grid.add(objectIndex: satPosCache.count + i, position: posPtr[i])
-                }
-            }
-            
-            let radius = Float(settings.collisionRadius)
-            let radiusSq = radius * radius
-            let cacheCount = satPosCache.count
-            
-            
-            class ThreadResult {
-                var explosions: [CollisionEvent] = []
-                var deaths: [Int] = []
-                var debrisKills: [Int] = []
-            }
-            
-            let coreCount = ProcessInfo.processInfo.activeProcessorCount
-            let buckets = (0..<coreCount).map { _ in ThreadResult() }
-            
-            debrisPool.positions.withUnsafeBufferPointer { debrisPosPtr in
-                debrisPool.velocities.withUnsafeBufferPointer { debrisVelPtr in
+        }
+        
+        let radius = Float(settings.collisionRadius)
+        let radiusSq = radius * radius
+        let cacheCount = satPosCache.count
+        
+        
+        class ThreadResult {
+            var explosions: [CollisionEvent] = []
+            var deaths: [Int] = []
+            var debrisKills: [Int] = []
+        }
+        
+        let coreCount = ProcessInfo.processInfo.activeProcessorCount
+        let buckets = (0..<coreCount).map { _ in ThreadResult() }
+        
+        debrisPool.positions.withUnsafeBufferPointer { debrisPosPtr in
+            debrisPool.velocities.withUnsafeBufferPointer { debrisVelPtr in
+                
+                DispatchQueue.concurrentPerform(iterations: coreCount) { coreIndex in
                     
-                    DispatchQueue.concurrentPerform(iterations: coreCount) { coreIndex in
+                    let stepSize = coreCount
+                    var localExplosions: [CollisionEvent] = []
+                    var localDeaths: [Int] = []
+                    var localDebrisKills: [Int] = []
+                    
+                    for i in stride(from: coreIndex, to: cacheCount, by: stepSize) {
                         
-                        let stepSize = coreCount
-                        var localExplosions: [CollisionEvent] = []
-                        var localDeaths: [Int] = []
-                        var localDebrisKills: [Int] = []
+                        let posA = satPosCache[i]
+                        let cellID = grid.getCellIndex(for: posA)
+                        if cellID == -1 { continue }
                         
-                        for i in stride(from: coreIndex, to: cacheCount, by: stepSize) {
+                        for offset in grid.neighborOffsets {
+                            let targetCell = cellID + offset
+                            var neighborIdx = grid.firstObject(inCell: targetCell)
                             
-                            let posA = satPosCache[i]
-                            let cellID = grid.getCellIndex(for: posA)
-                            if cellID == -1 { continue }
-                            
-                            for offset in grid.neighborOffsets {
-                                let targetCell = cellID + offset
-                                var neighborIdx = grid.firstObject(inCell: targetCell)
-                                
-                                while neighborIdx != -1 {
-                                    if neighborIdx > i {
-                                        var posB: SIMD3<Float> = .zero
-                                        var velB: SIMD3<Float> = .zero
-                                        var isDebris = false
-                                        
-                                        if neighborIdx < cacheCount {
-                                            posB = satPosCache[neighborIdx]
-                                            velB = satVelCache[neighborIdx]
+                            while neighborIdx != -1 {
+                                if neighborIdx > i {
+                                    var posB: SIMD3<Float> = .zero
+                                    var velB: SIMD3<Float> = .zero
+                                    var isDebris = false
+                                    
+                                    if neighborIdx < cacheCount {
+                                        posB = satPosCache[neighborIdx]
+                                        velB = satVelCache[neighborIdx]
+                                    } else {
+                                        let dIdx = neighborIdx - cacheCount
+                                        if dIdx < debrisPool.activeCount {
+                                            posB = debrisPosPtr[dIdx]
+                                            velB = debrisVelPtr[dIdx]
+                                            isDebris = true
                                         } else {
-                                            let dIdx = neighborIdx - cacheCount
-                                            if dIdx < debrisPool.activeCount {
-                                                posB = debrisPosPtr[dIdx]
-                                                velB = debrisVelPtr[dIdx]
-                                                isDebris = true
-                                            } else {
-                                                neighborIdx = grid.nextObject(after: neighborIdx)
-                                                continue
-                                            }
+                                            neighborIdx = grid.nextObject(after: neighborIdx)
+                                            continue
                                         }
+                                    }
+                                    
+                                    if abs(posA.x - posB.x) <= radius &&
+                                        abs(posA.y - posB.y) <= radius &&
+                                        abs(posA.z - posB.z) <= radius {
                                         
-                                        if abs(posA.x - posB.x) <= radius &&
-                                           abs(posA.y - posB.y) <= radius &&
-                                           abs(posA.z - posB.z) <= radius {
+                                        if length_squared(posA - posB) < radiusSq {
+                                            localDeaths.append(activeSatIndices[i])
+                                            localExplosions.append(CollisionEvent(position: posA, velocity: satVelCache[i]))
                                             
-                                            if length_squared(posA - posB) < radiusSq {
-                                                localDeaths.append(activeSatIndices[i])
-                                                localExplosions.append(CollisionEvent(position: posA, velocity: satVelCache[i]))
-                                                
-                                                if isDebris {
-                                                    localDebrisKills.append(neighborIdx - cacheCount)
-                                                    localExplosions.append(CollisionEvent(position: posB, velocity: velB))
-                                                } else {
-                                                    localDeaths.append(activeSatIndices[neighborIdx])
-                                                    localExplosions.append(CollisionEvent(position: posB, velocity: velB))
-                                                }
+                                            if isDebris {
+                                                localDebrisKills.append(neighborIdx - cacheCount)
+                                                localExplosions.append(CollisionEvent(position: posB, velocity: velB))
+                                            } else {
+                                                localDeaths.append(activeSatIndices[neighborIdx])
+                                                localExplosions.append(CollisionEvent(position: posB, velocity: velB))
                                             }
                                         }
                                     }
-                                    neighborIdx = grid.nextObject(after: neighborIdx)
                                 }
+                                neighborIdx = grid.nextObject(after: neighborIdx)
                             }
                         }
-                        
-                        let myBucket = buckets[coreIndex]
-                        myBucket.explosions = localExplosions
-                        myBucket.deaths = localDeaths
-                        myBucket.debrisKills = localDebrisKills
                     }
+                    
+                    let myBucket = buckets[coreIndex]
+                    myBucket.explosions = localExplosions
+                    myBucket.deaths = localDeaths
+                    myBucket.debrisKills = localDebrisKills
                 }
             }
-            
-            let finalDeaths = buckets.flatMap { $0.deaths }
-            let finalDebrisKills = buckets.flatMap { $0.debrisKills }
-            let finalExplosions = buckets.flatMap { $0.explosions }
-            
-            for satIndex in finalDeaths {
-                if satIndex < satellites.count { satellites[satIndex].isEnabled = false }
-            }
-            
-            for debrisIndex in Set(finalDebrisKills).sorted(by: >) {
-                debrisPool.kill(at: debrisIndex)
-            }
-            
-            for boom in finalExplosions {
-                spawnExplosion(at: boom.position, velocity: boom.velocity)
-            }
         }
+        
+        let finalDeaths = buckets.flatMap { $0.deaths }
+        let finalDebrisKills = buckets.flatMap { $0.debrisKills }
+        let finalExplosions = buckets.flatMap { $0.explosions }
+        
+        for satIndex in finalDeaths {
+            if satIndex < satellites.count { satellites[satIndex].isEnabled = false }
+        }
+        
+        for debrisIndex in Set(finalDebrisKills).sorted(by: >) {
+            debrisPool.kill(at: debrisIndex)
+        }
+        
+        for boom in finalExplosions {
+            spawnExplosion(at: boom.position, velocity: boom.velocity)
+        }
+    }
     
     private func spawnExplosion(at position: SIMD3<Float>, velocity: SIMD3<Float>) {
         if debrisPool.activeCount >= settings.maxDebris { return }
@@ -423,39 +426,44 @@ class PhysicsEngine: ObservableObject {
     }
     
     func publishStats() {
+        if abs(simulationStats.debris - debrisPool.activeCount) < 5 &&
+            abs(simulationStats.satellites - satellites.count) == 0 {
+            return
+        }
+        
         let stats = SimStats(debris: debrisPool.activeCount, satellites: satellites.count)
-        DispatchQueue.main.async { self.simulationStats = stats }
+        Task { self.simulationStats = stats }
     }
     
     func updateHighContrastMode() {
-            guard let arView = arView else { return }
-            let isHighContrast = settings.highContrast
-            
-            DispatchQueue.main.async {
-                arView.environment.background = .color(.black)
-            }
-            
-            let activeSatMat = isHighContrast ? highContrastSatMaterial : standardSatMaterial
-            let activeDebrisMats = isHighContrast ? [highContrastDebrisMaterial] : standardDebrisMaterials
-            
-            self.satelliteMaterial = activeSatMat
-            self.debrisMaterials = activeDebrisMats
-            
-            for sat in satellites {
-                if var model = sat.model {
-                    model.materials = [activeSatMat]
-                    sat.model = model
-                }
-            }
-            
-            for entity in debrisPool.entities {
-                if var model = entity.model {
-                    let mat = activeDebrisMats.randomElement() ?? activeDebrisMats[0]
-                    model.materials = [mat]
-                    entity.model = model
-                }
+        guard let arView = arView else { return }
+        let isHighContrast = settings.highContrast
+        
+        DispatchQueue.main.async {
+            arView.environment.background = .color(.black)
+        }
+        
+        let activeSatMat = isHighContrast ? highContrastSatMaterial : standardSatMaterial
+        let activeDebrisMats = isHighContrast ? [highContrastDebrisMaterial] : standardDebrisMaterials
+        
+        self.satelliteMaterial = activeSatMat
+        self.debrisMaterials = activeDebrisMats
+        
+        for sat in satellites {
+            if var model = sat.model {
+                model.materials = [activeSatMat]
+                sat.model = model
             }
         }
+        
+        for entity in debrisPool.entities {
+            if var model = entity.model {
+                let mat = activeDebrisMats.randomElement() ?? activeDebrisMats[0]
+                model.materials = [mat]
+                entity.model = model
+            }
+        }
+    }
     
     func rotateCamera(deltaX: Float, deltaY: Float) {
         cameraAngleX = max(-1.4, min(1.4, cameraAngleX + deltaX))
