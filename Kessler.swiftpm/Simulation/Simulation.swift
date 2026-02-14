@@ -3,26 +3,51 @@ import RealityKit
 import Combine
 
 struct SimSettings {
-    var debrisPerCollision: Double = 0
-    var explosionForce: Double = 0
-    var collisionRadius: Double = 0
+    var debrisPerCollision: Double
+    var explosionForce: Double
+    var collisionRadius: Double
     
-    var spreadTangential: Double = 0
-    var spreadVertical: Double = 0
-    var spreadRadial: Double = 0
+    var spreadTangential: Double
+    var spreadVertical: Double
+    var spreadRadial: Double
     
-    var timeScale: Double = 0
-    var showSatellites: Bool = true
+    var timeScale: Double
+    var showSatellites: Bool
     
-    var maxDebris: Int = 3000
-    var useRandomInclination: Bool = true
-    var satelliteScale: Double = 1.0
-    var debrisScale: Double = 1.0
-    var gravityMultiplier: Double = 1.0
-    var orbitAltitude: Double = 120.0
-    var useOmniLight: Bool = false
-    var highContrast: Bool = false
-    var showEarth: Bool = true
+    var maxDebris: Int
+    var useRandomInclination: Bool
+    var satelliteScale: Double
+    var debrisScale: Double
+    var gravityMultiplier: Double
+    var orbitAltitude: Double
+    var useOmniLight: Bool
+    var highContrast: Bool
+    var showEarth: Bool
+}
+
+extension SimSettings {
+    static let defaults = SimSettings(
+        debrisPerCollision: 5,
+        explosionForce: 1.1,
+        collisionRadius: 2.0,
+        
+        spreadTangential: 1.0,
+        spreadVertical: 0.6,
+        spreadRadial: 0.2,
+        
+        timeScale: 1.0,
+        showSatellites: true,
+        
+        maxDebris: 3000,
+        useRandomInclination: true,
+        satelliteScale: 1.0,
+        debrisScale: 1.0,
+        gravityMultiplier: 1.0,
+        orbitAltitude: 120.0,
+        useOmniLight: false,
+        highContrast: false,
+        showEarth: true
+    )
 }
 
 struct SimStats {
@@ -44,65 +69,31 @@ class Simulation: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     
-    @Published var draftMaxDebris: Double = 3000 {
-            didSet {
-                if draftMaxDebris == oldValue { return }
-                
-                let rounded = roundToStep(draftMaxDebris, step: 100)
-                
-                if abs(draftMaxDebris - rounded) > 0.001 {
-                    draftMaxDebris = rounded
-                } else {
-                    enforceBalance(changing: .maxDebris)
-                }
-            }
-        }
-    
-    @Published var draftSatelliteCount: Double = 350 {
-        didSet {
-            if draftSatelliteCount == oldValue { return }
-            
-            let rounded = roundToStep(draftSatelliteCount, step: 25)
-            if abs(draftSatelliteCount - rounded) > 0.001 {
-                draftSatelliteCount = rounded
-            } else {
-                enforceBalance(changing: .satellites)
-            }
-        }
-    }
-    
-    @Published var draftDebrisPerCollision: Double = 5 {
-        didSet {
-            if draftDebrisPerCollision == oldValue { return }
-            
-            if draftDebrisPerCollision < 3 { draftDebrisPerCollision = 3; return }
-            if draftDebrisPerCollision > 7 { draftDebrisPerCollision = 7; return }
-            
-            enforceBalance(changing: .debrisPerCrash)
-        }
-    }
+    @Published var draftMaxDebris: Double = Double(SimSettings.defaults.maxDebris)
+    @Published var draftSatelliteCount: Double = 350
+    @Published var draftDebrisPerCollision: Double = SimSettings.defaults.debrisPerCollision
     
     @Published private(set) var activeSatelliteCount: Double = 350
-    @Published private(set) var activeMaxDebris: Double = 1500
+    @Published private(set) var activeMaxDebris: Double = Double(SimSettings.defaults.maxDebris)
     
-    @Published var useRandomInclination: Bool = true { didSet { syncSettings() } }
-    @Published var satelliteScale: Double = 1.0 { didSet { syncSettings() } }
-    @Published var debrisScale: Double = 1.0 { didSet { syncSettings() } }
-    @Published var useOmniLight: Bool = false { didSet { syncSettings() } }
-    @Published var isCameraLocked: Bool = false { didSet { if isCameraLocked { resetCamera() } } }
+    @Published var useRandomInclination: Bool = SimSettings.defaults.useRandomInclination { didSet { syncSettings() } }
+    @Published var satelliteScale: Double = SimSettings.defaults.satelliteScale { didSet { syncSettings() } }
+    @Published var debrisScale: Double = SimSettings.defaults.debrisScale { didSet { syncSettings() } }
+    @Published var useOmniLight: Bool = SimSettings.defaults.useOmniLight { didSet { syncSettings() } }
+    @Published var isCameraLocked: Bool = false
     
-    @Published var explosionForce: Double = 10 { didSet { syncSettings() } }
-    @Published var collisionRadius: Double = 2 { didSet { syncSettings() } }
-    @Published var gravityMultiplier: Double = 1.0 { didSet { syncSettings() } }
-    @Published var orbitAltitude: Double = 120.0 { didSet { syncSettings() } }
+    @Published var explosionForce: Double = SimSettings.defaults.explosionForce { didSet { syncSettings() } }
+    @Published var collisionRadius: Double = SimSettings.defaults.collisionRadius { didSet { syncSettings() } }
+    @Published var gravityMultiplier: Double = SimSettings.defaults.gravityMultiplier { didSet { syncSettings() } }
+    @Published var orbitAltitude: Double = SimSettings.defaults.orbitAltitude { didSet { syncSettings() } }
     
-    @Published var spreadTangential: Double = 1 { didSet { syncSettings() } }
-    @Published var spreadVertical: Double = 0.6 { didSet { syncSettings() } }
-    @Published var spreadRadial: Double = 0.2 { didSet { syncSettings() } }
+    @Published var spreadTangential: Double = SimSettings.defaults.spreadTangential { didSet { syncSettings() } }
+    @Published var spreadVertical: Double = SimSettings.defaults.spreadVertical { didSet { syncSettings() } }
+    @Published var spreadRadial: Double = SimSettings.defaults.spreadRadial { didSet { syncSettings() } }
     
-    @Published var timeScale: Double = 1.0 { didSet { syncSettings() } }
-    @Published var showSatellites: Bool = true { didSet { syncSettings() } }
-    @Published var highContrast: Bool = false {
+    @Published var timeScale: Double = SimSettings.defaults.timeScale { didSet { syncSettings() } }
+    @Published var showSatellites: Bool = SimSettings.defaults.showSatellites { didSet { syncSettings() } }
+    @Published var highContrast: Bool = SimSettings.defaults.highContrast {
         didSet {
             if highContrast {
                 satelliteScale = 2.5
@@ -114,7 +105,8 @@ class Simulation: ObservableObject {
             syncSettings()
         }
     }
-    @Published var showEarth: Bool = true { didSet { syncSettings() } }
+    @Published var showEarth: Bool = SimSettings.defaults.showEarth { didSet { syncSettings() } }
+    
     @Published var showStats: Bool = true
     
     @Published var stats = SimStats()
@@ -205,24 +197,25 @@ class Simulation: ObservableObject {
     func zoomCamera(scaleFactor: Float) { engine.zoomCamera(scaleFactor: scaleFactor) }
     
     func resetSettingsToDefaults() {
+        let d = SimSettings.defaults
+        
         isCameraLocked = false
-        timeScale = 1.0
-        explosionForce = 1.0
-        collisionRadius = 2.0
+        timeScale = d.timeScale
+        explosionForce = d.explosionForce
+        collisionRadius = d.collisionRadius
         
-        useRandomInclination = true
-        satelliteScale = 1.0
-        debrisScale = 1.0
-        gravityMultiplier = 1.0
-        orbitAltitude = 120.0
-        highContrast = false
-        showEarth = true
+        useRandomInclination = d.useRandomInclination
+        satelliteScale = d.satelliteScale
+        debrisScale = d.debrisScale
+        gravityMultiplier = d.gravityMultiplier
+        orbitAltitude = d.orbitAltitude
+        highContrast = d.highContrast
+        showEarth = d.showEarth
         
-        draftMaxDebris = 3000
-        draftDebrisPerCollision = 5
+        draftMaxDebris = Double(d.maxDebris)
+        draftDebrisPerCollision = d.debrisPerCollision
         
         let safeSatLimit = floor(draftMaxDebris / (draftDebrisPerCollision * 2))
         draftSatelliteCount = min(300, safeSatLimit)
-        
     }
 }

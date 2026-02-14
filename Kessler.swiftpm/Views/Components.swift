@@ -113,6 +113,7 @@ struct SimulationView: UIViewRepresentable {
                     .disableHDR,
                     .disableGroundingShadows
                 ]
+        
         simulation.engine.attach(to: arView)
         wrapper.arView = arView
         wrapper.addSubview(arView)
