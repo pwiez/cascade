@@ -8,30 +8,30 @@ struct SimMetrics: View {
     }
     
     var statusColor: Color {
-        telemetry.stats.debris > 1000 ? .red : .white
+        telemetry.stats.debris > Int(Double(telemetry.stats.debris) * 0.80) ? .red : .white
     }
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             MetricRow(
-                title: "ACTIVE SATELLITES",
+                title: "SATELLITES",
                 value: telemetry.stats.satellites,
                 color: .white
             )
             
             Divider()
                 .background(.white.opacity(0.2))
-                .padding(.horizontal, 20)
+                .padding(.horizontal)
             
             MetricRow(
-                title: "TRACKED DEBRIS",
+                title: "DEBRIS",
                 value: telemetry.stats.debris,
                 color: statusColor
             )
         }
         .padding(.vertical, 16)
         .frame(width: 160)
-        .background(.ultraThinMaterial)
+        .background(.bar)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)

@@ -4,6 +4,11 @@ struct SettingsView: View {
     @ObservedObject var simulation: Simulation
     @State private var showRestartConfirmation = false
     
+    var hasPendingChanges: Bool {
+        simulation.draftSatelliteCount != simulation.activeSatelliteCount ||
+        simulation.draftMaxDebris != simulation.activeMaxDebris
+    }
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -12,7 +17,6 @@ struct SettingsView: View {
                         Label("Reset & Freeze Camera", systemImage: "camera.metering.center.weighted")
                     }
                     .tint(.blue)
-                    
                     Toggle("High Contrast", isOn: $simulation.highContrast)
                     Toggle("Omni Light", isOn: $simulation.useOmniLight)
                     Toggle("Show Earth", isOn: $simulation.showEarth)
@@ -38,29 +42,44 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section("Population Limits") {
+                Section(header: Text("Population & Generation"), footer: Text("Changes to these values require a simulation respawn.")) {
+                    
                     VStack(alignment: .leading) {
                         HStack {
-                            Text("Max Debris")
+                            Text("Max Debris Limit")
                             Spacer()
-                            Text("\(Int(simulation.maxDebris))").foregroundStyle(.secondary)
+                            Text("\(Int(simulation.draftMaxDebris))")
+                                .foregroundStyle(hasPendingChanges ? .orange : .secondary)
+                                .bold(hasPendingChanges)
                         }
-                        Slider(value: $simulation.maxDebris, in: 500...3000, step: 100)
+                        Slider(value: $simulation.draftMaxDebris, in: 500...5000, step: 100)
                     }
                     
                     VStack(alignment: .leading) {
                         HStack {
-                            Text("Satellites")
+                            Text("Debris Per Crash")
                             Spacer()
-                            Text("\(Int(simulation.satelliteCount))").foregroundStyle(.secondary)
+                            Text("\(Int(simulation.draftDebrisPerCollision))")
+                                .foregroundStyle(hasPendingChanges ? .orange : .secondary)
+                                .bold(hasPendingChanges)
                         }
-                        Slider(value: $simulation.satelliteCount, in: 10...500, step: 10)
+                        Slider(value: $simulation.draftDebrisPerCollision, in: 3...7, step: 1)
+                    }
+                    
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text("Initial Satellites")
+                            Spacer()
+                            Text("\(Int(simulation.draftSatelliteCount))")
+                                .foregroundStyle(hasPendingChanges ? .orange : .secondary)
+                                .bold(hasPendingChanges)
+                        }
+                        Slider(value: $simulation.draftSatelliteCount, in: 0...1000, step: 25)
                     }
                 }
                 
                 Section("Physics Parameters") {
                     row(label: "Explosion Force", value: $simulation.explosionForce, range: 1.0...10.0, fmt: "%.1f")
-                    row(label: "Debris Per Hit", value: $simulation.debrisPerCollision, range: 5...10, fmt: "%.0f")
                     row(label: "Hitbox Size", value: $simulation.collisionRadius, range: 1.0...5.0, fmt: "%.1f")
                 }
                 
@@ -69,8 +88,19 @@ struct SettingsView: View {
                         simulation.resetSettingsToDefaults()
                     }
                     
-                    Button("Respawn Simulation", role: .destructive) {
+                    Button(role: hasPendingChanges ? .none : .destructive) {
                         showRestartConfirmation = true
+                    } label: {
+                        if hasPendingChanges {
+                            HStack {
+                                Text("Apply Changes & Respawn")
+                                Spacer()
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                            }
+                            .foregroundStyle(.orange)
+                        } else {
+                            Text("Respawn Simulation")
+                        }
                     }
                     .confirmationDialog("Reset?", isPresented: $showRestartConfirmation) {
                         Button("Respawn", role: .destructive) { simulation.resetSimulation() }
