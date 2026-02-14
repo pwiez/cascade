@@ -106,7 +106,13 @@ struct SimulationView: UIViewRepresentable {
     func makeUIView(context: Context) -> ARViewContainer {
         let wrapper = ARViewContainer()
         let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
-        arView.renderOptions = [.disableMotionBlur, .disableDepthOfField]
+        arView.renderOptions = [
+                    .disableMotionBlur,
+                    .disableDepthOfField,
+                    .disableFaceMesh,
+                    .disableHDR,
+                    .disableGroundingShadows
+                ]
         simulation.engine.attach(to: arView)
         wrapper.arView = arView
         wrapper.addSubview(arView)

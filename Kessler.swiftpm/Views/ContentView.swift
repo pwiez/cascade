@@ -20,7 +20,7 @@ struct ContentView: View {
                 .tag(1)
         }
         .preferredColorScheme(.dark)
-        .onChange(of: selectedTab) { newTab in
+        .onChange(of: selectedTab) { _, newTab in
             if newTab == 1 {
                 simulation.pauseSimulation()
             } else if newTab == 0 {
@@ -33,12 +33,7 @@ struct ContentView: View {
 struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
     @State private var showSettings = false
-    
-    #if os(iOS)
-    private let settingsWidth: CGFloat = 360
-    #else
     private let settingsWidth: CGFloat = 400
-    #endif
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -70,11 +65,9 @@ struct SimulationScreen: View {
             if showSettings {
                 SettingsView(simulation: simulation)
                     .frame(width: settingsWidth)
-                    .background(Color(uiColor: .systemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(radius: 20)
-                    .padding(.top, 70)
-                    .padding(.bottom, 20)
+                    .padding(.top, 75)
+                    .padding(.bottom, 16)
                     .padding(.trailing, 16)
                     .transition(.move(edge: .trailing))
                     .zIndex(2)
@@ -85,8 +78,8 @@ struct SimulationScreen: View {
                 isPaused: $simulation.isPaused,
                 onResetCamera: { simulation.resetCamera() }
             )
-            .padding(.trailing, 16)
-            .padding(.top, 16)
+            .padding(.trailing)
+            .padding(.top)
             .zIndex(3)
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSettings)
