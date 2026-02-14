@@ -18,9 +18,9 @@ class PhysicsEngine: ObservableObject {
     let cameraPivot = Entity()
     let cameraEntity = Entity()
     
-    private let standardSatMaterial = UnlitMaterial(color: .systemPink)
-    private let standardDebrisMaterial = UnlitMaterial(color: .lightGray)
-    private let highContrastSatMaterial = UnlitMaterial(color: .yellow)
+    private let standardSatMaterial = UnlitMaterial(color: .green)
+    private let standardDebrisMaterial = UnlitMaterial(color: .white)
+    private let highContrastSatMaterial = UnlitMaterial(color: .systemPink)
     private let highContrastDebrisMaterial = UnlitMaterial(color: .red)
     
     var satelliteMaterial: Material

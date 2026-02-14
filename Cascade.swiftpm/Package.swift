@@ -4,20 +4,20 @@ import PackageDescription
 import AppleProductTypes
 
 let package = Package(
-    name: "Kessler",
+    name: "Cascade",
     platforms: [
         .iOS("26.0")
     ],
     products: [
         .iOSApplication(
-            name: "Kessler",
+            name: "Cascade",
             targets: ["AppModule"],
-            bundleIdentifier: "pwiez.Kessler",
+            bundleIdentifier: "pwiez.cascade",
             teamIdentifier: "",
             displayVersion: "1.0",
             bundleVersion: "1",
-            appIcon: .placeholder(icon: .gamepad),
-            accentColor: .presetColor(.yellow),
+            appIcon: .placeholder(icon: .smiley),
+            accentColor: .presetColor(.blue),
             supportedDeviceFamilies: [
                 .pad,
                 .phone
@@ -25,7 +25,10 @@ let package = Package(
             supportedInterfaceOrientations: [
                 .landscapeRight,
                 .landscapeLeft,
-            ]
+                .portrait,
+                .portraitUpsideDown
+            ],
+            appCategory: .education
         )
     ],
     targets: [
@@ -34,5 +37,5 @@ let package = Package(
             path: "."
         )
     ],
-    swiftLanguageVersions: [.v5]
+    swiftLanguageVersions: [.version("6")]
 )
