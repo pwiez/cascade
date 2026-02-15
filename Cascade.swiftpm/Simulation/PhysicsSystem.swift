@@ -116,7 +116,7 @@ actor PhysicsSystem {
                 
                 let rT = Float.random(in: -0.2...0.2) * scaleTangential
                 let rV = Float.random(in: -1...1) * scaleVertical
-                let rR = Float.random(in: -0.1...0.1) * scaleRadial
+                let rR = Float.random(in: -7...7) * scaleRadial
                 
                 let impulseVector = (velocityDirection * rT) +
                                     (normalDirection * rV) +

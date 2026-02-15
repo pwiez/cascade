@@ -6,6 +6,8 @@ import RealityKit
 @MainActor
 class PhysicsEngine: ObservableObject {
     
+    var onCinematicEvent: (() -> Void)?
+    
     @Published var simulationStats = SimStats()
     var isPaused: Bool = false
     
@@ -15,10 +17,10 @@ class PhysicsEngine: ObservableObject {
     private var cameraRig: CameraRig?
     private var system: PhysicsSystem
     private var debrisBatchSystem: DebrisBatchSystem
-    private var hasTriggeredCinematic = false
+    
     private var cinematicLock = false
     private var cinematicCountdown: Int = -1
-        private var pendingCinematicTarget: SIMD3<Float>?
+    private var pendingCinematicTarget: SIMD3<Float>?
     
     private var earthEntity: Entity?
     private let mainSun: DirectionalLight
@@ -46,7 +48,6 @@ class PhysicsEngine: ObservableObject {
     init() {
         self.rootAnchor = AnchorEntity(world: .zero)
         self.mainSun = DirectionalLight()
-        
         OrbitalData.registerComponent()
         
         self.satelliteMaterial = standardSatMaterial
@@ -63,14 +64,8 @@ class PhysicsEngine: ObservableObject {
     
     func attach(to view: ARView) {
         self.arView = view
-        
-        if cameraRig == nil {
-            self.cameraRig = CameraRig(rootAnchor: rootAnchor)
-        }
-        
-        if rootAnchor.parent == nil {
-            view.scene.addAnchor(rootAnchor)
-        }
+        if cameraRig == nil { self.cameraRig = CameraRig(rootAnchor: rootAnchor) }
+        if rootAnchor.parent == nil { view.scene.addAnchor(rootAnchor) }
         
         sceneUpdateSubscription?.cancel()
         sceneUpdateSubscription = view.scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
@@ -85,6 +80,12 @@ class PhysicsEngine: ObservableObject {
         lastFrameTime = currentTime
         
         processCommandQueue()
+        
+        if cinematicCountdown > 0 {
+            cinematicCountdown -= 1
+            if cinematicCountdown == 0 { executeCinematicFreeze() }
+        }
+        
         if isPaused { return }
         
         let deltaTime = (1.0 / 300.0) * Float(settings.timeScale)
@@ -151,30 +152,29 @@ class PhysicsEngine: ObservableObject {
     }
     
     private func scheduleCinematicFreeze(at position: SIMD3<Float>) {
-            guard cinematicCountdown == -1 && !cinematicLock else { return }
-            
-            pendingCinematicTarget = position
-            
-            cinematicCountdown = 3
-        }
+        guard cinematicCountdown == -1 && !cinematicLock else { return }
+        pendingCinematicTarget = position
+        cinematicCountdown = 3
+    }
     
     private func executeCinematicFreeze() {
-            guard let target = pendingCinematicTarget else { return }
-            
-            cinematicLock = true
-            self.isPaused = true
-            
-            cameraRig?.focusOn(position: target)
-        }
+        guard let target = pendingCinematicTarget else { return }
+        cinematicLock = true
+        self.isPaused = true
+        
+        cameraRig?.focusOn(position: target)
+        
+        onCinematicEvent?()
+    }
     
     private func triggerCinematicEvent(at position: SIMD3<Float>) {
         guard !cinematicLock else { return }
         cinematicLock = true
         
         cameraRig?.focusOn(position: position)
-        
         self.isPaused = true
         
+        onCinematicEvent?()
     }
     
     private func updateSatellites(dt: Float, earthMass: Float) {
@@ -191,9 +191,7 @@ class PhysicsEngine: ObservableObject {
                 entity.components.remove(ModelComponent.self)
             }
             
-            if entity.scale.x != satScale {
-                entity.scale = SIMD3<Float>(repeating: satScale)
-            }
+            if entity.scale.x != satScale { entity.scale = SIMD3<Float>(repeating: satScale) }
             
             let pos = entity.position
             let distSq = length_squared(pos)
@@ -201,7 +199,6 @@ class PhysicsEngine: ObservableObject {
             
             data.velocity += gravityAccel * dt
             entity.position += data.velocity * dt
-            
             entity.components[OrbitalData.self] = data
         }
     }
@@ -222,7 +219,6 @@ class PhysicsEngine: ObservableObject {
         var earthMaterial = PhysicallyBasedMaterial()
         earthMaterial.roughness = 0.8
         earthMaterial.specular = 0.1
-        
         if let texture = try? TextureResource.load(named: "earthTopographicMap") {
             earthMaterial.baseColor = .init(texture: .init(texture))
         } else {
@@ -239,28 +235,21 @@ class PhysicsEngine: ObservableObject {
         atmMat.baseColor = .init(tint: UIColor(red: 0.2, green: 0.7, blue: 1.0, alpha: 0.3))
         atmMat.roughness = 1.0
         atmMat.blending = .transparent(opacity: 0.25)
-        
         let atmosphere = ModelEntity(mesh: atmMesh, materials: [atmMat])
         atmosphere.components.set(OpacityComponent(opacity: 0.5))
         earth.addChild(atmosphere)
     }
     
-    func queueCommand(_ command: EngineCommand) {
-        commandQueue.append(command)
-    }
+    func queueCommand(_ command: EngineCommand) { commandQueue.append(command) }
     
     private func processCommandQueue() {
         let commands = commandQueue
         commandQueue.removeAll()
-        
         for command in commands {
             switch command {
-            case .reset(let count):
-                resetUniverse(satelliteCount: count)
-            case .detonate:
-                triggerRandomExplosion()
-            case .updateSettings(let newSettings):
-                handleSettingsUpdate(newSettings)
+            case .reset(let count): resetUniverse(satelliteCount: count)
+            case .detonate: triggerRandomExplosion()
+            case .updateSettings(let newSettings): handleSettingsUpdate(newSettings)
             }
         }
     }
@@ -268,38 +257,37 @@ class PhysicsEngine: ObservableObject {
     private func handleSettingsUpdate(_ newSettings: SimSettings) {
         let contrastChanged = (self.settings.highContrast != newSettings.highContrast)
         self.settings = newSettings
-        
         updateFillLight()
         if contrastChanged { updateHighContrastMode() }
-        
         Task { await system.updateSettings(newSettings) }
         earthEntity?.isEnabled = newSettings.showEarth
     }
     
     private func resetUniverse(satelliteCount: Int) {
         cinematicLock = false
-                cinematicCountdown = -1
-                pendingCinematicTarget = nil
+        cinematicCountdown = -1
+        pendingCinematicTarget = nil
         
         satellites.forEach { $0.removeFromParent() }
         satellites.removeAll()
         
         Task { await system.reset() }
         debrisBatchSystem.update(activeCount: 0, posX: [], posY: [], posZ: [], scale: 1.0)
+        
         spawnSatellites(count: satelliteCount)
         cameraRig?.reset()
     }
     
     func setPaused(_ paused: Bool) {
-            if isPaused == true && paused == false {
-                if cinematicLock {
-                    cameraRig?.restoreState()
-                    cinematicLock = false
-                    cinematicCountdown = -1
-                }
+        if isPaused == true && paused == false {
+            if cinematicLock {
+                cameraRig?.restoreState()
+                cinematicLock = false
+                cinematicCountdown = -1
             }
-            self.isPaused = paused
         }
+        self.isPaused = paused
+    }
     
     private func spawnSatellites(count: Int) {
         let orbitAlt = Float(settings.orbitAltitude)
@@ -319,7 +307,8 @@ class PhysicsEngine: ObservableObject {
                 let raan = Float.random(in: 0...(2 * .pi))
                 let inclination = settings.useRandomInclination ? Float.random(in: 0...(.pi)) : 0
                 
-                let radius = orbitAlt + Float.random(in: -0.1...0.1)
+                let radius = orbitAlt + Float.random(in: -12.0...12.0)
+                
                 let x = radius * cos(anomaly)
                 let z = radius * sin(anomaly)
                 
@@ -335,8 +324,9 @@ class PhysicsEngine: ObservableObject {
                 let candidateVel = combinedRotation.act(SIMD3<Float>(vx, 0, vz))
                 
                 validPosition = true
+                
                 for existing in spawnedPositions {
-                    if distance(existing, candidatePos) < 4 {
+                    if distance(existing, candidatePos) < 2.5 {
                         validPosition = false
                         break
                     }
@@ -361,15 +351,14 @@ class PhysicsEngine: ObservableObject {
     }
     
     private func triggerRandomExplosion() {
-            guard let victim = satellites.filter({ $0.isEnabled }).randomElement(),
-                  let data = victim.components[OrbitalData.self] else { return }
-            
-            victim.isEnabled = false
-            
-            Task { await system.spawnExplosion(at: victim.position, velocity: data.velocity) }
-            
-            scheduleCinematicFreeze(at: victim.position)
-        }
+        guard let victim = satellites.filter({ $0.isEnabled }).randomElement(),
+              let data = victim.components[OrbitalData.self] else { return }
+        
+        victim.isEnabled = false
+        
+        Task { await system.spawnExplosion(at: victim.position, velocity: data.velocity) }
+        scheduleCinematicFreeze(at: victim.position)
+    }
     
     private func updateHighContrastMode() {
         let isHighContrast = settings.highContrast

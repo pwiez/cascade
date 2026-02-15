@@ -1,6 +1,9 @@
 import SwiftUI
+import TipKit
 
 struct KnowledgeView: View {
+    let mitigationTip = MitigationTip()
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -21,60 +24,33 @@ struct KnowledgeView: View {
                             .frame(maxWidth: 600)
                     }
                     .padding(.top, 40)
-                    .accessibilityElement(children: .combine)
                     
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 16)], spacing: 16) {
-                        AccessibleStatCard(
-                            value: "27,000+",
-                            label: "Tracked Objects",
-                            icon: "binoculars.fill",
-                            color: .cyan,
-                            a11yLabel: "Over 27,000 Tracked Objects"
-                        )
-                        AccessibleStatCard(
-                            value: "17,500",
-                            label: "Speed (mph)",
-                            icon: "speedometer",
-                            color: .orange,
-                            a11yLabel: "Speed of 17,500 miles per hour"
-                        )
-                        AccessibleStatCard(
-                            value: "100M+",
-                            label: "Untracked Debris",
-                            icon: "exclamationmark.triangle.fill",
-                            color: .red,
-                            a11yLabel: "Over 100 Million Untracked Debris Pieces"
-                        )
-                    }
-                    .padding(.horizontal)
-                    .frame(maxWidth: 800)
 
                     VStack(alignment: .leading, spacing: 48) {
                         
                         InfoSection(
-                            title: "The Origin",
-                            icon: "person.text.rectangle",
-                            image: "orbit_visual",
-                            imageCaption: "NASA simulation of orbital debris density."
-                        ) {
-                            Text("In 1978, NASA scientist **Donald Kessler** proposed a terrifying scenario: the density of objects in Low Earth Orbit (LEO) could become so high that collisions between objects would cause a cascade.")
-                            
-                            Text("One satellite breaking apart creates thousands of shrapnel pieces. Each piece becomes a bullet, capable of destroying another satellite, which creates *more* bullets. This feedback loop could render orbit unusable for generations.")
-                        }
+                             title: "The Origin",
+                             icon: "person.text.rectangle",
+                             image: "orbit_visual",
+                             imageCaption: "NASA simulation of orbital debris density."
+                         ) {
+                             Text("In 1978, NASA scientist **Donald Kessler** proposed a terrifying scenario: the density of objects in Low Earth Orbit (LEO) could become so high that collisions between objects would cause a cascade.")
+                             Text("One satellite breaking apart creates thousands of shrapnel pieces. Each piece becomes a bullet, capable of destroying another satellite, which creates *more* bullets. This feedback loop could render orbit unusable for generations.")
+                         }
                         
-                        InfoSection(
-                            title: "The Physics",
-                            icon: "atom",
-                            image: "impact_visual",
-                            imageCaption: "Hypervelocity impact damage on a shuttle window."
-                        ) {
-                            Text("Objects in orbit travel at **17,500 mph** (7.8 km/s). At this speed, a paint fleck hits with the force of a 550lb anvil dropped from a building.")
-                            
-                            Text("There is no 'fender bender' in space. Impacts vaporize the target, turning a functional machine into a cloud of high-speed shotgun pellets.")
-                        }
+                         InfoSection(
+                             title: "The Physics",
+                             icon: "atom",
+                             image: "impact_visual",
+                             imageCaption: "Hypervelocity impact damage on a shuttle window."
+                         ) {
+                             Text("Objects in orbit travel at **17,500 mph** (7.8 km/s). At this speed, a paint fleck hits with the force of a 550lb anvil dropped from a building.")
+                             Text("There is no 'fender bender' in space. Impacts vaporize the target, turning a functional machine into a cloud of high-speed shotgun pellets.")
+                         }
                         
                         VStack(alignment: .leading, spacing: 20) {
                             SectionHeader(title: "Mitigation Strategies", icon: "shield.checkered")
+                                .popoverTip(mitigationTip)
                             
                             VStack(spacing: 16) {
                                 MitigationRow(
@@ -95,33 +71,10 @@ struct KnowledgeView: View {
                     .frame(maxWidth: 700)
                     .padding(.horizontal)
                     
-                    Divider()
-                        .padding(.vertical)
-                    
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("About This Simulation")
-                            .font(.headline)
-                            .accessibilityAddTraits(.isHeader)
-                        
-                        Text("To make this phenomenon visible on a screen, this app makes several scientific compromises:")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            BulletPoint(text: "**Time:** Accelerated up to 10x to show decay effects.")
-                            BulletPoint(text: "**Scale:** Satellites are rendered ~1000x larger than reality.")
-                            BulletPoint(text: "**Physics:** Collision detection uses a spatial hash grid for performance.")
-                        }
-                    }
-                    .padding()
-                    .background(Color(uiColor: .secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .frame(maxWidth: 700)
-                    .padding(.bottom, 40)
                 }
             }
             .background(Color(uiColor: .systemBackground))
-            .navigationTitle("Encyclopedia")
+            .navigationTitle("Learn More")
             .navigationBarTitleDisplayMode(.inline)
         }
     }

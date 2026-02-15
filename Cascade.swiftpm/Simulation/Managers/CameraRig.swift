@@ -80,7 +80,7 @@ class CameraRig {
         pivot.move(to: savedT, relativeTo: pivot.parent, duration: 1.0, timingFunction: .easeInOut)
         
         let cameraTarget = Transform(scale: .one, rotation: .init(), translation: SIMD3(0, 0, z))
-        camera.move(to: cameraTarget, relativeTo: pivot, duration: 1.0, timingFunction: .easeInOut)
+        camera.move(to: cameraTarget, relativeTo: pivot, duration: 1.5, timingFunction: .easeInOut)
         
         self.angleX = ax
         self.angleY = ay
