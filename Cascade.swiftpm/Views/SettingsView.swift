@@ -5,8 +5,8 @@ struct SettingsView: View {
     @State private var showRestartConfirmation = false
     
     var hasPendingChanges: Bool {
-        simulation.draftSatelliteCount != simulation.activeSatelliteCount ||
-        simulation.draftMaxDebris != simulation.activeMaxDebris
+        simulation.draft.satelliteCount != simulation.activeSatelliteCount ||
+        simulation.draft.maxDebris != simulation.activeMaxDebris
     }
     
     var body: some View {
@@ -48,33 +48,33 @@ struct SettingsView: View {
                         HStack {
                             Text("Max Debris Limit")
                             Spacer()
-                            Text("\(Int(simulation.draftMaxDebris))")
+                            Text("\(Int(simulation.draft.maxDebris))")
                                 .foregroundStyle(hasPendingChanges ? .orange : .secondary)
                                 .bold(hasPendingChanges)
                         }
-                        Slider(value: $simulation.draftMaxDebris, in: 500...5000, step: 100)
+                        Slider(value: $simulation.draft.maxDebris, in: 500.0...5000.0, step: 100.0)
                     }
                     
                     VStack(alignment: .leading) {
                         HStack {
                             Text("Debris Per Crash")
                             Spacer()
-                            Text("\(Int(simulation.draftDebrisPerCollision))")
+                            Text("\(Int(simulation.draft.debrisPerCollision))")
                                 .foregroundStyle(hasPendingChanges ? .orange : .secondary)
                                 .bold(hasPendingChanges)
                         }
-                        Slider(value: $simulation.draftDebrisPerCollision, in: 3...7, step: 1)
+                        Slider(value: $simulation.draft.debrisPerCollision, in: 3.0...7.0, step: 1.0)
                     }
                     
                     VStack(alignment: .leading) {
                         HStack {
                             Text("Initial Satellites")
                             Spacer()
-                            Text("\(Int(simulation.draftSatelliteCount))")
+                            Text("\(Int(simulation.draft.satelliteCount))")
                                 .foregroundStyle(hasPendingChanges ? .orange : .secondary)
                                 .bold(hasPendingChanges)
                         }
-                        Slider(value: $simulation.draftSatelliteCount, in: 0...1000, step: 25)
+                        Slider(value: $simulation.draft.satelliteCount, in: 0.0...1000.0, step: 25.0)
                     }
                 }
                 

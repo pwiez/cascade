@@ -19,12 +19,12 @@ struct ControlOverlay: View {
             }
             
             CircleButton(
-                icon: isPaused ? "play.fill" : "pause.fill",
-                color: isPaused ? .green : .orange,
-                isActive: isPaused
-            ) {
-                isPaused.toggle()
-            }
+                            icon: isPaused ? "play.fill" : "pause.fill",
+                            color: isPaused ? .green : .orange,
+                            isActive: isPaused
+                        ) {
+                             isPaused.toggle()
+                        }
             
             CircleButton(
                 icon: "camera.viewfinder",
@@ -48,15 +48,8 @@ struct CircleButton: View {
             Image(systemName: icon)
                 .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(.white)
-                .frame(width: 50, height: 50)
-                .background(color.opacity(isActive ? 1.0 : 0.8))
-                .background(.ultraThinMaterial)
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(.white.opacity(0.3), lineWidth: 1)
-                )
-                .shadow(radius: 6)
+                .frame(width: 56, height: 56)
+                .glassEffect()
         }
     }
 }
@@ -114,7 +107,8 @@ struct SimulationView: UIViewRepresentable {
                     .disableGroundingShadows
                 ]
         
-        simulation.engine.attach(to: arView)
+        simulation.attachToView(arView)
+        
         wrapper.arView = arView
         wrapper.addSubview(arView)
         return wrapper

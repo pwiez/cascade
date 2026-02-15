@@ -12,7 +12,6 @@ class DebrisPool {
     var velY: [Float]
     var velZ: [Float]
     
-    
     var activeCount: Int = 0
     let capacity: Int
     
@@ -66,17 +65,34 @@ class DebrisPool {
     func updatePhysics(dt: Float, earthMass: Float, killRadiusSq: Float, maxRadiusSq: Float) {
         guard activeCount > 0 else { return }
         
+        let count = activeCount
+        
         withSixBuffers(&posX, &posY, &posZ, &velX, &velY, &velZ) { ptrX, ptrY, ptrZ, vPtrX, vPtrY, vPtrZ in
             
-            if activeCount < 1000 {
-                            for i in 0..<activeCount {
-                                performGravity(i: i, ptrX: ptrX, ptrY: ptrY, ptrZ: ptrZ, vPtrX: vPtrX, vPtrY: vPtrY, vPtrZ: vPtrZ, earthMass: earthMass, dt: dt, killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq)
-                            }
-                        } else {
-                            DispatchQueue.concurrentPerform(iterations: activeCount) { i in
-                                performGravity(i: i, ptrX: ptrX, ptrY: ptrY, ptrZ: ptrZ, vPtrX: vPtrX, vPtrY: vPtrY, vPtrZ: vPtrZ, earthMass: earthMass, dt: dt, killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq)
-                            }
-                        }
+            if count < 1000 {
+                for i in 0..<count {
+                    DebrisPool.performGravity(i: i, ptrX: ptrX, ptrY: ptrY, ptrZ: ptrZ, vPtrX: vPtrX, vPtrY: vPtrY, vPtrZ: vPtrZ, earthMass: earthMass, dt: dt, killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq)
+                }
+            } else {
+                struct PointerPack: @unchecked Sendable {
+                    let px: UnsafeMutableBufferPointer<Float>
+                    let py: UnsafeMutableBufferPointer<Float>
+                    let pz: UnsafeMutableBufferPointer<Float>
+                    let vx: UnsafeMutableBufferPointer<Float>
+                    let vy: UnsafeMutableBufferPointer<Float>
+                    let vz: UnsafeMutableBufferPointer<Float>
+                }
+                
+                let pack = PointerPack(px: ptrX, py: ptrY, pz: ptrZ, vx: vPtrX, vy: vPtrY, vz: vPtrZ)
+                
+                DispatchQueue.concurrentPerform(iterations: count) { i in
+                    DebrisPool.performGravity(i: i,
+                                              ptrX: pack.px, ptrY: pack.py, ptrZ: pack.pz,
+                                              vPtrX: pack.vx, vPtrY: pack.vy, vPtrZ: pack.vz,
+                                              earthMass: earthMass, dt: dt,
+                                              killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq)
+                }
+            }
         }
         
         var delta = dt
@@ -100,32 +116,32 @@ class DebrisPool {
     }
     
     @inline(__always)
-    func performGravity(i: Int,
-                                    ptrX: UnsafeMutableBufferPointer<Float>,
-                                    ptrY: UnsafeMutableBufferPointer<Float>,
-                                    ptrZ: UnsafeMutableBufferPointer<Float>,
-                                    vPtrX: UnsafeMutableBufferPointer<Float>,
-                                    vPtrY: UnsafeMutableBufferPointer<Float>,
-                                    vPtrZ: UnsafeMutableBufferPointer<Float>,
-                                    earthMass: Float, dt: Float,
-                                    killRadiusSq: Float, maxRadiusSq: Float) {
-            
-            let px = ptrX[i]
-            let py = ptrY[i]
-            let pz = ptrZ[i]
-            
-            let distSq = (px*px) + (py*py) + (pz*pz)
-            
-            if distSq < killRadiusSq || distSq > maxRadiusSq { return }
-            
-            let invDist = 1.0 / sqrt(distSq)
-            let invDist3 = invDist * invDist * invDist
-            let factor = -earthMass * invDist3 * dt
-            
-            vPtrX[i] += px * factor
-            vPtrY[i] += py * factor
-            vPtrZ[i] += pz * factor
-        }
+    static func performGravity(i: Int,
+                               ptrX: UnsafeMutableBufferPointer<Float>,
+                               ptrY: UnsafeMutableBufferPointer<Float>,
+                               ptrZ: UnsafeMutableBufferPointer<Float>,
+                               vPtrX: UnsafeMutableBufferPointer<Float>,
+                               vPtrY: UnsafeMutableBufferPointer<Float>,
+                               vPtrZ: UnsafeMutableBufferPointer<Float>,
+                               earthMass: Float, dt: Float,
+                               killRadiusSq: Float, maxRadiusSq: Float) {
+        
+        let px = ptrX[i]
+        let py = ptrY[i]
+        let pz = ptrZ[i]
+        
+        let distSq = (px*px) + (py*py) + (pz*pz)
+        
+        if distSq < killRadiusSq || distSq > maxRadiusSq { return }
+        
+        let invDist = simd_rsqrt(distSq)
+        let invDist3 = invDist * invDist * invDist
+        let factor = -earthMass * invDist3 * dt
+        
+        vPtrX[i] += px * factor
+        vPtrY[i] += py * factor
+        vPtrZ[i] += pz * factor
+    }
     
     @inline(__always)
     func position(at i: Int) -> SIMD3<Float> {
