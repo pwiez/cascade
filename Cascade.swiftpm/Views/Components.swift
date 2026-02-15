@@ -1,10 +1,13 @@
 import SwiftUI
 import RealityKit
+import TipKit
 
 struct ControlOverlay: View {
     @Binding var showSettings: Bool
     @Binding var isPaused: Bool
     let onResetCamera: () -> Void
+    
+    let settingsTip = SettingsTip()
     
     var body: some View {
         HStack(spacing: 12) {
@@ -15,16 +18,18 @@ struct ControlOverlay: View {
             ) {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                     showSettings.toggle()
+                    settingsTip.invalidate(reason: .actionPerformed)
                 }
             }
+            .popoverTip(settingsTip, arrowEdge: .top)
             
             CircleButton(
-                            icon: isPaused ? "play.fill" : "pause.fill",
-                            color: isPaused ? .green : .orange,
-                            isActive: isPaused
-                        ) {
-                             isPaused.toggle()
-                        }
+                icon: isPaused ? "play.fill" : "pause.fill",
+                color: isPaused ? .green : .orange,
+                isActive: isPaused
+            ) {
+                isPaused.toggle()
+            }
             
             CircleButton(
                 icon: "camera.viewfinder",

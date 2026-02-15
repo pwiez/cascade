@@ -81,7 +81,6 @@ struct PopulationDraft {
 class Simulation: ObservableObject {
     
     private let engine = PhysicsEngine()
-    
     let telemetry = Telemetry()
     private var cancellables = Set<AnyCancellable>()
     
@@ -89,6 +88,9 @@ class Simulation: ObservableObject {
     
     @Published private(set) var activeSatelliteCount: Double = 300
     @Published private(set) var activeMaxDebris: Double = 3000
+    
+    @Published var showCollisionAlert: Bool = false
+    @AppStorage("hasSeenFirstCrash") var hasSeenFirstCrash: Bool = false
     
     @Published var useRandomInclination: Bool = SimSettings.defaults.useRandomInclination { didSet { syncSettings() } }
     @Published var satelliteScale: Double = SimSettings.defaults.satelliteScale { didSet { syncSettings() } }
@@ -123,27 +125,45 @@ class Simulation: ObservableObject {
     
     @Published var showStats: Bool = true
     @Published var isPaused: Bool = false { didSet { engine.isPaused = isPaused } }
-    @Published var currentFact: SpaceFact? = nil
     
     init() {
         engine.$simulationStats
             .receive(on: RunLoop.main)
             .assign(to: &telemetry.$stats)
         
-        resetSettingsToDefaults()
+        engine.onCinematicEvent = { [weak self] in
+            Task { @MainActor in
+                self?.handleCinematicEvent()
+            }
+        }
         
+        resetSettingsToDefaults()
         resetSimulation()
     }
     
-    func attachToView(_ arView: ARView) {
-        engine.attach(to: arView)
+    func handleCinematicEvent() {
+        
+        withAnimation {
+            self.showCollisionAlert = true
+        }
     }
     
-    func togglePause() {
-            let newState = !isPaused
-            isPaused = newState
-            engine.setPaused(newState)
+    func dismissCollisionAlert() {
+        withAnimation {
+            showCollisionAlert = false
+            hasSeenFirstCrash = true
+            resetCamera()
+                        isPaused = false
         }
+    }
+    
+    func attachToView(_ arView: ARView) { engine.attach(to: arView) }
+    
+    func togglePause() {
+        let newState = !isPaused
+        isPaused = newState
+        engine.setPaused(newState)
+    }
     
     func syncSettings() {
         let settings = SimSettings(
@@ -170,20 +190,17 @@ class Simulation: ObservableObject {
     
     func resetSimulation() {
         let limit = draft.safeSatelliteLimit()
-        if draft.satelliteCount > limit {
-            draft.satelliteCount = limit
-        }
-        
+        if draft.satelliteCount > limit { draft.satelliteCount = limit }
         activeSatelliteCount = draft.satelliteCount
         activeMaxDebris = draft.maxDebris
-        
         syncSettings()
         engine.queueCommand(.reset(Int(activeSatelliteCount)))
+        
     }
     
     func setSettingsOpen(_ isOpen: Bool) { engine.setSidePanelOpen(isOpen) }
     func pauseSimulation() { isPaused = true }
-    func resumeSimulation() { isPaused = false; currentFact = nil }
+    func resumeSimulation() { isPaused = false }
     func triggerDetonation() { engine.queueCommand(.detonate) }
     
     func resetCamera() { engine.resetCamera() }
@@ -192,12 +209,10 @@ class Simulation: ObservableObject {
     
     func resetSettingsToDefaults() {
         let d = SimSettings.defaults
-        
         isCameraLocked = false
         timeScale = d.timeScale
         explosionForce = d.explosionForce
         collisionRadius = d.collisionRadius
-        
         useRandomInclination = d.useRandomInclination
         satelliteScale = d.satelliteScale
         debrisScale = d.debrisScale
@@ -205,9 +220,7 @@ class Simulation: ObservableObject {
         orbitAltitude = d.orbitAltitude
         highContrast = d.highContrast
         showEarth = d.showEarth
-        
         draft = PopulationDraft.defaults
-        
         let limit = draft.safeSatelliteLimit()
         draft.satelliteCount = min(300, limit)
     }
