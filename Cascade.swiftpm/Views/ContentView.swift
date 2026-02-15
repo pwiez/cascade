@@ -4,7 +4,8 @@ import TipKit
 struct ContentView: View {
     @StateObject var simulation = Simulation()
     @State private var selectedTab: Int = 0
-    @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
+    
+    @State private var hasCompletedOnboarding: Bool = false
     
     let learnMoreTip = LearnMoreTip()
     
@@ -26,12 +27,11 @@ struct ContentView: View {
                         .tag(1)
                         .badge(learnMoreTip.shouldDisplay ? "!" : nil)
                 }
-                .preferredColorScheme(.dark)
                 .transition(.opacity)
                 .onChange(of: selectedTab) { _, newTab in
                     if newTab == 1 {
                         simulation.pauseSimulation()
-                        learnMoreTip.invalidate(reason: .actionPerformed)
+                        
                     } else if newTab == 0 {
                         simulation.resumeSimulation()
                     }
@@ -199,6 +199,8 @@ struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
     @State private var showSettings = false
     
+    private let panelWidthRatio = 0.33
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
@@ -229,7 +231,7 @@ struct SimulationScreen: View {
                 
                 if showSettings {
                     SettingsView(simulation: simulation)
-                        .frame(width: geometry.size.width * 0.33)
+                        .frame(width: geometry.size.width * panelWidthRatio)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .padding(.top, 75)
                         .padding(.bottom, 16)
@@ -248,13 +250,34 @@ struct SimulationScreen: View {
                 .zIndex(3)
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSettings)
-            .onChange(of: showSettings) { simulation.setSettingsOpen(showSettings) }
+            .onChange(of: showSettings) { _, isOpen in
+                updateCameraOffset(isOpen: isOpen, geometry: geometry)
+            }
+            .onChange(of: geometry.size) { _, newSize in
+                if showSettings {
+                    updateCameraOffset(isOpen: true, geometry: geometry)
+                }
+            }
             .task {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                
                 try? Tips.configure([
                     .displayFrequency(.immediate),
                     .datastoreLocation(.applicationDefault)
                 ])
             }
+        }
+    }
+    
+    @MainActor
+    private func updateCameraOffset(isOpen: Bool, geometry: GeometryProxy) {
+        if isOpen {
+            let aspect = geometry.size.width / geometry.size.height
+            let shiftRatio = (panelWidthRatio / 2.0) * 0.4
+            simulation.setSettingsPanel(isOpen: true, ratio: shiftRatio, aspectRatio: Double(aspect))
+        } else {
+            let aspect = geometry.size.width / geometry.size.height
+            simulation.setSettingsPanel(isOpen: false, ratio: 0, aspectRatio: Double(aspect))
         }
     }
 }

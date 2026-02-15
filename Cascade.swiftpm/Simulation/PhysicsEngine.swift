@@ -392,6 +392,12 @@ class PhysicsEngine: ObservableObject {
     
     func rotateCamera(deltaX: Float, deltaY: Float) { cameraRig?.rotate(deltaX: deltaX, deltaY: deltaY) }
     func zoomCamera(scaleFactor: Float) { cameraRig?.zoom(scaleFactor: scaleFactor) }
-    func setSidePanelOpen(_ isOpen: Bool) { cameraRig?.setSidePanelOpen(isOpen: isOpen) }
     func resetCamera() { cameraRig?.reset() }
+    func setCameraOffset(ratio: Float, aspectRatio: Float) {
+            Task { @MainActor [weak self] in
+                guard let self = self, let rig = self.cameraRig else { return }
+                rig.setTargetOffset(ratio: ratio, aspectRatio: aspectRatio)
+            }
+        }
+    
 }
