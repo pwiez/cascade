@@ -57,6 +57,8 @@ private struct MetricRow: View {
             Text("\(value)")
                 .font(.system(size: 28, weight: .light, design: .monospaced))
                 .foregroundStyle(color)
+                .contentTransition(.numericText(value: Double(value)))
+                .animation(.snappy, value: value)
         }
     }
 }

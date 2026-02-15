@@ -198,7 +198,12 @@ class Simulation: ObservableObject {
         
     }
     
-    func setSettingsOpen(_ isOpen: Bool) { engine.setSidePanelOpen(isOpen) }
+    func setSettingsPanel(isOpen: Bool, ratio: Double, aspectRatio: Double) {
+            let targetOffset = isOpen ? Float(ratio) : 0.0
+            let aspect = Float(aspectRatio)
+            engine.setCameraOffset(ratio: targetOffset, aspectRatio: aspect)
+        }
+    
     func pauseSimulation() { isPaused = true }
     func resumeSimulation() { isPaused = false }
     func triggerDetonation() { engine.queueCommand(.detonate) }

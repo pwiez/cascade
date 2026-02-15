@@ -18,10 +18,8 @@ struct ControlOverlay: View {
             ) {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                     showSettings.toggle()
-                    settingsTip.invalidate(reason: .actionPerformed)
                 }
             }
-            .popoverTip(settingsTip, arrowEdge: .top)
             
             CircleButton(
                 icon: isPaused ? "play.fill" : "pause.fill",
@@ -51,9 +49,9 @@ struct CircleButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 24))
                 .foregroundStyle(.white)
-                .frame(width: 56, height: 56)
+                .frame(width: 50, height: 50)
                 .glassEffect()
         }
     }

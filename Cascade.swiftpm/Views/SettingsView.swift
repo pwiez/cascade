@@ -12,41 +12,108 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Visuals") {
+                Section {
                     Toggle(isOn: $simulation.isCameraLocked) {
                         Label("Reset & Freeze Camera", systemImage: "camera.metering.center.weighted")
                     }
                     .tint(.blue)
-                    Toggle("High Contrast", isOn: $simulation.highContrast)
-                    Toggle("Omni Light", isOn: $simulation.useOmniLight)
-                    Toggle("Show Earth", isOn: $simulation.showEarth)
-                    Toggle("Show Satellites", isOn: $simulation.showSatellites)
-                    Toggle("Show Stats", isOn: $simulation.showStats)
+                    
+                    Toggle(isOn: $simulation.highContrast) {
+                        Label("High Contrast Mode", systemImage: "circle.lefthalf.filled")
+                    }
+                    
+                    Toggle(isOn: $simulation.useOmniLight) {
+                        Label("Omni Light (Fill)", systemImage: "lightbulb.max")
+                    }
+                    
+                    Toggle(isOn: $simulation.showEarth) {
+                        Label("Show Earth", systemImage: "globe.americas.fill")
+                    }
+                    
+                    Toggle(isOn: $simulation.showSatellites) {
+                        Label("Show Satellites", systemImage: "satellite.fill")
+                    }
+                    
+                    Toggle(isOn: $simulation.showStats) {
+                        Label("Show HUD Stats", systemImage: "chart.bar.fill")
+                    }
+                    
+                    Group {
+                        row(icon: "maximize", color: .green, label: "Sat Scale", value: $simulation.satelliteScale, range: 0.5...5.0, fmt: "%.1f")
+                        row(icon: "smallcircle.filled.circle", color: .red, label: "Debris Scale", value: $simulation.debrisScale, range: 0.5...5.0, fmt: "%.1f")
+                    }
+                } header: {
+                    Text("Visual Configuration")
+                } footer: {
+                    Text("High contrast mode automatically overrides scale settings for visibility.")
                 }
                 
-                Section("Time Control") {
+                Section {
                     HStack {
                         Image(systemName: "clock")
+                            .foregroundStyle(.blue)
                         Text("Time Scale")
                         Spacer()
                         Text(String(format: "%.1fx", simulation.timeScale))
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
                     }
-                    Slider(value: $simulation.timeScale, in: 1.0...10.0, step: 0.5) {
-                        Text("Time Scale")
-                    } minimumValueLabel: {
-                        Image(systemName: "tortoise.fill")
-                    } maximumValueLabel: {
-                        Image(systemName: "hare.fill")
-                    }
+                    
+                    TickSlider(
+                        value: $simulation.timeScale,
+                        range: 1.0...10.0,
+                        step: 0.5,
+                        minimumIcon: "tortoise.fill",
+                        maximumIcon: "hare.fill"
+                    )
+                } header: {
+                    Text("Simulation Speed")
                 }
                 
-                Section(header: Text("Population & Generation"), footer: Text("Changes to these values require a simulation respawn.")) {
+                Section {
+                    row(icon: "arrow.down.to.line.compact", color: .gray, label: "Gravity Multiplier", value: $simulation.gravityMultiplier, range: 0.1...3.0, fmt: "%.1f")
+                    
+                    row(icon: "arrow.up.and.down.circle", color: .blue, label: "Orbit Altitude", value: $simulation.orbitAltitude, range: 80.0...200.0, fmt: "%.0f")
+                    
+                    row(icon: "burst.fill", color: .red, label: "Explosion Force", value: $simulation.explosionForce, range: 1.0...10.0, fmt: "%.1f")
+                    
+                    row(icon: "scope", color: .orange, label: "Hitbox Size", value: $simulation.collisionRadius, range: 1.0...5.0, fmt: "%.1f")
+                    
+                } header: {
+                    Text("Orbital Physics")
+                }
+                
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        row(icon: "arrow.left.and.right", color: .purple, label: "Tangential Spread", value: $simulation.spreadTangential, range: 0.1...5.0, fmt: "%.1f")
+                        Text("Spreads debris along the orbital path.")
+                            .font(.caption2).foregroundStyle(.secondary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        row(icon: "arrow.up.and.down", color: .green, label: "Vertical Spread", value: $simulation.spreadVertical, range: 0.1...5.0, fmt: "%.1f")
+                        Text("Ejects debris 'up' or 'down' (Inclination change).")
+                            .font(.caption2).foregroundStyle(.secondary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        row(icon: "arrow.up.left.and.arrow.down.right", color: .cyan, label: "Radial Spread", value: $simulation.spreadRadial, range: 0.1...3.0, fmt: "%.1f")
+                        Text("Kicks debris higher or lower in altitude.")
+                            .font(.caption2).foregroundStyle(.secondary)
+                    }
+                    
+                } header: {
+                    Text("Debris Scatter Logic")
+                }
+                
+                Section {
+                    Toggle(isOn: $simulation.useRandomInclination) {
+                        Label("Random Inclination", systemImage: "lines.measurement.horizontal")
+                    }
                     
                     VStack(alignment: .leading) {
                         HStack {
-                            Text("Max Debris Limit")
+                            Label("Max Debris Limit", systemImage: "aqi.medium")
                             Spacer()
                             Text("\(Int(simulation.draft.maxDebris))")
                                 .foregroundStyle(hasPendingChanges ? .orange : .secondary)
@@ -57,7 +124,7 @@ struct SettingsView: View {
                     
                     VStack(alignment: .leading) {
                         HStack {
-                            Text("Debris Per Crash")
+                            Label("Debris Per Crash", systemImage: "sparkles")
                             Spacer()
                             Text("\(Int(simulation.draft.debrisPerCollision))")
                                 .foregroundStyle(hasPendingChanges ? .orange : .secondary)
@@ -68,7 +135,7 @@ struct SettingsView: View {
                     
                     VStack(alignment: .leading) {
                         HStack {
-                            Text("Initial Satellites")
+                            Label("Initial Satellites", systemImage: "dot.radiowaves.up.forward")
                             Spacer()
                             Text("\(Int(simulation.draft.satelliteCount))")
                                 .foregroundStyle(hasPendingChanges ? .orange : .secondary)
@@ -76,16 +143,22 @@ struct SettingsView: View {
                         }
                         Slider(value: $simulation.draft.satelliteCount, in: 0.0...1000.0, step: 25.0)
                     }
-                }
-                
-                Section("Physics Parameters") {
-                    row(label: "Explosion Force", value: $simulation.explosionForce, range: 1.0...10.0, fmt: "%.1f")
-                    row(label: "Hitbox Size", value: $simulation.collisionRadius, range: 1.0...5.0, fmt: "%.1f")
+                } header: {
+                    Text("Population & Generation")
+                } footer: {
+                    if hasPendingChanges {
+                        Text("Tap 'Apply Changes' below to update.")
+                            .foregroundStyle(.orange)
+                    } else {
+                        Text("Changes to these values require a simulation respawn.")
+                    }
                 }
                 
                 Section {
-                    Button("Reset Defaults") {
-                        simulation.resetSettingsToDefaults()
+                    Button {
+                        withAnimation { simulation.resetSettingsToDefaults() }
+                    } label: {
+                        Label("Reset Defaults", systemImage: "arrow.counterclockwise")
                     }
                     
                     Button(role: hasPendingChanges ? .none : .destructive) {
@@ -113,10 +186,16 @@ struct SettingsView: View {
     }
     
     @ViewBuilder
-    private func row(label: String, value: Binding<Double>, range: ClosedRange<Double>, fmt: String) -> some View {
+    private func row(icon: String, color: Color, label: String, value: Binding<Double>, range: ClosedRange<Double>, fmt: String) -> some View {
         VStack(alignment: .leading) {
             HStack {
-                Text(label)
+                Label {
+                    Text(label)
+                } icon: {
+                    Image(systemName: icon)
+                        .foregroundStyle(color)
+                }
+
                 Spacer()
                 Text(String(format: fmt, value.wrappedValue))
                     .foregroundStyle(.secondary)
@@ -124,5 +203,48 @@ struct SettingsView: View {
             }
             Slider(value: value, in: range)
         }
+    }
+}
+
+struct TickSlider: View {
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    let step: Double
+    let minimumIcon: String
+    let maximumIcon: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack {
+                Image(systemName: minimumIcon)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                ZStack {
+                    HStack(spacing: 0) {
+                        ForEach(0..<numberOfSteps(), id: \.self) { index in
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 1, height: 4)
+                            if index != numberOfSteps() - 1 {
+                                Spacer()
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                    
+                    Slider(value: $value, in: range, step: step)
+                }
+                
+                Image(systemName: maximumIcon)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+    
+    private func numberOfSteps() -> Int {
+        let count = Int((range.upperBound - range.lowerBound) / step) + 1
+        return max(0, count)
     }
 }
