@@ -198,62 +198,63 @@ struct OnboardingView: View {
 struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
     @State private var showSettings = false
-    private let settingsWidth: CGFloat = 400
     
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            
-            SimulationContainer(simulation: simulation)
-                .ignoresSafeArea()
-                .zIndex(0)
-            
-            ZStack(alignment: .bottom) {
-                if simulation.showStats {
-                    VStack {
-                        HStack {
-                            SimMetrics(sim: simulation)
-                                .padding(.leading, 20)
-                                .padding(.top, 20)
+        GeometryReader { geometry in
+            ZStack(alignment: .topTrailing) {
+                
+                SimulationContainer(simulation: simulation)
+                    .ignoresSafeArea()
+                    .zIndex(0)
+                
+                ZStack(alignment: .bottom) {
+                    if simulation.showStats {
+                        VStack {
+                            HStack {
+                                SimMetrics(sim: simulation)
+                                    .padding(.leading, 20)
+                                    .padding(.top, 20)
+                                Spacer()
+                            }
                             Spacer()
                         }
-                        Spacer()
                     }
+                    
+                    DetonateButton {
+                        simulation.triggerDetonation()
+                    }
+                    .padding(.bottom, 30)
+                }
+                .zIndex(1)
+                
+                if showSettings {
+                    SettingsView(simulation: simulation)
+                        .frame(width: geometry.size.width * 0.33)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.top, 75)
+                        .padding(.bottom, 16)
+                        .padding(.trailing, 16)
+                        .transition(.move(edge: .trailing))
+                        .zIndex(2)
                 }
                 
-                DetonateButton {
-                    simulation.triggerDetonation()
-                }
-                .padding(.bottom, 30)
+                ControlOverlay(
+                    showSettings: $showSettings,
+                    isPaused: $simulation.isPaused,
+                    onResetCamera: { simulation.resetCamera() }
+                )
+                .padding(.trailing)
+                .padding(.top)
+                .zIndex(3)
             }
-            .zIndex(1)
-            
-            if showSettings {
-                SettingsView(simulation: simulation)
-                    .frame(width: settingsWidth)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .padding(.top, 75)
-                    .padding(.bottom, 16)
-                    .padding(.trailing, 16)
-                    .transition(.move(edge: .trailing))
-                    .zIndex(2)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSettings)
+            .onChange(of: showSettings) { simulation.setSettingsOpen(showSettings) }
+            .task {
+                try? Tips.configure([
+                    .displayFrequency(.immediate),
+                    .datastoreLocation(.applicationDefault)
+                ])
             }
-            
-            ControlOverlay(
-                showSettings: $showSettings,
-                isPaused: $simulation.isPaused,
-                onResetCamera: { simulation.resetCamera() }
-            )
-            .padding(.trailing)
-            .padding(.top)
-            .zIndex(3)
-        }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSettings)
-        .onChange(of: showSettings) { simulation.setSettingsOpen(showSettings) }
-        .task {
-            try? Tips.configure([
-                .displayFrequency(.immediate),
-                .datastoreLocation(.applicationDefault)
-            ])
         }
     }
 }
