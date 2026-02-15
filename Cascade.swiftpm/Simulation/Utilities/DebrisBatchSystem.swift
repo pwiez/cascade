@@ -2,9 +2,10 @@ import RealityKit
 import Foundation
 import simd
 
+@MainActor
 class DebrisBatchSystem {
     public let entity: ModelEntity
-    private var meshResource: MeshResource
+    public var meshResource: MeshResource
     
     private let maxDebris: Int
     
@@ -77,8 +78,7 @@ class DebrisBatchSystem {
         descriptor.primitives = .triangles(allIndices)
         
         if let newMesh = try? MeshResource.generate(from: [descriptor]) {
-            self.meshResource = newMesh
-            self.entity.model?.mesh = newMesh
+            try? self.meshResource.replace(with: newMesh.contents)
         }
     }
 }

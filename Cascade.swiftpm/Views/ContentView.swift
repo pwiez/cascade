@@ -48,7 +48,6 @@ struct SimulationScreen: View {
                         HStack {
                             SimMetrics(sim: simulation)
                                 .padding(.leading, 20)
-                                .padding(.top, 20)
                             Spacer()
                         }
                         Spacer()
@@ -79,7 +78,6 @@ struct SimulationScreen: View {
                 onResetCamera: { simulation.resetCamera() }
             )
             .padding(.trailing)
-            .padding(.top)
             .zIndex(3)
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSettings)
