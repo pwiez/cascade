@@ -112,7 +112,7 @@ class CameraRig {
     }
     
     private func updatePosition(animated: Bool) {
-        let targetX = isSettingsOpen ? (zoomLevel * 0.20) : 0.0
+        let targetX = isSettingsOpen ? (zoomLevel * 0.25) : 0.0
         let targetTransform = Transform(scale: .one, rotation: .init(), translation: SIMD3<Float>(targetX, 0, zoomLevel))
         
         if animated {
