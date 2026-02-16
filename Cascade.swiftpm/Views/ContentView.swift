@@ -195,76 +195,66 @@ struct OnboardingView: View {
     }
 }
 
+import SwiftUI
+
 struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
     @State private var showSettings = false
     
-    private let panelWidthRatio = 0.33
+    private let panelWidthRatio = 0.30
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .topTrailing) {
+            ZStack(alignment: .top) {
                 
                 SimulationContainer(simulation: simulation)
                     .ignoresSafeArea()
                     .zIndex(0)
                 
-                ZStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 16) {
+                    
                     if simulation.showStats {
-                        VStack {
-                            HStack {
-                                SimMetrics(sim: simulation)
-                                    .padding(.leading, 20)
-                                    .padding(.top, 20)
-                                Spacer()
-                            }
-                            Spacer()
-                        }
+                        SimMetrics(sim: simulation)
+                            .transition(.blurReplace)
                     }
                     
-                    DetonateButton {
-                        simulation.triggerDetonation()
+                    HStack {
+                        SimulationControls(
+                            isPaused: $simulation.isPaused,
+                            showSettings: $showSettings,
+                            onResetCamera: { simulation.resetCamera() },
+                            onDetonate: { simulation.triggerDetonation() }
+                        )
+                        Spacer()
                     }
-                    .padding(.bottom, 30)
                 }
-                .zIndex(1)
+                .padding(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .zIndex(2)
                 
                 if showSettings {
-                    SettingsView(simulation: simulation)
+                    HStack {
+                        Spacer()
+                        SettingsView(
+                            simulation: simulation,
+                            onClose: {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    showSettings = false
+                                }
+                            }
+                        )
                         .frame(width: geometry.size.width * panelWidthRatio)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .padding(.top, 75)
-                        .padding(.bottom, 16)
-                        .padding(.trailing, 16)
-                        .transition(.move(edge: .trailing))
-                        .zIndex(2)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .padding(.vertical, 32)
+                        .padding(.trailing, 32)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                    }
+                    .zIndex(3)
                 }
-                
-                ControlOverlay(
-                    showSettings: $showSettings,
-                    isPaused: $simulation.isPaused,
-                    onResetCamera: { simulation.resetCamera() }
-                )
-                .padding(.trailing)
-                .padding(.top)
-                .zIndex(3)
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSettings)
             .onChange(of: showSettings) { _, isOpen in
                 updateCameraOffset(isOpen: isOpen, geometry: geometry)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                if showSettings {
-                    updateCameraOffset(isOpen: true, geometry: geometry)
-                }
-            }
-            .task {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                
-                try? Tips.configure([
-                    .displayFrequency(.immediate),
-                    .datastoreLocation(.applicationDefault)
-                ])
             }
         }
     }
@@ -273,7 +263,7 @@ struct SimulationScreen: View {
     private func updateCameraOffset(isOpen: Bool, geometry: GeometryProxy) {
         if isOpen {
             let aspect = geometry.size.width / geometry.size.height
-            let shiftRatio = (panelWidthRatio / 2.0) * 0.4
+            let shiftRatio = (panelWidthRatio / 2.0) * 0.75
             simulation.setSettingsPanel(isOpen: true, ratio: shiftRatio, aspectRatio: Double(aspect))
         } else {
             let aspect = geometry.size.width / geometry.size.height
