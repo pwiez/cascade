@@ -2,41 +2,52 @@ import SwiftUI
 import RealityKit
 import TipKit
 
-struct ControlOverlay: View {
-    @Binding var showSettings: Bool
+struct SimulationControls: View {
     @Binding var isPaused: Bool
+    @Binding var showSettings: Bool
     let onResetCamera: () -> Void
-    
-    let settingsTip = SettingsTip()
+    let onDetonate: () -> Void
     
     var body: some View {
-        HStack(spacing: 12) {
-            CircleButton(
-                icon: showSettings ? "xmark" : "gear",
-                color: showSettings ? .gray : .blue,
-                isActive: showSettings
-            ) {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                    showSettings.toggle()
+        GlassEffectContainer(spacing: 24) {
+            VStack(spacing: 24) {
+                
+                Button(action: onDetonate) {
+                    Image(systemName: "bolt.fill")
+                        .font(.title2)
+                        .foregroundStyle(.orange)
+                        .frame(width: 48, height: 48)
+                }
+                .buttonStyle(.glass)
+                
+                
+                CircleButton(
+                    icon: "camera.viewfinder",
+                    color: .blue,
+                    isActive: false,
+                    action: onResetCamera
+                )
+
+                CircleButton(
+                    icon: isPaused ? "play.fill" : "pause.fill",
+                    color: .green,
+                    isActive: isPaused
+                ) {
+                    isPaused.toggle()
+                }
+                
+                CircleButton(
+                    icon: "gear",
+                    color: .blue,
+                    isActive: showSettings
+                ) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                        showSettings.toggle()
+                    }
                 }
             }
-            
-            CircleButton(
-                icon: isPaused ? "play.fill" : "pause.fill",
-                color: isPaused ? .green : .orange,
-                isActive: isPaused
-            ) {
-                isPaused.toggle()
-            }
-            
-            CircleButton(
-                icon: "camera.viewfinder",
-                color: .cyan,
-                isActive: false
-            ) {
-                onResetCamera()
-            }
         }
+        .padding(16)
     }
 }
 
@@ -49,42 +60,13 @@ struct CircleButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 24))
-                .foregroundStyle(.white)
-                .frame(width: 50, height: 50)
-                .glassEffect()
+                .font(.title2)
+                .foregroundStyle(isActive ? .black : color)
+                .frame(width: 48, height: 48)
         }
-    }
-}
-
-struct DetonateButton: View {
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.title3)
-                Text("DETONATE")
-                    .font(.system(.headline, design: .rounded))
-                    .fontWeight(.heavy)
-                    .tracking(1)
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 14)
-            .background(Color.red)
-            .clipShape(Capsule())
-        }
-        .buttonStyle(ScaleButtonStyle())
-    }
-}
-
-struct ScaleButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
-            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+        .tint(isActive ? color : nil)
+        .glassEffect(.regular.interactive(), in: .circle)
+        .accessibilityLabel(icon.replacingOccurrences(of: ".fill", with: ""))
     }
 }
 
@@ -102,13 +84,17 @@ struct SimulationView: UIViewRepresentable {
     func makeUIView(context: Context) -> ARViewContainer {
         let wrapper = ARViewContainer()
         let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
+        
+        let spaceColor = UIColor(red: 0.05, green: 0.05, blue: 0.09, alpha: 1.0)
+        arView.environment.background = .color(spaceColor)
+
         arView.renderOptions = [
-                    .disableMotionBlur,
-                    .disableDepthOfField,
-                    .disableFaceMesh,
-                    .disableHDR,
-                    .disableGroundingShadows
-                ]
+            .disableMotionBlur,
+            .disableDepthOfField,
+            .disableFaceMesh,
+            .disableHDR,
+            .disableGroundingShadows
+        ]
         
         simulation.attachToView(arView)
         

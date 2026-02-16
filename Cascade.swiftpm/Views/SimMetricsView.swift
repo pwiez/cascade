@@ -7,58 +7,62 @@ struct SimMetrics: View {
         self.telemetry = sim.telemetry
     }
     
-    var statusColor: Color {
-        telemetry.stats.debris > Int(Double(telemetry.stats.debris) * 0.80) ? .red : .white
-    }
-    
     var body: some View {
-        VStack(spacing: 8) {
-            MetricRow(
-                title: "SATELLITES",
+        HStack(spacing: 32) {
+            MetricItem(
+                label: "ACTIVE SATS",
                 value: telemetry.stats.satellites,
-                color: .white
+                icon: "dot.radiowaves.left.and.right",
+                color: .cyan
             )
             
-            Divider()
-                .background(.white.opacity(0.2))
-                .padding(.horizontal)
+            Rectangle()
+                .fill(.secondary.opacity(0.3))
+                .frame(width: 1)
+                .frame(maxHeight: 40)
             
-            MetricRow(
-                title: "DEBRIS",
+            MetricItem(
+                label: "DEBRIS COUNT",
                 value: telemetry.stats.debris,
-                color: statusColor
+                icon: "circle.grid.hex.fill",
+                color: telemetry.stats.debris > 1000 ? .red : .white
             )
         }
-        .padding(.vertical, 16)
-        .frame(width: 160)
-        .background(.bar)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(.white.opacity(0.15), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+        .padding(.horizontal, 32)
+        .padding(.vertical, 20)
+        .glassEffect(.regular, in: .capsule)
+        .accessibilityElement(children: .contain)
     }
 }
 
-private struct MetricRow: View {
-    let title: String
+private struct MetricItem: View {
+    let label: String
     let value: Int
+    let icon: String
     let color: Color
     
     var body: some View {
-        VStack(spacing: 2) {
-            Text(title)
-                .font(.caption2)
-                .fontWeight(.bold)
-                .foregroundStyle(color == .white ? .cyan : color)
-                .opacity(0.9)
-            
-            Text("\(value)")
-                .font(.system(size: 28, weight: .light, design: .monospaced))
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.title2)
                 .foregroundStyle(color)
-                .contentTransition(.numericText(value: Double(value)))
-                .animation(.snappy, value: value)
+                .accessibilityHidden(true)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(value)")
+                    .font(.system(.title, design: .rounded).weight(.bold))
+                    .foregroundStyle(.white)
+                    .contentTransition(.numericText(value: Double(value)))
+                    .animation(.snappy, value: value)
+                    .minimumScaleFactor(0.8)
+                
+                Text(label)
+                    .font(.caption.weight(.bold))
+                    .tracking(1.0)
+                    .foregroundStyle(.secondary)
+            }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label): \(value)")
     }
 }
