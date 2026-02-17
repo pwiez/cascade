@@ -36,7 +36,7 @@ class DebrisBatchSystem {
             let indexOffset = i * 12
             
             for j in 0..<12 {
-                allIndices[indexOffset + j] = vertOffset + baseIndices[j]
+                self.allIndices[indexOffset + j] = vertOffset + baseIndices[j]
             }
         }
         
@@ -67,7 +67,7 @@ class DebrisBatchSystem {
             if activeCount < maxDebris {
                 let start = activeCount * 4
                 if start < vPtr.count {
-                    for k in start..<vPtr.count { vPtr[k] = .zero }
+                     for k in start..<vPtr.count { vPtr[k] = .zero }
                 }
             }
         }
@@ -79,6 +79,13 @@ class DebrisBatchSystem {
         
         if let newMesh = try? MeshResource.generate(from: [descriptor]) {
             try? self.meshResource.replace(with: newMesh.contents)
+        }
+    }
+    
+    func updateMaterial(_ newMaterial: Material) {
+        if var model = entity.model {
+            model.materials = [newMaterial]
+            entity.model = model
         }
     }
 }

@@ -4,54 +4,72 @@ import TipKit
 struct ContentView: View {
     @StateObject var simulation = Simulation()
     @State private var selectedTab: Int = 0
-    
     @State private var hasCompletedOnboarding: Bool = false
+    
+    @State private var wasPlayingBeforeRotation: Bool = false
     
     let learnMoreTip = LearnMoreTip()
     
     var body: some View {
-        ZStack {
-            if hasCompletedOnboarding {
-                TabView(selection: $selectedTab) {
-                    
-                    SimulationScreen(simulation: simulation)
-                        .tabItem {
-                            Label("Simulation", systemImage: "cube.transparent")
+        GeometryReader { geometry in
+            ZStack {
+                Group {
+                    if hasCompletedOnboarding {
+                        TabView(selection: $selectedTab) {
+                            SimulationScreen(simulation: simulation)
+                                .tabItem { Label("Simulation", systemImage: "cube.transparent") }
+                                .tag(0)
+                            
+                            KnowledgeView()
+                                .tabItem { Label("Learn More", systemImage: "book.closed.fill") }
+                                .tag(1)
+                                .badge(learnMoreTip.shouldDisplay ? "!" : nil)
                         }
-                        .tag(0)
-                    
-                    KnowledgeView()
-                        .tabItem {
-                            Label("Learn More", systemImage: "book.closed.fill")
+                        .transition(.opacity)
+                        .onChange(of: selectedTab) { _, newTab in
+                            if newTab == 1 { simulation.pauseSimulation() }
+                            else if newTab == 0 { simulation.resumeSimulation() }
                         }
-                        .tag(1)
-                        .badge(learnMoreTip.shouldDisplay ? "!" : nil)
+                    }
+                    
+                    if simulation.showCollisionAlert {
+                        CinematicOverlay(simulation: simulation)
+                            .zIndex(100)
+                    }
+                    
+                    if !hasCompletedOnboarding {
+                        OnboardingView {
+                            withAnimation(.easeIn(duration: 1.0)) {
+                                hasCompletedOnboarding = true
+                            }
+                        }
+                        .zIndex(200)
+                        .transition(.move(edge: .bottom))
+                    }
                 }
-                .transition(.opacity)
-                .onChange(of: selectedTab) { _, newTab in
-                    if newTab == 1 {
-                        simulation.pauseSimulation()
-                        
-                    } else if newTab == 0 {
+                .disabled(geometry.size.height > geometry.size.width)
+                .blur(radius: geometry.size.height > geometry.size.width ? 10 : 0)
+                
+                if geometry.size.height > geometry.size.width {
+                    PortraitWarningView()
+                        .zIndex(1000)
+                        .transition(.opacity.animation(.easeInOut))
+                }
+            }
+            .onChange(of: geometry.size) { oldSize, newSize in
+                let isPortrait = newSize.height > newSize.width
+                let wasPortrait = oldSize.height > oldSize.width
+                
+                if isPortrait && !wasPortrait {
+                    wasPlayingBeforeRotation = !simulation.isPaused
+                    simulation.pauseSimulation()
+                }
+                
+                else if !isPortrait && wasPortrait {
+                    if wasPlayingBeforeRotation {
                         simulation.resumeSimulation()
                     }
                 }
-            }
-            
-            if simulation.showCollisionAlert {
-                CinematicOverlay(simulation: simulation)
-                    .zIndex(100)
-                    .transition(.opacity)
-            }
-            
-            if !hasCompletedOnboarding {
-                OnboardingView {
-                    withAnimation(.easeIn(duration: 1.0)) {
-                        hasCompletedOnboarding = true
-                    }
-                }
-                .zIndex(200)
-                .transition(.move(edge: .bottom))
             }
         }
     }
@@ -195,8 +213,6 @@ struct OnboardingView: View {
     }
 }
 
-import SwiftUI
-
 struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
     @State private var showSettings = false
@@ -205,31 +221,37 @@ struct SimulationScreen: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .top) {
+            ZStack {
                 
                 SimulationContainer(simulation: simulation)
                     .ignoresSafeArea()
                     .zIndex(0)
                 
-                VStack(alignment: .leading, spacing: 16) {
-                    
-                    if simulation.showStats {
-                        SimMetrics(sim: simulation)
-                            .transition(.blurReplace)
-                    }
-                    
-                    HStack {
-                        SimulationControls(
-                            isPaused: $simulation.isPaused,
-                            showSettings: $showSettings,
-                            onResetCamera: { simulation.resetCamera() },
-                            onDetonate: { simulation.triggerDetonation() }
-                        )
+                
+                if simulation.showStats {
+                    VStack {
                         Spacer()
+                        SimMetrics(sim: simulation)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .padding(.bottom, 32)
                     }
+                    .frame(maxWidth: .infinity, alignment: showSettings ? .leading : .center)
+                    .padding(.leading, showSettings ? 24 : 0)
+                    .zIndex(1)
                 }
-                .padding(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                HStack {
+                    SimulationControls(
+                        isPaused: $simulation.isPaused,
+                        showSettings: $showSettings,
+                        onResetCamera: { simulation.resetCamera() },
+                        onDetonate: { simulation.triggerDetonation() }
+                    )
+                    Spacer()
+                }
+                .padding(.leading, 24)
+                .frame(maxHeight: .infinity)
+                .ignoresSafeArea()
                 .zIndex(2)
                 
                 if showSettings {
@@ -244,10 +266,11 @@ struct SimulationScreen: View {
                             }
                         )
                         .frame(width: geometry.size.width * panelWidthRatio)
+                        .background(.regularMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .padding(.vertical, 32)
-                        .padding(.trailing, 32)
-                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                        .padding(.vertical, 24)
+                        .padding(.trailing, 24)
+                        .transition(.move(edge: .trailing))
                     }
                     .zIndex(3)
                 }
@@ -256,6 +279,18 @@ struct SimulationScreen: View {
             .onChange(of: showSettings) { _, isOpen in
                 updateCameraOffset(isOpen: isOpen, geometry: geometry)
             }
+            .onChange(of: geometry.size) { _, newSize in
+                if showSettings {
+                    updateCameraOffset(isOpen: true, geometry: geometry)
+                }
+            }
+            .task {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                try? Tips.configure([
+                    .displayFrequency(.immediate),
+                    .datastoreLocation(.applicationDefault)
+                ])
+            }
         }
     }
     
@@ -263,7 +298,7 @@ struct SimulationScreen: View {
     private func updateCameraOffset(isOpen: Bool, geometry: GeometryProxy) {
         if isOpen {
             let aspect = geometry.size.width / geometry.size.height
-            let shiftRatio = (panelWidthRatio / 2.0) * 0.75
+            let shiftRatio = (panelWidthRatio / 2.0) * 0.6875
             simulation.setSettingsPanel(isOpen: true, ratio: shiftRatio, aspectRatio: Double(aspect))
         } else {
             let aspect = geometry.size.width / geometry.size.height
@@ -306,5 +341,37 @@ struct SimulationContainer: View {
                         .onEnded { _ in lastScale = 1.0 }
                 )
             )
+    }
+}
+
+struct PortraitWarningView: View {
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 32) {
+                Image(systemName: "ipad.landscape")
+                    .font(.system(size: 80))
+                    .foregroundStyle(.blue)
+                    .symbolEffect(.pulse, options: .repeating)
+                
+                VStack(spacing: 12) {
+                    Text("Rotate your iPad")
+                        .font(.largeTitle)
+                        .fontWeight(.heavy)
+                        .foregroundStyle(.white)
+                    
+                    Text("Cascade was designed to work best\nwhen your iPad is in landscape mode.")
+                        .font(.title3)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.white.opacity(0.7))
+                        .padding(.horizontal)
+                }
+            }
+        }
     }
 }

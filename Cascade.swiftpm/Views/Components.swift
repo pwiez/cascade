@@ -9,64 +9,71 @@ struct SimulationControls: View {
     let onDetonate: () -> Void
     
     var body: some View {
-        GlassEffectContainer(spacing: 24) {
-            VStack(spacing: 24) {
-                
-                Button(action: onDetonate) {
-                    Image(systemName: "bolt.fill")
-                        .font(.title2)
-                        .foregroundStyle(.orange)
-                        .frame(width: 48, height: 48)
-                }
-                .buttonStyle(.glass)
-                
-                
-                CircleButton(
-                    icon: "camera.viewfinder",
-                    color: .blue,
-                    isActive: false,
-                    action: onResetCamera
-                )
-
-                CircleButton(
-                    icon: isPaused ? "play.fill" : "pause.fill",
-                    color: .green,
-                    isActive: isPaused
-                ) {
-                    isPaused.toggle()
-                }
-                
-                CircleButton(
-                    icon: "gear",
-                    color: .blue,
-                    isActive: showSettings
-                ) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                        showSettings.toggle()
-                    }
-                }
-            }
+        VStack(spacing: 16) {
+            
+            SimulationButton(
+                icon: "burst.fill",
+                action: onDetonate,
+                isProminent: true,
+                tint: .red
+            )
+            .accessibilityLabel("Detonate Satellite")
+            
+            SimulationButton(
+                icon: isPaused ? "play.fill" : "pause.fill",
+                action: { isPaused.toggle() },
+                isProminent: false,
+                tint: Color(red: 0.1, green: 0.1, blue: 0.1)
+            )
+            .accessibilityLabel(isPaused ? "Resume Simulation" : "Pause Simulation")
+            
+            SimulationButton(
+                icon: "camera.metering.center.weighted",
+                action: onResetCamera,
+                isProminent: false,
+                tint: Color(red: 0.1, green: 0.1, blue: 0.1)
+            )
+            .accessibilityLabel("Reset Camera")
+            
+            SimulationButton(
+                icon: "gearshape.fill",
+                action: { showSettings.toggle() },
+                isProminent: false,
+                tint: Color(red: 0.1, green: 0.1, blue: 0.1)
+            )
+            .accessibilityLabel("Open Settings")
         }
-        .padding(16)
     }
 }
 
-struct CircleButton: View {
+struct SimulationButton: View {
     let icon: String
-    let color: Color
-    var isActive: Bool = false
     let action: () -> Void
+    let isProminent: Bool
+    var tint: Color?
     
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundStyle(isActive ? .black : color)
-                .frame(width: 48, height: 48)
+                .foregroundStyle(.primary)
+                .frame(width: 36, height: 36)
         }
-        .tint(isActive ? color : nil)
-        .glassEffect(.regular.interactive(), in: .circle)
-        .accessibilityLabel(icon.replacingOccurrences(of: ".fill", with: ""))
+        .modifier(GlassStyleModifier(isProminent: isProminent, tint: tint))
+    }
+}
+
+struct GlassStyleModifier: ViewModifier {
+    var isProminent: Bool
+    var tint: Color?
+
+    func body(content: Content) -> some View {
+        if isProminent {
+            content.buttonStyle(.glassProminent)
+                .tint(tint)
+        } else {
+            content.buttonStyle(.glass)
+        }
     }
 }
 
@@ -104,4 +111,18 @@ struct SimulationView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: ARViewContainer, context: Context) { }
+}
+
+#Preview("Command Strip") {
+    @Previewable @State var isPaused = false
+    @Previewable @State var showSettings = false
+    
+    SimulationControls(
+        isPaused: $isPaused,
+        showSettings: $showSettings,
+        onResetCamera: { print("Camera Reset") },
+        onDetonate: { print("Boom") }
+    )
+    .padding()
+    .background(Color(red: 0.07, green: 0.07, blue: 0.12))
 }
