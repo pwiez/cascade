@@ -20,7 +20,7 @@ struct ContentView: View {
                                 .tabItem { Label("Simulation", systemImage: "cube.transparent") }
                                 .tag(0)
                             
-                            KnowledgeView()
+                            KesslerDeepDiveView()
                                 .tabItem { Label("Learn More", systemImage: "book.closed.fill") }
                                 .tag(1)
                                 .badge(learnMoreTip.shouldDisplay ? "!" : nil)
