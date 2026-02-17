@@ -4,12 +4,11 @@ import Charts
 struct KesslerDeepDiveView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     @Environment(\.dynamicTypeSize) var typeSize
-    @State private var isDarkMode = true
     
     var body: some View {
         NavigationStack {
             ZStack {
-                BackgroundView(isDarkMode: isDarkMode)
+                BackgroundView()
                     .accessibilityHidden(true)
                 
                 ScrollView {
@@ -24,9 +23,10 @@ struct KesslerDeepDiveView: View {
                                     ProseText("The Kessler Syndrome is a theoretical scenario in which the density of objects in Low Earth Orbit (LEO) becomes so high that collisions between objects cause a cascade.")
                                     ProseText("One collision creates debris. That debris destroys other satellites. The result is a planetary debris belt that could render space exploration impossible for generations.")
                                 } visual: {
-                                    GlassCard { LoopDiagram() }
-                                        .accessibilityElement(children: .ignore)
-                                        .accessibilityLabel("Diagram of the feedback loop: An impact creates debris, which increases orbital density, leading to more impacts.")
+                                    EditorialImage(
+                                        placeholder: "burst.fill",
+                                        caption: "Artist's rendition of a hypervelocity collision."
+                                    )
                                 }
                             }
                             
@@ -73,12 +73,7 @@ struct KesslerDeepDiveView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    ThemeToggle(isDarkMode: $isDarkMode)
-                }
-            }
-            .preferredColorScheme(isDarkMode ? .dark : .light)
+            .preferredColorScheme(.dark)
         }
     }
 }
@@ -110,17 +105,8 @@ struct AdaptiveStack<Content: View, Visual: View>: View {
 struct HeroSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            HStack {
-                Circle().fill(Color.red).frame(width: 12, height: 12)
-                Text("CRITICAL SCENARIO")
-                    .font(.caption).fontWeight(.bold).tracking(2).foregroundStyle(.secondary)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("Status: Critical Scenario")
-            
-            Text("Kessler\nSyndrome")
-                .font(.system(size: 64, weight: .black, design: .serif))
-                .font(.largeTitle)
+            Text("Kessler Syndrome")
+                .font(.system(size: 70, weight: .bold, design: .serif))
                 .foregroundStyle(.primary)
                 .lineSpacing(0)
                 .accessibilityAddTraits(.isHeader)
@@ -185,6 +171,34 @@ struct GlassCard<Content: View>: View {
             .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(RoundedRectangle(cornerRadius: 20).stroke(.white.opacity(0.1), lineWidth: 1))
+    }
+}
+
+struct EditorialImage: View {
+    let placeholder: String
+    let caption: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ZStack {
+                Color.white.opacity(0.05)
+                Image(systemName: placeholder)
+                    .font(.largeTitle)
+                    .foregroundStyle(.white.opacity(0.2))
+                
+            }
+            .frame(height: 300)
+            .frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(.white.opacity(0.1), lineWidth: 1))
+            
+            Text(caption)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.leading, 4)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Image: \(caption)")
     }
 }
 
@@ -262,6 +276,7 @@ struct DebrisGrowthChart: View {
         VStack(alignment: .leading, spacing: 16) {
             Label("Object Count (>10cm)", systemImage: "chart.xyaxis.line")
                 .font(.headline).foregroundStyle(.red)
+            
             Chart {
                 LineMark(x: .value("Y", "1990"), y: .value("C", 8000))
                 LineMark(x: .value("Y", "2000"), y: .value("C", 10000))
@@ -269,59 +284,13 @@ struct DebrisGrowthChart: View {
                 LineMark(x: .value("Y", "2023"), y: .value("C", 27000))
             }
             .foregroundStyle(LinearGradient(colors: [.red, .orange], startPoint: .bottom, endPoint: .top))
-            .frame(height: 150)
-            .chartYAxis(.hidden)
+            .frame(height: 200)
+            .chartYAxis {
+                AxisMarks(position: .leading)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Line chart showing debris growth from 8,000 in 1990 to 27,000 in 2023.")
-    }
-}
-
-struct LoopDiagram: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Label("Feedback Loop", systemImage: "arrow.triangle.2.circlepath")
-                .font(.headline)
-            
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 8) {
-                    DiagramNode(text: "Impact")
-                    ArrowIcon()
-                    DiagramNode(text: "Debris")
-                    ArrowIcon()
-                    DiagramNode(text: "Density")
-                }
-                
-                VStack(alignment: .leading) {
-                    DiagramNode(text: "1. Impact")
-                    ArrowIcon().rotationEffect(.degrees(90))
-                    DiagramNode(text: "2. Debris")
-                    ArrowIcon().rotationEffect(.degrees(90))
-                    DiagramNode(text: "3. Density")
-                }
-            }
-        }
-    }
-}
-
-struct ArrowIcon: View {
-    var body: some View {
-        Image(systemName: "arrow.right")
-            .font(.subheadline)
-            .foregroundStyle(.secondary.opacity(0.5))
-            .accessibilityHidden(true)
-    }
-}
-
-struct DiagramNode: View {
-    let text: String
-    var body: some View {
-        Text(text)
-            .font(.subheadline)
-            .fontWeight(.bold)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .foregroundStyle(.primary)
     }
 }
 
@@ -329,9 +298,24 @@ struct TimelineView: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 16) {
-                TimelineItem(year: "1978", title: "Hypothesis", desc: "Donald Kessler publishes theory warning of collisional cascades.")
-                TimelineItem(year: "2009", title: "Iridium-33", desc: "First hypervelocity collision between two intact satellites.")
-                TimelineItem(year: "2021", title: "ASAT Test", desc: "Russian anti-satellite missile test creates 1,500 trackable fragments.")
+                TimelineItem(
+                    year: "1978",
+                    title: "Hypothesis",
+                    desc: "Donald Kessler publishes theory warning of collisional cascades.",
+                    imageName: "doc.text.fill"
+                )
+                TimelineItem(
+                    year: "2009",
+                    title: "Iridium-33",
+                    desc: "First hypervelocity collision between two intact satellites.",
+                    imageName: "satellite.fill"
+                )
+                TimelineItem(
+                    year: "2021",
+                    title: "ASAT Test",
+                    desc: "Russian anti-satellite missile test creates 1,500 fragments.",
+                    imageName: "burst.fill"
+                )
             }
             .padding(.bottom, 20)
             .padding(.horizontal, 2)
@@ -341,15 +325,26 @@ struct TimelineView: View {
 
 struct TimelineItem: View {
     let year: String, title: String, desc: String
+    let imageName: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(year)
-                .font(.title)
-                .fontWeight(.black)
-                .foregroundStyle(.blue)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Color.white.opacity(0.1)
+                    Image(systemName: imageName)
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+                .frame(width: 60, height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                Text(year)
+                    .font(.title)
+                    .fontWeight(.black)
+                    .foregroundStyle(.blue)
+            }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.headline)
                     .fontWeight(.bold)
@@ -426,37 +421,26 @@ struct BentoDetailCard<Content: View>: View {
 }
 
 struct BackgroundView: View {
-    let isDarkMode: Bool
     var body: some View {
         ZStack {
-            (isDarkMode ? Color(red: 0.05, green: 0.05, blue: 0.08) : Color(uiColor: .systemGroupedBackground))
+            Color(red: 0.05, green: 0.05, blue: 0.08)
                 .ignoresSafeArea()
-            if isDarkMode {
-                GeometryReader { proxy in
-                    ForEach(0..<30) { _ in
-                        Circle().fill(.white.opacity(Double.random(in: 0.1...0.3)))
-                            .frame(width: CGFloat.random(in: 1...3))
-                            .position(x: CGFloat.random(in: 0...proxy.size.width), y: CGFloat.random(in: 0...proxy.size.height))
-                    }
+            
+            GeometryReader { proxy in
+                ForEach(0..<30) { _ in
+                    Circle().fill(.white.opacity(Double.random(in: 0.1...0.3)))
+                        .frame(width: CGFloat.random(in: 1...3))
+                        .position(
+                            x: CGFloat.random(in: 0...proxy.size.width),
+                            y: CGFloat.random(in: 0...proxy.size.height)
+                        )
                 }
-                .ignoresSafeArea()
             }
+            .ignoresSafeArea()
         }
     }
 }
 
-struct ThemeToggle: View {
-    @Binding var isDarkMode: Bool
-    var body: some View {
-        Button(action: { withAnimation(.spring) { isDarkMode.toggle() } }) {
-            Image(systemName: isDarkMode ? "moon.fill" : "sun.max.fill")
-                .foregroundStyle(isDarkMode ? .yellow : .orange)
-        }
-        .accessibilityLabel("Toggle Appearance")
-        .accessibilityValue(isDarkMode ? "Dark Mode" : "Light Mode")
-    }
-}
-
-#Preview(traits: .landscapeLeft){
+#Preview {
     KesslerDeepDiveView()
 }
