@@ -18,7 +18,7 @@ actor PhysicsSystem {
     private var debrisPool: DebrisPool
     private var grid: SpatialGrid
     
-    private let killRadiusSq: Float
+    private var killRadiusSq: Float
     private let maxRadiusSq: Float
     private var settings: SimSettings
     
@@ -28,7 +28,9 @@ actor PhysicsSystem {
         self.maxRadiusSq = 250.0 * 250.0
         
         self.debrisPool = DebrisPool(capacity: 5_500)
-        self.grid = SpatialGrid(maxObjects: 6_000, cellSize: 6.0)
+        
+        let safeCellSize = Float(settings.collisionRadius * 2.1)
+        self.grid = SpatialGrid(maxObjects: 6_000, cellSize: safeCellSize)
     }
     
     func step(dt: Float,
@@ -52,10 +54,8 @@ actor PhysicsSystem {
         var killedSats: [Int] = []
         var explosions: [CollisionEvent] = []
         
-        
         let hasSatellites = !satellitePositions.isEmpty
         let hasDebris = debrisPool.activeCount > 0
-        
         let possibleSatCollisions = satellitePositions.count > 1
         
         if (hasSatellites && hasDebris) || possibleSatCollisions {
@@ -82,6 +82,14 @@ actor PhysicsSystem {
     }
     
     func updateSettings(_ newSettings: SimSettings) {
+        let oldRadius = Float(self.settings.collisionRadius)
+        let newRadius = Float(newSettings.collisionRadius)
+        
+        if abs(oldRadius - newRadius) > 0.5 {
+            let safeCellSize = newRadius * 2.1
+            self.grid = SpatialGrid(maxObjects: 6_000, cellSize: safeCellSize)
+        }
+        
         self.settings = newSettings
     }
     
@@ -94,21 +102,16 @@ actor PhysicsSystem {
             if debrisPool.activeCount >= settings.maxDebris { return }
             
             let debrisCount = min(Int(settings.debrisPerCollision), 25)
-            
             let explosionImpulse = Float(settings.explosionForce) * 2.0
             
             let vNorm = length(velocity)
             let velocityDirection = vNorm > 0.001 ? velocity / vNorm : SIMD3<Float>(0, 1, 0)
-            
             let pNorm = length(position)
             let radialDirection = pNorm > 0.001 ? position / pNorm : SIMD3<Float>(0, 1, 0)
-            
             let normalDirection = normalize(cross(velocityDirection, radialDirection))
             
             let scaleTangential = Float(settings.spreadTangential)
-            
             let scaleVertical = Float(settings.spreadVertical) * 3.0
-            
             let scaleRadial = Float(settings.spreadRadial)
             
             for _ in 0...debrisCount {
@@ -140,10 +143,10 @@ actor PhysicsSystem {
         let satCount = satPos.count
         
         grid.clear()
+        
         for i in 0..<satCount {
             grid.add(objectIndex: i, position: satPos[i])
         }
-        
         for i in 0..<debrisPool.activeCount {
             let pos = debrisPool.position(at: i)
             grid.add(objectIndex: satCount + i, position: pos)
@@ -177,6 +180,7 @@ actor PhysicsSystem {
             var localDebrisKills: [Int] = []
             
             for i in stride(from: coreIndex, to: satCount, by: stepSize) {
+                
                 let posA = satPos[i]
                 let cellID = localGrid.getCellIndex(for: posA)
                 if cellID == -1 { continue }

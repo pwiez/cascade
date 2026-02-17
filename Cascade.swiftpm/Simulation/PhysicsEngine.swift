@@ -2,6 +2,7 @@ import simd
 import Combine
 import UIKit
 import RealityKit
+import SwiftUI
 
 @MainActor
 class PhysicsEngine: ObservableObject {
@@ -12,7 +13,7 @@ class PhysicsEngine: ObservableObject {
     var isPaused: Bool = false
     
     private weak var arView: ARView?
-    private let rootAnchor: AnchorEntity
+    private let rootAnchor = AnchorEntity(world: .zero)
     
     private var cameraRig: CameraRig?
     private var system: PhysicsSystem
@@ -23,16 +24,13 @@ class PhysicsEngine: ObservableObject {
     private var pendingCinematicTarget: SIMD3<Float>?
     
     private var earthEntity: Entity?
-    private let mainSun: DirectionalLight
+    private let mainSun = DirectionalLight()
     private var fillLight: DirectionalLight?
     private var satellites: [ModelEntity] = []
     
-    private var satelliteMaterial: Material
+    private var satelliteMaterial: UnlitMaterial
+    private var debrisMaterial: UnlitMaterial
     private let satelliteMesh: MeshResource
-    private let standardSatMaterial = UnlitMaterial(color: .green)
-    private let standardDebrisMaterial = UnlitMaterial(color: .white)
-    private let highContrastSatMaterial = UnlitMaterial(color: .green)
-    private let highContrastDebrisMaterial = UnlitMaterial(color: .red)
     
     private var settings = SimSettings.defaults
     private var frameCounter = 0
@@ -46,14 +44,13 @@ class PhysicsEngine: ObservableObject {
     private let earthMass: Float = 50000
     
     init() {
-        self.rootAnchor = AnchorEntity(world: .zero)
-        self.mainSun = DirectionalLight()
         OrbitalData.registerComponent()
         
-        self.satelliteMaterial = standardSatMaterial
+        self.satelliteMaterial = UnlitMaterial(color: UIColor(settings.satelliteColor))
+        self.debrisMaterial = UnlitMaterial(color: UIColor(settings.debrisColor))
         self.satelliteMesh = .generateBox(size: 1.2)
         
-        self.debrisBatchSystem = DebrisBatchSystem(maxDebris: 5_500, material: standardDebrisMaterial)
+        self.debrisBatchSystem = DebrisBatchSystem(maxDebris: 5000, material: debrisMaterial)
         self.system = PhysicsSystem(settings: settings, earthRadius: earthRadius)
         
         setupLighting()
@@ -64,8 +61,14 @@ class PhysicsEngine: ObservableObject {
     
     func attach(to view: ARView) {
         self.arView = view
-        if cameraRig == nil { self.cameraRig = CameraRig(rootAnchor: rootAnchor) }
-        if rootAnchor.parent == nil { view.scene.addAnchor(rootAnchor) }
+        
+        if cameraRig == nil {
+            self.cameraRig = CameraRig(rootAnchor: rootAnchor)
+        }
+        
+        if rootAnchor.parent == nil {
+            view.scene.addAnchor(rootAnchor)
+        }
         
         sceneUpdateSubscription?.cancel()
         sceneUpdateSubscription = view.scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
@@ -159,12 +162,7 @@ class PhysicsEngine: ObservableObject {
     
     private func executeCinematicFreeze() {
         guard let target = pendingCinematicTarget else { return }
-        cinematicLock = true
-        self.isPaused = true
-        
-        cameraRig?.focusOn(position: target)
-        
-        onCinematicEvent?()
+        triggerCinematicEvent(at: target)
     }
     
     private func triggerCinematicEvent(at position: SIMD3<Float>) {
@@ -172,6 +170,7 @@ class PhysicsEngine: ObservableObject {
         cinematicLock = true
         
         cameraRig?.focusOn(position: position)
+        
         self.isPaused = true
         
         onCinematicEvent?()
@@ -191,7 +190,9 @@ class PhysicsEngine: ObservableObject {
                 entity.components.remove(ModelComponent.self)
             }
             
-            if entity.scale.x != satScale { entity.scale = SIMD3<Float>(repeating: satScale) }
+            if entity.scale.x != satScale {
+                entity.scale = SIMD3<Float>(repeating: satScale)
+            }
             
             let pos = entity.position
             let distSq = length_squared(pos)
@@ -219,6 +220,7 @@ class PhysicsEngine: ObservableObject {
         var earthMaterial = PhysicallyBasedMaterial()
         earthMaterial.roughness = 0.8
         earthMaterial.specular = 0.1
+        
         if let texture = try? TextureResource.load(named: "earthTopographicMap") {
             earthMaterial.baseColor = .init(texture: .init(texture))
         } else {
@@ -235,32 +237,65 @@ class PhysicsEngine: ObservableObject {
         atmMat.baseColor = .init(tint: UIColor(red: 0.2, green: 0.7, blue: 1.0, alpha: 0.3))
         atmMat.roughness = 1.0
         atmMat.blending = .transparent(opacity: 0.25)
+        
         let atmosphere = ModelEntity(mesh: atmMesh, materials: [atmMat])
         atmosphere.components.set(OpacityComponent(opacity: 0.5))
         earth.addChild(atmosphere)
     }
     
-    func queueCommand(_ command: EngineCommand) { commandQueue.append(command) }
+    func queueCommand(_ command: EngineCommand) {
+        commandQueue.append(command)
+    }
     
     private func processCommandQueue() {
         let commands = commandQueue
         commandQueue.removeAll()
         for command in commands {
             switch command {
-            case .reset(let count): resetUniverse(satelliteCount: count)
-            case .detonate: triggerRandomExplosion()
-            case .updateSettings(let newSettings): handleSettingsUpdate(newSettings)
+            case .reset(let count):
+                resetUniverse(satelliteCount: count)
+            case .detonate:
+                triggerRandomExplosion()
+            case .updateSettings(let newSettings):
+                handleSettingsUpdate(newSettings)
             }
         }
     }
     
     private func handleSettingsUpdate(_ newSettings: SimSettings) {
-        let contrastChanged = (self.settings.highContrast != newSettings.highContrast)
+        let colorChanged = (self.settings.satelliteColor != newSettings.satelliteColor) || (self.settings.debrisColor != newSettings.debrisColor)
+        
         self.settings = newSettings
+        
         updateFillLight()
-        if contrastChanged { updateHighContrastMode() }
+        
+        if colorChanged {
+            updateMaterials()
+        }
+        
+        let newBG = UIColor(settings.backgroundColor)
+        arView?.environment.background = .color(newBG)
+        
         Task { await system.updateSettings(newSettings) }
+        
         earthEntity?.isEnabled = newSettings.showEarth
+    }
+    
+    private func updateMaterials() {
+        let satColor = UIColor(settings.satelliteColor)
+        let debrisColor = UIColor(settings.debrisColor)
+        
+        self.satelliteMaterial = UnlitMaterial(color: satColor)
+        self.debrisMaterial = UnlitMaterial(color: debrisColor)
+        
+        for sat in satellites {
+            if var model = sat.model {
+                model.materials = [satelliteMaterial]
+                sat.model = model
+            }
+        }
+        
+        debrisBatchSystem.updateMaterial(debrisMaterial)
     }
     
     private func resetUniverse(satelliteCount: Int) {
@@ -278,19 +313,9 @@ class PhysicsEngine: ObservableObject {
         cameraRig?.reset()
     }
     
-    func setPaused(_ paused: Bool) {
-        if isPaused == true && paused == false {
-            if cinematicLock {
-                cameraRig?.restoreState()
-                cinematicLock = false
-                cinematicCountdown = -1
-            }
-        }
-        self.isPaused = paused
-    }
-    
     private func spawnSatellites(count: Int) {
         let orbitAlt = Float(settings.orbitAltitude)
+        let orbitVar = Float(settings.orbitVariance)
         let gravityMult = Float(settings.gravityMultiplier)
         var spawnedPositions: [SIMD3<Float>] = []
         spawnedPositions.reserveCapacity(count)
@@ -303,11 +328,13 @@ class PhysicsEngine: ObservableObject {
             
             while !validPosition && attempts < 10 {
                 attempts += 1
+                
                 let anomaly = Float.random(in: 0...(2 * .pi))
                 let raan = Float.random(in: 0...(2 * .pi))
+                
                 let inclination = settings.useRandomInclination ? Float.random(in: 0...(.pi)) : 0
                 
-                let radius = orbitAlt + Float.random(in: -12.0...12.0)
+                let radius = orbitAlt + Float.random(in: -orbitVar...orbitVar)
                 
                 let x = radius * cos(anomaly)
                 let z = radius * sin(anomaly)
@@ -324,7 +351,6 @@ class PhysicsEngine: ObservableObject {
                 let candidateVel = combinedRotation.act(SIMD3<Float>(vx, 0, vz))
                 
                 validPosition = true
-                
                 for existing in spawnedPositions {
                     if distance(existing, candidatePos) < 2.5 {
                         validPosition = false
@@ -339,6 +365,7 @@ class PhysicsEngine: ObservableObject {
             }
             
             spawnedPositions.append(finalPos)
+            
             let entity = ModelEntity(mesh: satelliteMesh, materials: [satelliteMaterial])
             let scale = Float(settings.satelliteScale)
             entity.scale = SIMD3<Float>(repeating: scale)
@@ -357,22 +384,8 @@ class PhysicsEngine: ObservableObject {
         victim.isEnabled = false
         
         Task { await system.spawnExplosion(at: victim.position, velocity: data.velocity) }
-        scheduleCinematicFreeze(at: victim.position)
-    }
-    
-    private func updateHighContrastMode() {
-        let isHighContrast = settings.highContrast
-        let activeSatMat = isHighContrast ? highContrastSatMaterial : standardSatMaterial
-        let activeDebrisMat = isHighContrast ? highContrastDebrisMaterial : standardDebrisMaterial
         
-        self.satelliteMaterial = activeSatMat
-        for sat in satellites {
-            if var model = sat.model {
-                model.materials = [activeSatMat]
-                sat.model = model
-            }
-        }
-        debrisBatchSystem.entity.model?.materials = [activeDebrisMat]
+        scheduleCinematicFreeze(at: victim.position)
     }
     
     private func updateFillLight() {
@@ -390,14 +403,25 @@ class PhysicsEngine: ObservableObject {
         }
     }
     
+    func setPaused(_ paused: Bool) {
+        if isPaused == true && paused == false {
+            if cinematicLock {
+                cameraRig?.restoreState()
+                cinematicLock = false
+                cinematicCountdown = -1
+            }
+        }
+        self.isPaused = paused
+    }
+    
     func rotateCamera(deltaX: Float, deltaY: Float) { cameraRig?.rotate(deltaX: deltaX, deltaY: deltaY) }
     func zoomCamera(scaleFactor: Float) { cameraRig?.zoom(scaleFactor: scaleFactor) }
     func resetCamera() { cameraRig?.reset() }
     func setCameraOffset(ratio: Float, aspectRatio: Float) {
-            Task { @MainActor [weak self] in
-                guard let self = self, let rig = self.cameraRig else { return }
-                rig.setTargetOffset(ratio: ratio, aspectRatio: aspectRatio)
-            }
+        Task { @MainActor [weak self] in
+            guard let self = self, let rig = self.cameraRig else { return }
+            rig.setTargetOffset(ratio: ratio, aspectRatio: aspectRatio)
         }
-    
+    }
 }
+

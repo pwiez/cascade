@@ -8,61 +8,64 @@ struct SimMetrics: View {
     }
     
     var body: some View {
-        HStack(spacing: 32) {
-            MetricItem(
-                label: "ACTIVE SATS",
+        HStack(spacing: 24) {
+            StatUnit(
                 value: telemetry.stats.satellites,
-                icon: "dot.radiowaves.left.and.right",
-                color: .cyan
+                label: "SATELLITES",
+                indicatorColor: .green
             )
             
             Rectangle()
-                .fill(.secondary.opacity(0.3))
-                .frame(width: 1)
-                .frame(maxHeight: 40)
+                .fill(.white.opacity(0.15))
+                .frame(width: 1, height: 24)
             
-            MetricItem(
-                label: "DEBRIS COUNT",
+            StatUnit(
                 value: telemetry.stats.debris,
-                icon: "circle.grid.hex.fill",
-                color: telemetry.stats.debris > 1000 ? .red : .white
+                label: "DEBRIS",
+                indicatorColor: telemetry.stats.debris > 1000 ? .red : .primary
             )
         }
-        .padding(.horizontal, 32)
-        .padding(.vertical, 20)
-        .glassEffect(.regular, in: .capsule)
-        .accessibilityElement(children: .contain)
+        .padding(.horizontal)
+        .padding(.vertical)
+        .clipShape(Capsule())
+        .glassEffect()
     }
 }
 
-private struct MetricItem: View {
-    let label: String
+private struct StatUnit: View {
     let value: Int
-    let icon: String
-    let color: Color
+    let label: String
+    let indicatorColor: Color
     
     var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(color)
-                .accessibilityHidden(true)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text("\(value)")
+                .font(.system(.title2, design: .rounded).weight(.semibold))
+                .foregroundStyle(.primary)
+                .contentTransition(.numericText(value: Double(value)))
+                .animation(.snappy, value: value)
+                .monospacedDigit()
             
-            VStack(alignment: .leading, spacing: 2) {
-                Text("\(value)")
-                    .font(.system(.title, design: .rounded).weight(.bold))
-                    .foregroundStyle(.white)
-                    .contentTransition(.numericText(value: Double(value)))
-                    .animation(.snappy, value: value)
-                    .minimumScaleFactor(0.8)
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(indicatorColor)
+                    .frame(width: 6, height: 6)
                 
                 Text(label)
-                    .font(.caption.weight(.bold))
-                    .tracking(1.0)
+                    .font(.caption2.weight(.bold))
                     .foregroundStyle(.secondary)
+                    .fixedSize()
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(label): \(value)")
     }
+}
+
+#Preview("HUD Stats") {
+    let mockSim = Simulation()
+    mockSim.telemetry.stats.satellites = 294
+    mockSim.telemetry.stats.debris = 36
+    
+    return SimMetrics(sim: mockSim)
+        .padding()
+        .background(.black)
 }
