@@ -94,7 +94,7 @@ struct SimulationView: UIViewRepresentable {
         
         let spaceColor = UIColor(red: 0.05, green: 0.05, blue: 0.09, alpha: 1.0)
         arView.environment.background = .color(spaceColor)
-
+        
         arView.renderOptions = [
             .disableMotionBlur,
             .disableDepthOfField,
@@ -126,3 +126,4 @@ struct SimulationView: UIViewRepresentable {
     .padding()
     .background(Color(red: 0.07, green: 0.07, blue: 0.12))
 }
+

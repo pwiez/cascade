@@ -172,7 +172,6 @@ struct OnboardingView: View {
                     ).tag(2)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .always))
-                .frame(height: 400)
                 
                 Button {
                     if step < 2 {
@@ -189,7 +188,7 @@ struct OnboardingView: View {
                         .background(Color.white)
                         .clipShape(Capsule())
                 }
-                .padding(.bottom, 50)
+                .padding(.bottom)
             }
         }
     }
