@@ -67,6 +67,109 @@ struct ContentView: View {
     }
 }
 
+struct SimulationScreen: View {
+    @ObservedObject var simulation: Simulation
+    @State private var showSettings = false
+    
+    private let panelWidthRatio = 0.30
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                
+                SimulationContainer(simulation: simulation)
+                    .ignoresSafeArea()
+                    .zIndex(0)
+                
+                
+                if simulation.showStats {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            SimMetrics(
+                                telemetry: simulation.telemetry,
+                                initialSatellites: simulation.initialSatelliteCount,
+                                satelliteColor: simulation.satelliteColor,
+                                debrisColor: simulation.debrisColor
+                            )
+                            Spacer()
+                        }
+                        .padding(.leading)
+                        .padding(.bottom)
+                    }
+                    .zIndex(1)
+                }
+                
+                HStack {
+                    SimulationControls(
+                        isPaused: $simulation.isPaused,
+                        showSettings: $showSettings,
+                        onResetCamera: { simulation.resetCamera() },
+                        onDetonate: { simulation.triggerDetonation() }
+                    )
+                    Spacer()
+                }
+                .padding(.leading, 24)
+                .frame(maxHeight: .infinity)
+                .ignoresSafeArea()
+                .zIndex(2)
+                
+                VStack {
+                    Spacer()
+                    Text("This simulation is not-to-scale.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.bottom, 8)
+                }
+                .zIndex(1)
+                
+                if showSettings {
+                    HStack {
+                        Spacer()
+                        SettingsView(
+                            simulation: simulation,
+                            onClose: {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    showSettings = false
+                                }
+                            }
+                        )
+                        .frame(width: geometry.size.width * panelWidthRatio)
+                        .background(.thinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.vertical)
+                        .padding(.trailing)
+                        .transition(.move(edge: .trailing))
+                    }
+                    .zIndex(3)
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSettings)
+            .onChange(of: showSettings) { _, isOpen in
+                updateCameraOffset(isOpen: isOpen, geometry: geometry)
+            }
+            .onChange(of: geometry.size) { _, newSize in
+                if showSettings {
+                    updateCameraOffset(isOpen: true, geometry: geometry)
+                }
+            }
+        }
+    }
+    
+    @MainActor
+    private func updateCameraOffset(isOpen: Bool, geometry: GeometryProxy) {
+        if isOpen {
+            let aspect = geometry.size.width / geometry.size.height
+            let shiftRatio = (panelWidthRatio / 2.0) * 0.6875
+            simulation.setSettingsPanel(isOpen: true, ratio: shiftRatio, aspectRatio: Double(aspect))
+        } else {
+            let aspect = geometry.size.width / geometry.size.height
+            simulation.setSettingsPanel(isOpen: false, ratio: 0, aspectRatio: Double(aspect))
+        }
+    }
+}
+
 struct IntroScreen: View {
     var onEnter: () -> Void
     
@@ -195,104 +298,6 @@ struct IntroFeatureCard: View {
                 .stroke(.white.opacity(0.05), lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
-    }
-}
-
-struct SimulationScreen: View {
-    @ObservedObject var simulation: Simulation
-    @State private var showSettings = false
-    
-    private let panelWidthRatio = 0.30
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                
-                SimulationContainer(simulation: simulation)
-                    .ignoresSafeArea()
-                    .zIndex(0)
-                    .accessibilityLabel("Orbital debris simulation")
-                    .accessibilityHint("Drag to rotate the camera. Pinch to zoom in or out.")
-                
-                
-                if simulation.showStats {
-                    SimMetrics(telemetry: simulation.telemetry, initialSatellites: simulation.initialSatelliteCount)
-                        .padding(.top, 24)
-                        .padding(.leading, 80)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        .ignoresSafeArea()
-                        .transition(.opacity)
-                        .zIndex(1)
-                }
-                
-                HStack {
-                    SimulationControls(
-                        isPaused: $simulation.isPaused,
-                        showSettings: $showSettings,
-                        onResetCamera: { simulation.resetCamera() },
-                        onDetonate: { simulation.triggerDetonation() }
-                    )
-                    Spacer()
-                }
-                .padding(.leading, 24)
-                .frame(maxHeight: .infinity)
-                .ignoresSafeArea()
-                .zIndex(2)
-                
-                VStack {
-                    Spacer()
-                    Text("This simulation is not-to-scale.")
-                        .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.3))
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.bottom, 12)
-                }
-                .allowsHitTesting(false)
-                .zIndex(1)
-                
-                if showSettings {
-                    HStack {
-                        Spacer()
-                        SettingsView(
-                            simulation: simulation,
-                            onClose: {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    showSettings = false
-                                }
-                            }
-                        )
-                        .frame(width: geometry.size.width * panelWidthRatio)
-                        .background(.regularMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .padding(.vertical, 24)
-                        .padding(.trailing, 24)
-                        .transition(.move(edge: .trailing))
-                    }
-                    .zIndex(3)
-                }
-            }
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSettings)
-            .onChange(of: showSettings) { _, isOpen in
-                updateCameraOffset(isOpen: isOpen, geometry: geometry)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                if showSettings {
-                    updateCameraOffset(isOpen: true, geometry: geometry)
-                }
-            }
-        }
-    }
-    
-    @MainActor
-    private func updateCameraOffset(isOpen: Bool, geometry: GeometryProxy) {
-        if isOpen {
-            let aspect = geometry.size.width / geometry.size.height
-            let shiftRatio = (panelWidthRatio / 2.0) * 0.6875
-            simulation.setSettingsPanel(isOpen: true, ratio: shiftRatio, aspectRatio: Double(aspect))
-        } else {
-            let aspect = geometry.size.width / geometry.size.height
-            simulation.setSettingsPanel(isOpen: false, ratio: 0, aspectRatio: Double(aspect))
-        }
     }
 }
 

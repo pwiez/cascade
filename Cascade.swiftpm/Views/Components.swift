@@ -27,8 +27,8 @@ struct SimulationControls: View {
             SimulationButton(
                 icon: isPaused ? "play.fill" : "pause.fill",
                 action: { isPaused.toggle() },
-                isProminent: false,
-                tint: Color(red: 0.1, green: 0.1, blue: 0.1)
+                isProminent: true,
+                tint: isPaused ? .green : .orange
             )
             .accessibilityLabel(isPaused ? "Resume Simulation" : "Pause Simulation")
             .accessibilityHint(isPaused ? "Resumes the orbital simulation" : "Pauses the orbital simulation")
@@ -135,3 +135,4 @@ struct SimulationView: UIViewRepresentable {
     .padding()
     .background(Color(red: 0.07, green: 0.07, blue: 0.12))
 }
+

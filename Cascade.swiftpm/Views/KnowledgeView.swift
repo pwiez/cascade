@@ -108,7 +108,7 @@ struct ChapterContainerView: View {
                             .foregroundStyle(.white.opacity(0.55))
                     }
                 }
-                .padding(.top, 40)
+                .padding(.top)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityElement(children: .combine)
                 

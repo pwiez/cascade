@@ -157,7 +157,7 @@ struct SettingsView: View {
             .background(Color.clear)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { onClose() }.fontWeight(.bold)
+                    Button("Done") { onClose() }.fontWeight(.semibold)
                 }
             }
         }
