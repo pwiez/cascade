@@ -31,16 +31,12 @@ struct SimSettings {
 
 extension SimSettings {
     static let defaults = SimSettings(
-        debrisPerCollision: 5,
-        
+        debrisPerCollision: 4,
         explosionForce: 1.0,
-        
         collisionRadius: 3.0,
-        
         spreadTangential: 0.1,
-        spreadVertical: 0.8,
+        spreadVertical: 1.0,
         spreadRadial: 0.1,
-        
         timeScale: 1.0,
         showSatellites: true,
         
@@ -48,7 +44,7 @@ extension SimSettings {
         debrisColor: .white,
         backgroundColor: .black,
         
-        maxDebris: 5000,
+        maxDebris: 1800,
         useRandomInclination: true,
         satelliteScale: 1.0,
         debrisScale: 1.0,
@@ -81,7 +77,7 @@ struct PopulationDraft {
     var debrisPerCollision: Double
     
     static let defaults = PopulationDraft(
-        satelliteCount: 500,
+        satelliteCount: 150,
         orbitAltitude: SimSettings.defaults.orbitAltitude,
         orbitVariance: SimSettings.defaults.orbitVariance,
         useRandomInclination: SimSettings.defaults.useRandomInclination,
@@ -103,7 +99,7 @@ class Simulation: ObservableObject {
     
     @Published var draft = PopulationDraft.defaults
     
-    @Published private(set) var activeSatelliteCount: Double = 300
+    @Published private(set) var activeSatelliteCount: Double = PopulationDraft.defaults.satelliteCount
     @Published private(set) var activeOrbitAltitude: Double = SimSettings.defaults.orbitAltitude
     @Published private(set) var activeOrbitVariance: Double = SimSettings.defaults.orbitVariance
     @Published private(set) var activeUseRandomInclination: Bool = SimSettings.defaults.useRandomInclination
@@ -128,19 +124,27 @@ class Simulation: ObservableObject {
     @Published var showEarth: Bool = SimSettings.defaults.showEarth { didSet { syncSettings() } }
     
     @Published var showStats: Bool = true
-    @Published var showCollisionAlert: Bool = false
-    @Published var isPaused: Bool = false { didSet { engine.isPaused = isPaused } }
+    @Published var isPaused: Bool = true { didSet { engine.isPaused = isPaused } }
+    @Published private(set) var hasStarted: Bool = false
+    @Published private(set) var initialSatelliteCount: Int = 0
     
     init() {
         engine.$simulationStats
             .receive(on: RunLoop.main)
             .assign(to: &telemetry.$stats)
         
-        engine.onCinematicEvent = { [weak self] in
-            Task { @MainActor in self?.showCollisionAlert = true }
-        }
+        telemetry.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
         
         resetSettingsToDefaults()
+    }
+    
+    
+    func startSimulation() {
+        guard !hasStarted else { return }
+        hasStarted = true
         resetSimulation()
     }
     
@@ -153,11 +157,11 @@ class Simulation: ObservableObject {
         activeOrbitAltitude = draft.orbitAltitude
         activeOrbitVariance = draft.orbitVariance
         activeUseRandomInclination = draft.useRandomInclination
+        initialSatelliteCount = Int(activeSatelliteCount)
         
         syncSettings()
         
         engine.queueCommand(.reset(Int(activeSatelliteCount)))
-        dismissCollisionAlert()
     }
     
     func syncSettings() {
@@ -222,7 +226,6 @@ class Simulation: ObservableObject {
     func pauseSimulation() { isPaused = true }
     func resumeSimulation() { isPaused = false }
     func triggerDetonation() { engine.queueCommand(.detonate) }
-    func dismissCollisionAlert() { withAnimation { showCollisionAlert = false; resetCamera(); isPaused = false } }
     
     func resetCamera() { engine.resetCamera() }
     func rotateCamera(deltaX: Float, deltaY: Float) { engine.rotateCamera(deltaX: deltaX, deltaY: deltaY) }

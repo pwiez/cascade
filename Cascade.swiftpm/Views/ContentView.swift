@@ -4,17 +4,15 @@ import TipKit
 struct ContentView: View {
     @StateObject var simulation = Simulation()
     @State private var selectedTab: Int = 0
-    @State private var hasCompletedOnboarding: Bool = false
+    @State private var showIntro: Bool = true
     
     @State private var wasPlayingBeforeRotation: Bool = false
-    
-    let learnMoreTip = LearnMoreTip()
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Group {
-                    if hasCompletedOnboarding {
+                if !showIntro {
+                    Group {
                         TabView(selection: $selectedTab) {
                             SimulationScreen(simulation: simulation)
                                 .tabItem { Label("Simulation", systemImage: "cube.transparent") }
@@ -23,32 +21,27 @@ struct ContentView: View {
                             KesslerDeepDiveView()
                                 .tabItem { Label("Learn More", systemImage: "book.closed.fill") }
                                 .tag(1)
-                                .badge(learnMoreTip.shouldDisplay ? "!" : nil)
                         }
-                        .transition(.opacity)
                         .onChange(of: selectedTab) { _, newTab in
                             if newTab == 1 { simulation.pauseSimulation() }
                             else if newTab == 0 { simulation.resumeSimulation() }
                         }
                     }
-                    
-                    if simulation.showCollisionAlert {
-                        CinematicOverlay(simulation: simulation)
-                            .zIndex(100)
-                    }
-                    
-                    if !hasCompletedOnboarding {
-                        OnboardingView {
-                            withAnimation(.easeIn(duration: 1.0)) {
-                                hasCompletedOnboarding = true
-                            }
-                        }
-                        .zIndex(200)
-                        .transition(.move(edge: .bottom))
-                    }
+                    .disabled(geometry.size.height > geometry.size.width)
+                    .blur(radius: geometry.size.height > geometry.size.width ? 10 : 0)
+                    .transition(.opacity)
                 }
-                .disabled(geometry.size.height > geometry.size.width)
-                .blur(radius: geometry.size.height > geometry.size.width ? 10 : 0)
+                
+                if showIntro {
+                    IntroScreen {
+                        withAnimation(.easeOut(duration: 0.6)) {
+                            showIntro = false
+                        }
+                        simulation.startSimulation()
+                    }
+                    .zIndex(200)
+                    .transition(.opacity)
+                }
                 
                 if geometry.size.height > geometry.size.width {
                     PortraitWarningView()
@@ -64,7 +57,6 @@ struct ContentView: View {
                     wasPlayingBeforeRotation = !simulation.isPaused
                     simulation.pauseSimulation()
                 }
-                
                 else if !isPortrait && wasPortrait {
                     if wasPlayingBeforeRotation {
                         simulation.resumeSimulation()
@@ -75,140 +67,134 @@ struct ContentView: View {
     }
 }
 
-struct CinematicOverlay: View {
-    @ObservedObject var simulation: Simulation
+struct IntroScreen: View {
+    var onEnter: () -> Void
     
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
+            Color(red: 0.04, green: 0.04, blue: 0.06).ignoresSafeArea()
             
-            VStack(spacing: 20) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.yellow)
-                    .symbolEffect(.pulse)
-                
-                Text("COLLISION DETECTED")
-                    .font(.system(size: 32, weight: .heavy, design: .monospaced))
-                    .foregroundStyle(.white)
-                
-                Text("A collision has generated debris fragments.\nEach fragment is a projectile moving at 17,500 mph.\nIf they hit other satellites, a chain reaction will begin.")
-                    .font(.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.white.opacity(0.9))
-                    .padding(.horizontal)
-                
-                Button {
-                    simulation.dismissCollisionAlert()
-                } label: {
-                    Text("RESUME SIMULATION")
-                        .font(.headline)
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 30)
-                        .padding(.vertical, 14)
-                        .background(Color.yellow)
-                        .clipShape(Capsule())
+            HStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Spacer()
+                    
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "globe.americas.fill")
+                                .foregroundStyle(.blue)
+                            Text("INTRODUCTION")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.blue)
+                                .tracking(1.2)
+                        }
+                        
+                        Text("Cascade")
+                            .font(.system(size: 64, weight: .bold))
+                            .foregroundStyle(.white)
+                            .accessibilityAddTraits(.isHeader)
+                        
+                        Text("A Kessler Syndrome Simulator")
+                            .font(.title2)
+                            .foregroundStyle(.white.opacity(0.55))
+                    }
+                    
+                    Spacer().frame(height: 44)
+                    
+                    VStack(alignment: .leading, spacing: 22) {
+                        Text("Low Earth Orbit is getting crowded. Thousands of satellites share space with millions of debris fragments — and at orbital speeds, even a fleck of paint hits like a bullet.")
+                            .font(.title3)
+                            .foregroundStyle(.white.opacity(0.9))
+                            .lineSpacing(6)
+                        
+                        Text("Cascade lets you explore what happens when collisions start a chain reaction. Trigger a detonation, watch debris spread, and see how one event can spiral out of control.")
+                            .font(.title3)
+                            .foregroundStyle(.white.opacity(0.9))
+                            .lineSpacing(6)
+                    }
+                    .frame(maxWidth: 500)
+                    
+                    Spacer()
+                    
+                    Button(action: onEnter) {
+                        Text("Enter Simulation")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .frame(width: 240, height: 54)
+                            .background(.blue)
+                            .clipShape(Capsule())
+                            .shadow(color: .blue.opacity(0.4), radius: 10, y: 4)
+                    }
+                    .accessibilityHint("Starts the orbital debris simulation")
+                    .padding(.bottom, 60)
                 }
-                .padding(.top, 10)
+                .padding(.leading, 64)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                VStack(spacing: 24) {
+                    Spacer()
+                    
+                    IntroFeatureCard(
+                        icon: "cube.transparent",
+                        title: "Simulate",
+                        description: "Watch satellites orbit Earth in real time. Trigger collisions and observe how debris cascades through orbital shells."
+                    )
+                    
+                    IntroFeatureCard(
+                        icon: "book.closed.fill",
+                        title: "Learn More",
+                        description: "Read about the science behind orbital debris — from collision mechanics to the strategies engineers are developing to clean up orbit."
+                    )
+                    
+                    IntroFeatureCard(
+                        icon: "gearshape.fill",
+                        title: "Configure",
+                        description: "Adjust satellite count, debris physics, explosion force, and time scale to explore different scenarios."
+                    )
+                    
+                    Spacer()
+                }
+                .frame(maxWidth: 380)
+                .padding(.trailing, 64)
             }
-            .padding(40)
-            .background(.ultraThinMaterial)
-            .cornerRadius(24)
-            .overlay(
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(.white.opacity(0.2), lineWidth: 1)
-            )
-            .padding(40)
-            .frame(maxWidth: 600)
-            .padding(.trailing, 700)
         }
+        .accessibilityElement(children: .contain)
     }
 }
 
-struct OnboardingView: View {
-    var onComplete: () -> Void
-    @State private var step = 0
+struct IntroFeatureCard: View {
+    let icon: String
+    let title: String
+    let description: String
     
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            
-            GeometryReader { proxy in
-                ForEach(0..<20) { _ in
-                    Circle()
-                        .fill(.white.opacity(0.2))
-                        .frame(width: 4, height: 4)
-                        .position(
-                            x: CGFloat.random(in: 0...proxy.size.width),
-                            y: CGFloat.random(in: 0...proxy.size.height)
-                        )
-                }
-            }
-            
-            VStack(spacing: 40) {
-                Spacer()
-                
-                TabView(selection: $step) {
-                    onboardingPage(
-                        title: "The Kessler Syndrome",
-                        desc: "Low Earth Orbit is becoming crowded. Thousands of satellites circle our planet right now.",
-                        icon: "globe.europe.africa.fill",
-                        color: .blue
-                    ).tag(0)
-                    
-                    onboardingPage(
-                        title: "The Danger",
-                        desc: "At orbital speeds, a screw hits with the force of a grenade. One crash can create thousands of bullets.",
-                        icon: "burst.fill",
-                        color: .red
-                    ).tag(1)
-                    
-                    onboardingPage(
-                        title: "Your Goal",
-                        desc: "Explore the physics. Trigger a detonation. Watch the cascade effect unfold.",
-                        icon: "eye.fill",
-                        color: .green
-                    ).tag(2)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .always))
-                
-                Button {
-                    if step < 2 {
-                        withAnimation { step += 1 }
-                    } else {
-                        onComplete()
-                    }
-                } label: {
-                    Text(step == 2 ? "ENTER SIMULATION" : "NEXT")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.black)
-                        .frame(width: 200, height: 50)
-                        .background(Color.white)
-                        .clipShape(Capsule())
-                }
-                .padding(.bottom)
-            }
-        }
-    }
-    
-    func onboardingPage(title: String, desc: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 24) {
+        HStack(alignment: .top, spacing: 16) {
             Image(systemName: icon)
-                .font(.system(size: 80))
-                .foregroundStyle(color)
-            
-            Text(title)
-                .font(.system(size: 36, weight: .bold))
-                .foregroundStyle(.white)
-            
-            Text(desc)
                 .font(.title3)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.gray)
-                .padding(.horizontal, 40)
+                .foregroundStyle(.blue)
+                .frame(width: 42, height: 42)
+                .background(.blue.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.55))
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(white: 0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(.white.opacity(0.05), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -225,18 +211,18 @@ struct SimulationScreen: View {
                 SimulationContainer(simulation: simulation)
                     .ignoresSafeArea()
                     .zIndex(0)
+                    .accessibilityLabel("Orbital debris simulation")
+                    .accessibilityHint("Drag to rotate the camera. Pinch to zoom in or out.")
                 
                 
                 if simulation.showStats {
-                    VStack {
-                        Spacer()
-                        SimMetrics(sim: simulation)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                            .padding(.bottom, 32)
-                    }
-                    .frame(maxWidth: .infinity, alignment: showSettings ? .leading : .center)
-                    .padding(.leading, showSettings ? 24 : 0)
-                    .zIndex(1)
+                    SimMetrics(telemetry: simulation.telemetry, initialSatellites: simulation.initialSatelliteCount)
+                        .padding(.top, 24)
+                        .padding(.leading, 80)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                        .zIndex(1)
                 }
                 
                 HStack {
@@ -252,6 +238,17 @@ struct SimulationScreen: View {
                 .frame(maxHeight: .infinity)
                 .ignoresSafeArea()
                 .zIndex(2)
+                
+                VStack {
+                    Spacer()
+                    Text("This simulation is not-to-scale.")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.3))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.bottom, 12)
+                }
+                .allowsHitTesting(false)
+                .zIndex(1)
                 
                 if showSettings {
                     HStack {
@@ -282,13 +279,6 @@ struct SimulationScreen: View {
                 if showSettings {
                     updateCameraOffset(isOpen: true, geometry: geometry)
                 }
-            }
-            .task {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                try? Tips.configure([
-                    .displayFrequency(.immediate),
-                    .datastoreLocation(.applicationDefault)
-                ])
             }
         }
     }
@@ -354,7 +344,8 @@ struct PortraitWarningView: View {
             
             VStack(spacing: 32) {
                 Image(systemName: "ipad.landscape")
-                    .font(.system(size: 80))
+                    .font(.largeTitle)
+                    .imageScale(.large)
                     .foregroundStyle(.blue)
                     .symbolEffect(.pulse, options: .repeating)
                 
@@ -364,13 +355,15 @@ struct PortraitWarningView: View {
                         .fontWeight(.heavy)
                         .foregroundStyle(.white)
                     
-                    Text("Cascade was designed to work best\nwhen your iPad is in landscape mode.")
+                    Text("Cascade works best in landscape mode.")
                         .font(.title3)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.white.opacity(0.7))
                         .padding(.horizontal)
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Please rotate your iPad to landscape orientation. Cascade works best in landscape mode.")
         }
     }
 }

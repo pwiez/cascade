@@ -7,10 +7,8 @@ import SwiftUI
 @MainActor
 class PhysicsEngine: ObservableObject {
     
-    var onCinematicEvent: (() -> Void)?
-    
     @Published var simulationStats = SimStats()
-    var isPaused: Bool = false
+    var isPaused: Bool = true
     
     private weak var arView: ARView?
     private let rootAnchor = AnchorEntity(world: .zero)
@@ -18,10 +16,6 @@ class PhysicsEngine: ObservableObject {
     private var cameraRig: CameraRig?
     private var system: PhysicsSystem
     private var debrisBatchSystem: DebrisBatchSystem
-    
-    private var cinematicLock = false
-    private var cinematicCountdown: Int = -1
-    private var pendingCinematicTarget: SIMD3<Float>?
     
     private var earthEntity: Entity?
     private let mainSun = DirectionalLight()
@@ -84,11 +78,6 @@ class PhysicsEngine: ObservableObject {
         
         processCommandQueue()
         
-        if cinematicCountdown > 0 {
-            cinematicCountdown -= 1
-            if cinematicCountdown == 0 { executeCinematicFreeze() }
-        }
-        
         if isPaused { return }
         
         let deltaTime = (1.0 / 300.0) * Float(settings.timeScale)
@@ -135,12 +124,6 @@ class PhysicsEngine: ObservableObject {
             scale: Float(settings.debrisScale)
         )
         
-        if !frame.explosions.isEmpty {
-            if !cinematicLock, let firstBoom = frame.explosions.first {
-                triggerCinematicEvent(at: firstBoom.position)
-            }
-        }
-        
         for index in frame.killedSatelliteIndices {
             if index < satellites.count {
                 satellites[index].isEnabled = false
@@ -152,28 +135,6 @@ class PhysicsEngine: ObservableObject {
             let activeSats = satellites.filter({ $0.isEnabled }).count
             simulationStats = SimStats(debris: frame.count, satellites: activeSats)
         }
-    }
-    
-    private func scheduleCinematicFreeze(at position: SIMD3<Float>) {
-        guard cinematicCountdown == -1 && !cinematicLock else { return }
-        pendingCinematicTarget = position
-        cinematicCountdown = 3
-    }
-    
-    private func executeCinematicFreeze() {
-        guard let target = pendingCinematicTarget else { return }
-        triggerCinematicEvent(at: target)
-    }
-    
-    private func triggerCinematicEvent(at position: SIMD3<Float>) {
-        guard !cinematicLock else { return }
-        cinematicLock = true
-        
-        cameraRig?.focusOn(position: position)
-        
-        self.isPaused = true
-        
-        onCinematicEvent?()
     }
     
     private func updateSatellites(dt: Float, earthMass: Float) {
@@ -299,10 +260,6 @@ class PhysicsEngine: ObservableObject {
     }
     
     private func resetUniverse(satelliteCount: Int) {
-        cinematicLock = false
-        cinematicCountdown = -1
-        pendingCinematicTarget = nil
-        
         satellites.forEach { $0.removeFromParent() }
         satellites.removeAll()
         
@@ -384,8 +341,6 @@ class PhysicsEngine: ObservableObject {
         victim.isEnabled = false
         
         Task { await system.spawnExplosion(at: victim.position, velocity: data.velocity) }
-        
-        scheduleCinematicFreeze(at: victim.position)
     }
     
     private func updateFillLight() {
@@ -404,13 +359,6 @@ class PhysicsEngine: ObservableObject {
     }
     
     func setPaused(_ paused: Bool) {
-        if isPaused == true && paused == false {
-            if cinematicLock {
-                cameraRig?.restoreState()
-                cinematicLock = false
-                cinematicCountdown = -1
-            }
-        }
         self.isPaused = paused
     }
     

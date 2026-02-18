@@ -46,181 +46,48 @@ enum AppSection: String, CaseIterable, Identifiable {
 }
 
 struct KesslerDeepDiveView: View {
-    @State private var activeSection: AppSection = .hero
-    @Environment(\.horizontalSizeClass) var sizeClass
-    @Environment(\.dynamicTypeSize) var dynamicTypeSize
+    @State private var activeSection: AppSection? = .hero
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color(red: 0.04, green: 0.04, blue: 0.06).ignoresSafeArea()
-                
-                RadialGradient(
-                    colors: [accentGlow.opacity(0.10), .clear],
-                    center: .topLeading,
-                    startRadius: 0,
-                    endRadius: 900
-                )
-                .ignoresSafeArea()
-                .animation(.easeInOut(duration: 0.8), value: activeSection)
-                
-                GeometryReader { geo in
-                    let isWide = sizeClass == .regular || geo.size.width > 800
-                    
-                    HStack(spacing: 0) {
-                        if isWide {
-                            SidebarView(activeSection: $activeSection)
-                                .frame(width: 280)
-                                .background(.ultraThinMaterial)
-                                .overlay(alignment: .trailing) {
-                                    Divider().overlay(.white.opacity(0.08))
-                                }
-                        }
-                        
-                        ChapterContainerView(activeSection: activeSection)
-                            .frame(maxWidth: .infinity)
-                            .safeAreaInset(edge: .top) {
-                                if !isWide {
-                                    MobileHeader(activeSection: $activeSection)
-                                }
-                            }
-                    }
-                }
-            }
-            .preferredColorScheme(.dark)
-        }
-    }
-    
-    private var accentGlow: Color {
-        switch activeSection {
-        case .hero: return .blue
-        case .mechanics: return .orange
-        case .situation: return .cyan
-        case .remediation: return .purple
-        case .about: return .blue
-        case .credits: return .teal
-        }
-    }
-}
-
-struct SidebarView: View {
-    @Binding var activeSection: AppSection
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 10) {
-                    Image(systemName: "sparkles")
-                        .font(.title3)
-                        .foregroundStyle(.blue)
-                    Text("Orbital Debris")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(.white)
-                }
-                Text("An Interactive Explainer")
-                    .font(.caption)
-                    .foregroundStyle(.gray)
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 48)
-            .padding(.bottom, 24)
-            
-            Divider().overlay(.white.opacity(0.08)).padding(.horizontal, 16)
-            
-            ScrollView {
-                VStack(spacing: 4) {
-                    ForEach(AppSection.allCases) { section in
-                        SidebarButton(section: section, isActive: activeSection == section) {
-                            withAnimation(.easeInOut(duration: 0.25)) {
-                                activeSection = section
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-            }
-            
-            Spacer()
-        }
-    }
-}
-
-struct SidebarButton: View {
-    let section: AppSection
-    let isActive: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: section.icon)
-                    .font(.body)
-                    .foregroundStyle(isActive ? .white : .gray)
-                    .frame(width: 24)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(section.title)
-                        .font(.subheadline.weight(isActive ? .semibold : .medium))
-                        .foregroundStyle(isActive ? .white : .gray)
-                        .lineLimit(1)
-                    
-                    if isActive {
-                        Text(section.subtitle)
-                            .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.5))
-                            .lineLimit(1)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-                }
-                
-                Spacer()
-                
-                if isActive {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(.blue)
-                        .frame(width: 3, height: 20)
-                        .transition(.opacity)
-                }
-            }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 12)
-            .background(isActive ? Color.white.opacity(0.07) : Color.clear)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .animation(.easeInOut(duration: 0.2), value: isActive)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("\(section.title), \(section.subtitle)")
-        .accessibilityAddTraits(isActive ? .isSelected : [])
-    }
-}
-
-struct MobileHeader: View {
-    @Binding var activeSection: AppSection
-    
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            List(selection: $activeSection) {
                 ForEach(AppSection.allCases) { section in
-                    Button {
-                        withAnimation { activeSection = section }
-                    } label: {
-                        Text(section.title)
-                            .font(.caption.weight(.semibold))
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 16)
-                            .background(activeSection == section ? Color.blue : Color(white: 0.15))
-                            .foregroundStyle(.white)
-                            .clipShape(Capsule())
+                    NavigationLink(value: section) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(section.title)
+                                    .font(.subheadline.weight(.medium))
+                                if !section.subtitle.isEmpty {
+                                    Text(section.subtitle)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        } icon: {
+                            Image(systemName: section.icon)
+                        }
                     }
                 }
             }
-            .padding(12)
+            .navigationTitle("Learn More")
+            .listStyle(.sidebar)
+            .toolbar(removing: .sidebarToggle)
+        } detail: {
+            if let section = activeSection {
+                ChapterContainerView(activeSection: section)
+            } else {
+                ContentUnavailableView("Select a Topic", systemImage: "book.closed.fill", description: Text("Choose a section from the sidebar to begin."))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black.ignoresSafeArea())
+            }
         }
-        .background(.ultraThinMaterial)
-        .overlay(alignment: .bottom) {
-            Divider().overlay(.white.opacity(0.1))
+        .navigationSplitViewStyle(.balanced)
+        .onChange(of: columnVisibility) { _, _ in
+            columnVisibility = .all
         }
+        .toolbar(.hidden)
+        .preferredColorScheme(.dark)
     }
 }
 
@@ -235,9 +102,11 @@ struct ChapterContainerView: View {
                         .font(.largeTitle.weight(.bold))
                         .foregroundStyle(.white)
                     
-                    Text(activeSection.subtitle)
-                        .font(.title3)
-                        .foregroundStyle(.white.opacity(0.55))
+                    if !activeSection.subtitle.isEmpty {
+                        Text(activeSection.subtitle)
+                            .font(.title3)
+                            .foregroundStyle(.white.opacity(0.55))
+                    }
                 }
                 .padding(.top, 40)
                 .accessibilityAddTraits(.isHeader)
@@ -258,10 +127,11 @@ struct ChapterContainerView: View {
             }
             .padding(.horizontal, 28)
             .frame(maxWidth: 800, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .id(activeSection.id)
-        .transition(.opacity)
-        .animation(.smooth(duration: 0.3), value: activeSection)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black.ignoresSafeArea())
     }
 }
 
@@ -680,6 +550,7 @@ struct OperationalStatCard: View {
     let label: String
     let icon: String
     let accent: Color
+    let accentColor = Color.cyan
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -867,37 +738,60 @@ struct AboutChapter: View {
         VStack(alignment: .leading, spacing: 44) {
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Simulation")
+                SectionLabel(text: "Under the Hood")
                 
-                Text("About the Model")
+                Text("Simulation Architecture")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
-                TextParagraph("The accompanying simulation visualizes the dynamics of debris accumulation and cascade mechanics. It is designed as an educational tool to build intuition about non-linear growth — not as a predictive model.")
+                TextParagraph("Cascade runs a custom deterministic physics engine written in Swift. To maintain 60 FPS on mobile devices while tracking thousands of objects, the simulation employs specific architectural patterns and mathematical simplifications.")
                 
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 18) {
-                        Label("Model Parameters", systemImage: "slider.horizontal.3")
+                        Label("Engine Specs", systemImage: "cpu.fill")
                             .font(.headline).foregroundStyle(.white)
                         
                         VStack(spacing: 12) {
-                            ModelParam(name: "Orbital Shells", value: "200–2,000 km", detail: "Divided into altitude bands")
+                            ModelParam(name: "Integrator", value: "Semi-Implicit Euler", detail: "Symplectic integration for stable orbits")
                             Divider().overlay(.white.opacity(0.08))
-                            ModelParam(name: "Collision Model", value: "Probabilistic", detail: "Based on spatial density and relative velocity")
+                            ModelParam(name: "Collision Detection", value: "Spatial Hashing", detail: "O(n) lookup via uniform grid partition")
                             Divider().overlay(.white.opacity(0.08))
-                            ModelParam(name: "Fragment Generation", value: "NASA Breakup Model", detail: "Size distribution follows power law")
+                            ModelParam(name: "Parallelization", value: "Multithreaded", detail: "Physics logic distributed across CPU cores")
                             Divider().overlay(.white.opacity(0.08))
-                            ModelParam(name: "Drag Model", value: "Exponential Atmosphere", detail: "Altitude-dependent decay rates")
-                            Divider().overlay(.white.opacity(0.08))
-                            ModelParam(name: "Time Step", value: "Configurable", detail: "Default: 1 year increments")
+                            ModelParam(name: "Rendering", value: "RealityKit", detail: "Instanced mesh particles for debris clouds")
                         }
                     }
                 }
+            }
+            
+            Divider().overlay(.white.opacity(0.08))
+            
+            VStack(alignment: .leading, spacing: 24) {
+                SectionLabel(text: "Model Simplifications")
                 
-                KeyConceptBox(
-                    title: "Simplifications",
-                    bodyText: "This model omits solar activity cycles (which affect atmospheric density), gravitational perturbations from the Moon and Sun, and the detailed geometry of individual orbits. Real-world models like NASA's ORDEM or ESA's MASTER incorporate these factors at significantly higher computational cost.",
-                    icon: "info.circle"
-                )
+                Text("Compromises & Constraints")
+                    .font(.title2.bold()).foregroundStyle(.white)
+                
+                TextParagraph("A full-fidelity orbital simulation requires supercomputers. To run locally on your device, Cascade makes three major physics compromises:")
+                
+                VStack(spacing: 20) {
+                    SimplificationCard(
+                        title: "No Debris-Debris Collisions",
+                        icon: "bolt.slash.fill",
+                        description: "The simulation calculates Satellite-vs-Satellite and Satellite-vs-Debris impacts. However, debris fragments do not collide with each other. Calculating interactions between thousands of debris particles would grow exponentially (O(n²)), stalling the engine."
+                    )
+                    
+                    SimplificationCard(
+                        title: "Representative Density",
+                        icon: "square.grid.3x3.middle.filled",
+                        description: "We cannot render the 100+ million actual fragments in orbit. Instead, Cascade uses 'Representative Debris': one visible particle in the simulation represents a dense cloud of thousands of real-world lethal fragments."
+                    )
+                    
+                    SimplificationCard(
+                        title: "Idealized Gravity",
+                        icon: "circle.dashed",
+                        description: "The simulation treats Earth as a perfect sphere. It omits 'J2 Perturbations' (the effect of Earth's equatorial bulge) and atmospheric drag. Objects only deorbit if they physically collide with the planet's surface."
+                    )
+                }
             }
             
             Divider().overlay(.white.opacity(0.08))
@@ -910,13 +804,48 @@ struct AboutChapter: View {
                 
                 VStack(alignment: .leading, spacing: 12) {
                     LearningObjective(text: "Understand why collision cascades are self-reinforcing above a critical density threshold")
-                    LearningObjective(text: "Appreciate the role of orbital velocity in making even small debris lethal to other satellites and spacecraft, crewed or otherwise")
-                    LearningObjective(text: "Recognize the gap between trackable and untrackable debris populations, and how and why the untracked population is immensely higher")
-                    LearningObjective(text: "Evaluate the feasibility and trade-offs of different remediation strategies")
-                    LearningObjective(text: "Understand that orbital space is a shared, finite resource requiring coordinated stewardship so humanity can continue advancing on this front")
+                    LearningObjective(text: "Appreciate the role of orbital velocity in making even small debris lethal to other satellites")
+                    LearningObjective(text: "Visualize how debris spreads from a single point of impact into a planetary ring over time")
+                    LearningObjective(text: "Recognize that orbital space is a finite resource requiring active stewardship")
                 }
             }
         }
+    }
+}
+
+struct SimplificationCard: View {
+    let title: String
+    let icon: String
+    let description: String
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 16) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(.orange)
+                .frame(width: 40, height: 40)
+                .background(.orange.opacity(0.1))
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.7))
+                    .lineSpacing(4)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(white: 0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.white.opacity(0.05), lineWidth: 1)
+        )
     }
 }
 
