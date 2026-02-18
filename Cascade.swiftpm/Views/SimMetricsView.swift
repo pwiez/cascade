@@ -1,71 +1,168 @@
 import SwiftUI
 
-struct SimMetrics: View {
-    @ObservedObject var telemetry: Telemetry
+enum OrbitalStatus: String {
+    case stable = "Stable"
+    case colliding = "Collisions Active"
+    case critical = "Critical Density"
     
-    init(sim: Simulation) {
-        self.telemetry = sim.telemetry
+    var color: Color {
+        switch self {
+        case .stable:    return .green
+        case .colliding: return .yellow
+        case .critical:  return .red
+        }
     }
     
-    var body: some View {
-        HStack(spacing: 24) {
-            StatUnit(
-                value: telemetry.stats.satellites,
-                label: "SATELLITES",
-                indicatorColor: .green
-            )
-            
-            Rectangle()
-                .fill(.white.opacity(0.15))
-                .frame(width: 1, height: 24)
-            
-            StatUnit(
-                value: telemetry.stats.debris,
-                label: "DEBRIS",
-                indicatorColor: telemetry.stats.debris > 1000 ? .red : .primary
-            )
+    var icon: String {
+        switch self {
+        case .stable:    return "checkmark.circle.fill"
+        case .colliding: return "exclamationmark.triangle.fill"
+        case .critical:  return "xmark.octagon.fill"
         }
-        .padding(.horizontal)
-        .padding(.vertical)
-        .clipShape(Capsule())
-        .glassEffect()
+    }
+    
+    static func evaluate(debris: Int, satellites: Int) -> OrbitalStatus {
+        if debris == 0 { return .stable }
+        if debris > satellites * 3 { return .critical }
+        return .colliding
     }
 }
 
-private struct StatUnit: View {
-    let value: Int
-    let label: String
-    let indicatorColor: Color
+struct SimMetrics: View {
+    @ObservedObject var telemetry: Telemetry
+    let initialSatellites: Int
+    
+    private var stats: SimStats { telemetry.stats }
+    
+    private var status: OrbitalStatus {
+        OrbitalStatus.evaluate(
+            debris: stats.debris,
+            satellites: stats.satellites
+        )
+    }
+    
+    private var survivorRatio: Double {
+        guard initialSatellites > 0 else { return 1.0 }
+        return Double(stats.satellites) / Double(initialSatellites)
+    }
     
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        VStack(alignment: .leading, spacing: 0) {
+            
+            HStack(spacing: 6) {
+                Image(systemName: status.icon)
+                    .font(.caption2)
+                    .contentTransition(.symbolEffect(.replace))
+                
+                Text(status.rawValue.uppercased())
+                    .font(.caption2.weight(.bold))
+                    .tracking(0.6)
+                    .contentTransition(.numericText())
+            }
+            .foregroundStyle(status.color)
+            .animation(.easeInOut(duration: 0.3), value: status)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Orbital status: \(status.rawValue)")
+            
+            Rectangle()
+                .fill(.white.opacity(0.08))
+                .frame(height: 1)
+                .accessibilityHidden(true)
+            
+            VStack(spacing: 12) {
+                MetricRow(
+                    icon: "satellite.fill",
+                    label: "Satellites",
+                    value: stats.satellites,
+                    accent: .green
+                )
+                
+                MetricRow(
+                    icon: "sparkles",
+                    label: "Debris",
+                    value: stats.debris,
+                    accent: status.color
+                )
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Integrity")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("\(Int(survivorRatio * 100))%")
+                            .font(.caption2.weight(.semibold).monospacedDigit())
+                            .foregroundStyle(.secondary)
+                            .contentTransition(.numericText(value: survivorRatio))
+                            .animation(.snappy, value: survivorRatio)
+                    }
+                    
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(.white.opacity(0.08))
+                            
+                            Capsule()
+                                .fill(status.color.gradient)
+                                .frame(width: max(0, geo.size.width * survivorRatio))
+                                .animation(.snappy(duration: 0.4), value: survivorRatio)
+                        }
+                    }
+                    .frame(height: 4)
+                    .clipShape(Capsule())
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Fleet integrity: \(Int(survivorRatio * 100)) percent")
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+        }
+        .frame(width: 180)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .glassEffect()
+        .accessibilityElement(children: .contain)
+    }
+}
+
+private struct MetricRow: View {
+    let icon: String
+    let label: String
+    let value: Int
+    let accent: Color
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.caption2)
+                .foregroundStyle(accent)
+                .frame(width: 14)
+            
+            Text(label)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
+            
+            Spacer()
+            
             Text("\(value)")
-                .font(.system(.title2, design: .rounded).weight(.semibold))
+                .font(.system(.callout, design: .rounded).weight(.bold))
                 .foregroundStyle(.primary)
                 .contentTransition(.numericText(value: Double(value)))
                 .animation(.snappy, value: value)
                 .monospacedDigit()
-            
-            HStack(spacing: 4) {
-                Circle()
-                    .fill(indicatorColor)
-                    .frame(width: 6, height: 6)
-                
-                Text(label)
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(.secondary)
-                    .fixedSize()
-            }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(value) \(label)")
     }
 }
 
 #Preview("HUD Stats") {
-    let mockSim = Simulation()
-    mockSim.telemetry.stats.satellites = 294
-    mockSim.telemetry.stats.debris = 36
+    let mockTelemetry = Telemetry()
+    mockTelemetry.stats.satellites = 142
+    mockTelemetry.stats.debris = 36
     
-    return SimMetrics(sim: mockSim)
+    return SimMetrics(telemetry: mockTelemetry, initialSatellites: 150)
         .padding()
         .background(.black)
 }

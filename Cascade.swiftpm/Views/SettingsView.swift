@@ -38,7 +38,7 @@ struct SettingsView: View {
                 Section {
                     VStack(spacing: 8) {
                         LabeledContent("Time Scale", value: String(format: "%.1fx", simulation.timeScale))
-                        Slider(value: $simulation.timeScale, in: 1.0...10.0, step: 0.5) {
+                        Slider(value: $simulation.timeScale, in: 0.1...5.0, step: 0.1) {
                             Text("Time Scale")
                         } minimumValueLabel: {
                             Image(systemName: "tortoise.fill")
@@ -98,12 +98,12 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    NativeSliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...5.0, format: "%.1fx")
+                    NativeSliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...7.0, step: 0.5, format: "%.1fx")
                     NativeSliderRow(label: "Satellite Hitbox Size", value: $simulation.collisionRadius, range: 1.0...4.0, format: "%.1f")
                     
-                    NativeSliderRow(label: "Debris per Collision", value: $simulation.draft.debrisPerCollision, range: 3...5, step: 1, format: "%.0f")
+                    NativeSliderRow(label: "Debris per Collision", value: $simulation.draft.debrisPerCollision, range: 2...6, step: 1, format: "%.0f")
                     
-                    NativeSliderRow(label: "Max Debris Count", value: $simulation.draft.maxDebris, range: 500...2000, step: 100, format: "%.0f")
+                    NativeSliderRow(label: "Max Debris Count", value: $simulation.draft.maxDebris, range: 500...2500, step: 100, format: "%.0f")
                     
                 } header: {
                     Text("Real Time Physics")
@@ -113,11 +113,11 @@ struct SettingsView: View {
                 
                 Section {
                     DisclosureGroup("Advanced Debris Spread") {
-                        NativeSliderRow(label: "Tangential (Velocity)", value: $simulation.spreadTangential, range: 0.0...1.0, step: 0.1)
+                        NativeSliderRow(label: "Tangential (Velocity)", value: $simulation.spreadTangential, range: 0.0...2.0, step: 0.1)
                         
-                        NativeSliderRow(label: "Radial (Altitude)", value: $simulation.spreadRadial, range: 0.0...1.0, step: 0.1)
+                        NativeSliderRow(label: "Radial (Altitude)", value: $simulation.spreadRadial, range: 0.0...2.0, step: 0.1)
                         
-                        NativeSliderRow(label: "Normal (Inclination)", value: $simulation.spreadVertical, range: 0.0...1.0, step: 0.1)
+                        NativeSliderRow(label: "Normal (Inclination)", value: $simulation.spreadVertical, range: 0.0...2.0, step: 0.1)
                     }
                 } footer: {
                     Text("Controls the shape of the debris cloud immediately after an explosion.\nTangential stretches the cloud along the orbit.\nRadial changes the apogee and perigee of the orbit.\nNormal spreads debris sideways into new orbital planes.")
@@ -189,6 +189,8 @@ struct NativeSliderRow: View {
             }
             
             Slider(value: $value, in: range, step: step)
+                .accessibilityLabel(label)
+                .accessibilityValue(String(format: format, value))
         }
         .padding(.vertical, 4)
     }
