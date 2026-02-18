@@ -93,7 +93,7 @@ struct PopulationDraft {
 @MainActor
 class Simulation: ObservableObject {
     
-    private let engine = PhysicsEngine()
+    private let controller = SceneController()
     let telemetry = Telemetry()
     private var cancellables = Set<AnyCancellable>()
     
@@ -124,12 +124,12 @@ class Simulation: ObservableObject {
     @Published var showEarth: Bool = SimSettings.defaults.showEarth { didSet { syncSettings() } }
     
     @Published var showStats: Bool = true
-    @Published var isPaused: Bool = true { didSet { engine.isPaused = isPaused } }
+    @Published var isPaused: Bool = true { didSet { controller.isPaused = isPaused } }
     @Published private(set) var hasStarted: Bool = false
     @Published private(set) var initialSatelliteCount: Int = 0
     
     init() {
-        engine.$simulationStats
+        controller.$simulationStats
             .receive(on: RunLoop.main)
             .assign(to: &telemetry.$stats)
         
@@ -161,7 +161,7 @@ class Simulation: ObservableObject {
         
         syncSettings()
         
-        engine.queueCommand(.reset(Int(activeSatelliteCount)))
+        controller.queueCommand(.reset(Int(activeSatelliteCount)))
     }
     
     func syncSettings() {
@@ -193,7 +193,7 @@ class Simulation: ObservableObject {
             useOmniLight: useOmniLight,
             showEarth: showEarth
         )
-        engine.queueCommand(.updateSettings(settings))
+        controller.queueCommand(.updateSettings(settings))
     }
     
     func resetSettingsToDefaults() {
@@ -221,16 +221,16 @@ class Simulation: ObservableObject {
         
     }
     
-    func attachToView(_ arView: ARView) { engine.attach(to: arView) }
+    func attachToView(_ arView: ARView) { controller.attach(to: arView) }
     func togglePause() { isPaused.toggle() }
     func pauseSimulation() { isPaused = true }
     func resumeSimulation() { isPaused = false }
-    func triggerDetonation() { engine.queueCommand(.detonate) }
+    func triggerDetonation() { controller.queueCommand(.detonate) }
     
-    func resetCamera() { engine.resetCamera() }
-    func rotateCamera(deltaX: Float, deltaY: Float) { engine.rotateCamera(deltaX: deltaX, deltaY: deltaY) }
-    func zoomCamera(scaleFactor: Float) { engine.zoomCamera(scaleFactor: scaleFactor) }
+    func resetCamera() { controller.resetCamera() }
+    func rotateCamera(deltaX: Float, deltaY: Float) { controller.rotateCamera(deltaX: deltaX, deltaY: deltaY) }
+    func zoomCamera(scaleFactor: Float) { controller.zoomCamera(scaleFactor: scaleFactor) }
     func setSettingsPanel(isOpen: Bool, ratio: Double, aspectRatio: Double) {
-        engine.setCameraOffset(ratio: isOpen ? Float(ratio) : 0, aspectRatio: Float(aspectRatio))
+        controller.setCameraOffset(ratio: isOpen ? Float(ratio) : 0, aspectRatio: Float(aspectRatio))
     }
 }

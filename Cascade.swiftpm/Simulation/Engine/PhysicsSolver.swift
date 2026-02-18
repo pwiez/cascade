@@ -13,7 +13,7 @@ struct SimulationFrame: Sendable {
     static let empty = SimulationFrame(count: 0, posX: [], posY: [], posZ: [], killedSatelliteIndices: [], explosions: [])
 }
 
-actor PhysicsSystem {
+actor PhysicsSolver {
     
     private var debrisPool: DebrisPool
     private var grid: SpatialGrid

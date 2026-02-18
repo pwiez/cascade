@@ -1,3 +1,10 @@
+//
+//  OrbitalStatus.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 18/02/26.
+//
+
 import SwiftUI
 
 enum OrbitalStatus: String {
@@ -31,15 +38,15 @@ enum OrbitalStatus: String {
         
         let ratio = Double(current) / Double(initial)
         
-        if ratio < 0.25 { return .critical }
+        if ratio < 0.35 { return .critical }
         
-        if ratio < 0.65 { return .danger }
+        if ratio < 0.75 { return .danger }
         
         return .warning
     }
 }
 
-struct SimMetrics: View {
+struct SimulationMetrics: View {
     @ObservedObject var telemetry: Telemetry
     let initialSatellites: Int
     let satelliteColor: Color
@@ -49,12 +56,6 @@ struct SimMetrics: View {
 
     private var status: OrbitalStatus {
         OrbitalStatus.evaluate(current: stats.satellites, initial: initialSatellites)
-    }
-    
-    private var integrityPercentage: Int {
-        guard initialSatellites > 0 else { return 100 }
-        let ratio = Double(max(stats.satellites, 0)) / Double(initialSatellites)
-        return Int((ratio * 100).rounded())
     }
 
     var body: some View {
@@ -87,20 +88,6 @@ struct SimMetrics: View {
                     value: stats.debris,
                     color: debrisColor
                 )
-            }
-            
-            HStack {
-                Text("System integrity")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                
-                Spacer()
-                
-                Text("\(integrityPercentage)%")
-                    .font(.caption.monospacedDigit().weight(.bold))
-                    .foregroundStyle(.white)
-                    .contentTransition(.numericText())
-                    .animation(.snappy, value: integrityPercentage)
             }
         }
         .padding(18)

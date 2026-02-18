@@ -1,3 +1,10 @@
+//
+//  SettingsView.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 18/02/26.
+//
+
 import SwiftUI
 
 struct SettingsView: View {

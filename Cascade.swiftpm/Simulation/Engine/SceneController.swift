@@ -2,10 +2,9 @@ import simd
 import Combine
 import UIKit
 import RealityKit
-import SwiftUI
 
 @MainActor
-class PhysicsEngine: ObservableObject {
+class SceneController: ObservableObject {
     
     @Published var simulationStats = SimStats()
     var isPaused: Bool = true
@@ -14,7 +13,7 @@ class PhysicsEngine: ObservableObject {
     private let rootAnchor = AnchorEntity(world: .zero)
     
     private var cameraRig: CameraRig?
-    private var system: PhysicsSystem
+    private var system: PhysicsSolver
     private var debrisBatchSystem: DebrisBatchSystem
     
     private var earthEntity: Entity?
@@ -45,7 +44,7 @@ class PhysicsEngine: ObservableObject {
         self.satelliteMesh = .generateBox(size: 1.2)
         
         self.debrisBatchSystem = DebrisBatchSystem(maxDebris: 5000, material: debrisMaterial)
-        self.system = PhysicsSystem(settings: settings, earthRadius: earthRadius)
+        self.system = PhysicsSolver(settings: settings, earthRadius: earthRadius)
         
         setupLighting()
         setupEarth()
