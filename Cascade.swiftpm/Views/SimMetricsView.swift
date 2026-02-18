@@ -120,8 +120,7 @@ struct SimMetrics: View {
             .padding(.vertical, 10)
         }
         .frame(width: 180)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .glassEffect()
+        .glassEffect(in: .rect(cornerRadius: 16.0))
         .accessibilityElement(children: .contain)
     }
 }
