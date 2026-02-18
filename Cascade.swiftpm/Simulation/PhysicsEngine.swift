@@ -268,6 +268,8 @@ class PhysicsEngine: ObservableObject {
         
         spawnSatellites(count: satelliteCount)
         cameraRig?.reset()
+        
+        simulationStats = SimStats(debris: 0, satellites: satellites.count)
     }
     
     private func spawnSatellites(count: Int) {
