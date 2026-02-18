@@ -2,7 +2,7 @@ import SwiftUI
 import TipKit
 
 @main
-struct MyApp: App {    
+struct Cascade: App {    
     init() {
         try? Tips.resetDatastore()
         
