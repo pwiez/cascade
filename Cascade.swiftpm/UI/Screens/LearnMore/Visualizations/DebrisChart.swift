@@ -43,8 +43,8 @@ struct DebrisChart: View {
                 Text("Cataloged Objects in Earth Orbit")
                     .font(.headline).foregroundStyle(.white)
                 Text("Objects larger than 10 cm tracked by space surveillance networks, 1960–2024.")
-                    .font(.caption).foregroundStyle(.gray)
-                    .lineSpacing(3)
+                    .font(.caption).foregroundStyle(CascadeTheme.mutedText)
+                    .lineSpacing(CascadeTheme.compactLineSpacing)
             }
             .padding(.bottom, 16)
             
@@ -81,8 +81,8 @@ struct DebrisChart: View {
                             .foregroundStyle(.orange)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(.orange.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .background(.orange.opacity(CascadeTheme.iconBackgroundOpacity))
+                            .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.badgeRadius))
                     }
                 
                 RuleMark(x: .value("Event", 2009))
@@ -94,32 +94,32 @@ struct DebrisChart: View {
                             .foregroundStyle(.red)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(.red.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .background(.red.opacity(CascadeTheme.iconBackgroundOpacity))
+                            .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.badgeRadius))
                     }
             }
             .chartXScale(domain: 1960...2026)
             .chartYScale(domain: 0...36000)
             .chartXAxis {
                 AxisMarks(values: stride(from: 1960, through: 2024, by: 10).map { $0 }) { value in
-                    AxisGridLine().foregroundStyle(.white.opacity(0.06))
+                    AxisGridLine().foregroundStyle(CascadeTheme.cardBorder)
                     AxisValueLabel {
                         if let intVal = value.as(Int.self) {
                             Text("'\(intVal % 100, specifier: "%02d")")
                                 .font(.caption2.monospacedDigit())
-                                .foregroundStyle(.white.opacity(0.6))
+                                .foregroundStyle(CascadeTheme.dimText)
                         }
                     }
                 }
             }
             .chartYAxis {
                 AxisMarks(values: stride(from: 0, through: 35000, by: 5000).map { $0 }) { value in
-                    AxisGridLine().foregroundStyle(.white.opacity(0.06))
+                    AxisGridLine().foregroundStyle(CascadeTheme.cardBorder)
                     AxisValueLabel {
                         if let intValue = value.as(Int.self) {
                             Text(intValue >= 1000 ? "\(intValue / 1000)k" : "\(intValue)")
                                 .font(.caption2.monospacedDigit())
-                                .foregroundStyle(.white.opacity(0.6))
+                                .foregroundStyle(CascadeTheme.dimText)
                         }
                     }
                 }

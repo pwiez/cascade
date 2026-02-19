@@ -111,7 +111,7 @@ struct ChapterContainerView: View {
                     if !activeSection.subtitle.isEmpty {
                         Text(activeSection.subtitle)
                             .font(.title3)
-                            .foregroundStyle(.white.opacity(0.55))
+                            .foregroundStyle(CascadeTheme.dimText)
                     }
                 }
                 .accessibilityAddTraits(.isHeader)

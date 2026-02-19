@@ -21,7 +21,7 @@ struct CreditsChapter: View {
                         "H. Klinkrad — \"Space Debris: Models and Risk Analysis\" (Springer-Verlag, 2006)"
                     ])
                     
-                    Divider().overlay(.white.opacity(0.08))
+                    Divider().cascadeDivider()
                     
                     CreditSection(role: "Institutional Data Sources", entries: [
                         "NASA Orbital Debris Program Office — Orbital Debris Quarterly News",
@@ -30,7 +30,7 @@ struct CreditsChapter: View {
                         "U.S. Space Surveillance Network — Public catalog data via Space-Track.org"
                     ])
                     
-                    Divider().overlay(.white.opacity(0.08))
+                    Divider().cascadeDivider()
                     
                     CreditSection(role: "Remediation Technology References", entries: [
                         "S. Forshaw et al. — \"RemoveDEBRIS: An In-Orbit Active Debris Removal Demonstration Mission\" (Acta Astronautica, Vol. 127, 2016)",
@@ -68,8 +68,8 @@ struct CreditsChapter: View {
                         .padding(.top, 7)
                     Text(entry)
                         .font(.subheadline)
-                        .foregroundStyle(Color(white: 0.82))
-                        .lineSpacing(3)
+                        .foregroundStyle(CascadeTheme.bodyText)
+                        .lineSpacing(CascadeTheme.compactLineSpacing)
                 }
             }
         }

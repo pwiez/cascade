@@ -45,13 +45,13 @@ struct TimelineVertical: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(event.0)
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(index == 0 ? .blue : .gray)
+                            .foregroundStyle(index == 0 ? .blue : CascadeTheme.mutedText)
                         Text(event.1)
                             .font(.headline.weight(.semibold))
                             .foregroundStyle(.white)
                         Text(event.2)
                             .font(.subheadline)
-                            .foregroundStyle(Color(white: 0.8))
+                            .foregroundStyle(CascadeTheme.bodyText)
                             .padding(.bottom, 30)
                     }
                 }

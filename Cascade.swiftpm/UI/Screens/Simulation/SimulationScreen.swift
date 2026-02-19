@@ -76,7 +76,7 @@ struct SimulationScreen: View {
                         )
                         .frame(width: geometry.size.width * panelWidthRatio)
                         .background(.thinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
                         .padding(.vertical)
                         .padding(.trailing)
                         .transition(.move(edge: .trailing))

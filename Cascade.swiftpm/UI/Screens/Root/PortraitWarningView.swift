@@ -32,7 +32,7 @@ struct PortraitWarningView: View {
                     Text("Cascade works best in landscape mode.")
                         .font(.title3)
                         .multilineTextAlignment(.center)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(CascadeTheme.dimText)
                         .padding(.horizontal)
                 }
             }

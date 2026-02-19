@@ -10,11 +10,6 @@ import SwiftUI
 struct OverviewChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 32) {
-            Text("A self-reinforcing chain reaction in orbit — where every collision breeds the seeds of the next.")
-                .font(.title3.weight(.medium))
-                .foregroundStyle(.white.opacity(0.92))
-                .lineSpacing(6)
-                .fixedSize(horizontal: false, vertical: true)
             
             DefinitionCallout(
                 term: "Kessler Syndrome",
@@ -24,14 +19,14 @@ struct OverviewChapter: View {
             
             ScientificCard {
                 VStack(alignment: .leading, spacing: 14) {
-                    Label("Why This Matters", systemImage: "exclamationmark.triangle.fill")
+                    Label("Why is learning about this important?", systemImage: "exclamationmark.triangle.fill")
                         .font(.headline)
                         .foregroundStyle(.white)
                     
-                    Text("Global navigation, weather forecasting, climate observation, telecommunications, and disaster early-warning systems all depend on unimpeded access to Low Earth Orbit. If collision rates cross a critical threshold, entire orbital shells could become unusable for generations — not because of a single catastrophe, but because of a slow, compounding accumulation of debris.")
+                    Text("Global navigation, weather forecasting, climate observation, telecommunications, and disaster early-warning systems all depend on unimpeded access to many orbital ranges, including Low Earth Orbit, represented in this simulation. If collision rates cross a critical threshold, entire orbital shells could become unusable for generations — not because of a single collision, but because of a series of slow, compounding accumulation of debris.")
                         .font(.body)
                         .foregroundStyle(.secondary)
-                        .lineSpacing(5)
+                        .lineSpacing(CascadeTheme.bodyLineSpacing)
                 }
             }
             

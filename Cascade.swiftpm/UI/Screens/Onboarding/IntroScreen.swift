@@ -35,7 +35,7 @@ struct IntroScreen: View {
                         
                         Text("A Kessler Syndrome Simulator")
                             .font(.title2)
-                            .foregroundStyle(.white.opacity(0.55))
+                            .foregroundStyle(CascadeTheme.dimText)
                     }
                     
                     Spacer().frame(height: 44)
@@ -44,12 +44,12 @@ struct IntroScreen: View {
                         Text("Low Earth Orbit is getting crowded. Thousands of satellites share space with millions of debris fragments — and at orbital speeds, even a fleck of paint hits like a bullet.")
                             .font(.title3)
                             .foregroundStyle(.white.opacity(0.9))
-                            .lineSpacing(6)
+                            .lineSpacing(CascadeTheme.bodyLineSpacing)
                         
                         Text("Cascade lets you explore what happens when collisions start a chain reaction. Trigger a detonation, watch debris spread, and see how one event can spiral out of control.")
                             .font(.title3)
                             .foregroundStyle(.white.opacity(0.9))
-                            .lineSpacing(6)
+                            .lineSpacing(CascadeTheme.bodyLineSpacing)
                     }
                     .frame(maxWidth: 500)
                     
@@ -108,12 +108,7 @@ struct IntroFeatureCard: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(.blue)
-                .frame(width: 42, height: 42)
-                .background(.blue.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+            ThemedIcon(systemName: icon, color: .blue, shape: .roundedRect)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
@@ -121,19 +116,12 @@ struct IntroFeatureCard: View {
                     .foregroundStyle(.white)
                 Text(description)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.55))
-                    .lineSpacing(3)
+                    .foregroundStyle(CascadeTheme.dimText)
+                    .lineSpacing(CascadeTheme.compactLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(white: 0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(.white.opacity(0.05), lineWidth: 1)
-        )
+        .cascadeCard(padding: CascadeTheme.cardPadding)
         .accessibilityElement(children: .combine)
     }
 }
