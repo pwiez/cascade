@@ -22,7 +22,7 @@ struct SituationChapter: View {
                 TimelineVertical()
             }
             
-            Divider().overlay(.white.opacity(0.08))
+            Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
                 SectionLabel(text: "Tracking Data")
@@ -37,7 +37,7 @@ struct SituationChapter: View {
                 TextParagraph("Note the steep increase after 2007 (Fengyun-1C ASAT test) and 2009 (Iridium-Cosmos collision). These two events alone contributed over 5,000 trackable fragments to the catalog — more than decades of accumulated launch debris.")
             }
             
-            Divider().overlay(.white.opacity(0.08))
+            Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
                 SectionLabel(text: "Operational Impact")
@@ -93,21 +93,21 @@ struct OperationalStatCard: View {
                     .foregroundStyle(.white)
                 Text(unit)
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(CascadeTheme.mutedText)
             }
             
             Text(label)
                 .font(.caption)
-                .foregroundStyle(.gray)
+                .foregroundStyle(CascadeTheme.mutedText)
                 .lineLimit(2, reservesSpace: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(Color(white: 0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .padding(CascadeTheme.compactPadding)
+        .background(CascadeTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(accent.opacity(0.15), lineWidth: 1)
+            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
+                .stroke(accent.opacity(CascadeTheme.accentBorderOpacity), lineWidth: CascadeTheme.borderWidth)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(value) \(unit): \(label)")

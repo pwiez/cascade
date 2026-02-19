@@ -26,18 +26,18 @@ struct AboutChapter: View {
                         
                         VStack(spacing: 12) {
                             ModelParam(name: "Integrator", value: "Semi-Implicit Euler", detail: "Symplectic integration for stable orbits")
-                            Divider().overlay(.white.opacity(0.08))
+                            Divider().cascadeDivider()
                             ModelParam(name: "Collision Detection", value: "Spatial Hashing", detail: "O(n) lookup via uniform grid partition")
-                            Divider().overlay(.white.opacity(0.08))
+                            Divider().cascadeDivider()
                             ModelParam(name: "Parallelization", value: "Multithreaded", detail: "Physics logic distributed across CPU cores")
-                            Divider().overlay(.white.opacity(0.08))
+                            Divider().cascadeDivider()
                             ModelParam(name: "Rendering", value: "RealityKit", detail: "Instanced mesh particles for debris clouds")
                         }
                     }
                 }
             }
             
-            Divider().overlay(.white.opacity(0.08))
+            Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
                 SectionLabel(text: "Model Simplifications")
@@ -74,7 +74,7 @@ struct AboutChapter: View {
                 }
             }
             
-            Divider().overlay(.white.opacity(0.08))
+            Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
                 SectionLabel(text: "Learning Outcomes")
@@ -100,12 +100,7 @@ struct SimplificationCard: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(.orange)
-                .frame(width: 40, height: 40)
-                .background(.orange.opacity(0.1))
-                .clipShape(Circle())
+            ThemedIcon(systemName: icon, color: .orange, shape: .circle)
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
@@ -114,18 +109,11 @@ struct SimplificationCard: View {
                 
                 Text(description)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.7))
-                    .lineSpacing(4)
+                    .foregroundStyle(CascadeTheme.bodyText)
+                    .lineSpacing(CascadeTheme.bodyLineSpacing)
             }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(white: 0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(.white.opacity(0.05), lineWidth: 1)
-        )
+        .cascadeCard(padding: CascadeTheme.compactPadding)
     }
 }
 
@@ -142,7 +130,7 @@ struct ModelParam: View {
                     .foregroundStyle(.white)
                 Text(detail)
                     .font(.caption)
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(CascadeTheme.mutedText)
             }
             Spacer()
             Text(value)
@@ -165,8 +153,8 @@ struct LearningObjective: View {
             
             Text(text)
                 .font(.subheadline)
-                .foregroundStyle(Color(white: 0.85))
-                .lineSpacing(3)
+                .foregroundStyle(CascadeTheme.bodyText)
+                .lineSpacing(CascadeTheme.compactLineSpacing)
         }
         .accessibilityElement(children: .combine)
     }

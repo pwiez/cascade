@@ -12,12 +12,12 @@ struct ImpactComparisonView: View {
         VStack(alignment: .leading, spacing: 22) {
             Label("ENERGY COMPARISON", systemImage: "bolt.fill")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(Color(white: 0.5))
+                .foregroundStyle(CascadeTheme.dimText)
             
             Text("Kinetic energy of a 1 cm aluminum sphere at orbital velocity, compared to familiar references.")
                 .font(.caption)
-                .foregroundStyle(.gray)
-                .lineSpacing(3)
+                .foregroundStyle(CascadeTheme.mutedText)
+                .lineSpacing(CascadeTheme.compactLineSpacing)
             
             VStack(spacing: 18) {
                 EnergyBar(label: ".22 LR Bullet", energy: "~140 J", fraction: 0.004, color: Color.gray.opacity(0.5), highlight: false)
@@ -29,10 +29,10 @@ struct ImpactComparisonView: View {
             HStack(spacing: 6) {
                 Image(systemName: "info.circle")
                     .font(.caption2)
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(CascadeTheme.mutedText)
                 Text("A 1 cm fragment carries roughly **250×** the energy of a bullet.")
                     .font(.caption)
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(CascadeTheme.mutedText)
             }
             .padding(.top, 4)
         }
@@ -52,19 +52,19 @@ struct EnergyBar: View {
             HStack {
                 Text(label)
                     .font(.caption.weight(highlight ? .bold : .semibold))
-                    .foregroundStyle(highlight ? .white : Color(white: 0.65))
+                    .foregroundStyle(highlight ? .white : CascadeTheme.bodyText)
                 
                 Spacer()
                 
                 Text(energy)
                     .font(.caption.weight(.bold).monospacedDigit())
-                    .foregroundStyle(highlight ? .orange : Color(white: 0.55))
+                    .foregroundStyle(highlight ? .orange : CascadeTheme.dimText)
             }
             
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color(white: 0.1))
+                        .fill(CascadeTheme.trackColor)
                     
                     Capsule()
                         .fill(
@@ -72,7 +72,7 @@ struct EnergyBar: View {
                             ? LinearGradient(colors: [.orange, .red], startPoint: .leading, endPoint: .trailing)
                             : LinearGradient(colors: [color, color], startPoint: .leading, endPoint: .trailing)
                         )
-                        .frame(width: max(geo.size.width * fraction, 4))
+                        .frame(width: max(geo.size.width * fraction, CascadeTheme.trackHeight))
                 }
             }
             .frame(height: 6)

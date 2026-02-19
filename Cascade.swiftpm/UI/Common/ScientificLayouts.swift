@@ -12,14 +12,14 @@ struct ScientificCard<Content: View>: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            content.padding(22)
+            content.padding(CascadeTheme.cardPadding)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(white: 0.07))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .background(CascadeTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(.white.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
+                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
         )
     }
 }
@@ -31,8 +31,8 @@ struct TextParagraph: View {
     var body: some View {
         Text(text)
             .font(.body)
-            .lineSpacing(6)
-            .foregroundStyle(Color(white: 0.85))
+            .lineSpacing(CascadeTheme.bodyLineSpacing)
+            .foregroundStyle(CascadeTheme.bodyText)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
@@ -58,13 +58,13 @@ struct GuideRow: View {
                 .font(.caption.weight(.bold).monospacedDigit())
                 .foregroundStyle(.blue)
                 .frame(width: 22, height: 22)
-                .background(Color.blue.opacity(0.15))
+                .background(Color.blue.opacity(CascadeTheme.iconBackgroundOpacity))
                 .clipShape(Circle())
             
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .lineSpacing(3)
+                .lineSpacing(CascadeTheme.compactLineSpacing)
         }
     }
 }
@@ -96,22 +96,16 @@ struct DefinitionCallout: View {
                 
                 Text(definition)
                     .font(.subheadline)
-                    .foregroundStyle(Color(white: 0.82))
-                    .lineSpacing(5)
+                    .foregroundStyle(CascadeTheme.bodyText)
+                    .lineSpacing(CascadeTheme.bodyLineSpacing)
                 
                 Text("— \(source)")
                     .font(.caption.italic())
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(CascadeTheme.mutedText)
             }
             .padding(.vertical, 4)
         }
-        .padding(20)
-        .background(Color.blue.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.blue.opacity(0.15), lineWidth: 1)
-        )
+        .cascadeAccentCard(.blue)
         .accessibilityElement(children: .combine)
     }
 }
@@ -123,12 +117,7 @@ struct KeyConceptBox: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(.orange)
-                .frame(width: 36, height: 36)
-                .background(.orange.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            ThemedIcon(systemName: icon, color: .orange, shape: .roundedRect)
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
@@ -136,18 +125,11 @@ struct KeyConceptBox: View {
                     .foregroundStyle(.white)
                 Text(bodyText)
                     .font(.subheadline)
-                    .foregroundStyle(Color(white: 0.78))
-                    .lineSpacing(4)
+                    .foregroundStyle(CascadeTheme.bodyText)
+                    .lineSpacing(CascadeTheme.bodyLineSpacing)
             }
         }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.orange.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.orange.opacity(0.15), lineWidth: 1)
-        )
+        .cascadeAccentCard(.orange)
         .accessibilityElement(children: .combine)
     }
 }

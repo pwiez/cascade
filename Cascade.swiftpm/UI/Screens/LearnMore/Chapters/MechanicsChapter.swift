@@ -30,7 +30,7 @@ struct MechanicsChapter: View {
                 )
             }
             
-            Divider().overlay(.white.opacity(0.08))
+            Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
                 SectionLabel(text: "Collision Physics")
@@ -44,7 +44,7 @@ struct MechanicsChapter: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Label("KINETIC ENERGY EQUATION", systemImage: "function")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(Color(white: 0.5))
+                            .foregroundStyle(CascadeTheme.dimText)
                         
                         HStack(spacing: 4) {
                             Text("E")
@@ -69,7 +69,7 @@ struct MechanicsChapter: View {
                         Text("Because energy scales with the **square** of velocity, doubling the speed of impact quadruples the energy released. A 1 cm aluminum sphere at orbital velocity carries the kinetic energy of a hand grenade.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                            .lineSpacing(4)
+                            .lineSpacing(CascadeTheme.bodyLineSpacing)
                     }
                 }
                 
@@ -78,7 +78,7 @@ struct MechanicsChapter: View {
                 TextParagraph("At relative closing speeds that can reach 15 km/s in head-on scenarios, collisions do not merely dent or crack — they vaporize. The resulting debris cloud expands along the original orbit, creating a persistent hazard zone.")
             }
             
-            Divider().overlay(.white.opacity(0.08))
+            Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
                 SectionLabel(text: "Detection Gap")
@@ -99,7 +99,7 @@ struct DebrisSizeClassView: View {
         VStack(alignment: .leading, spacing: 20) {
             Label("DEBRIS SIZE CLASSES", systemImage: "ruler.fill")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(Color(white: 0.5))
+                .foregroundStyle(CascadeTheme.dimText)
             
             VStack(spacing: 14) {
                 DebrisSizeRow(
@@ -153,7 +153,7 @@ struct DebrisSizeRow: View {
                     .foregroundStyle(statusColor)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(statusColor.opacity(0.15))
+                    .background(statusColor.opacity(CascadeTheme.iconBackgroundOpacity))
                     .clipShape(Capsule())
             }
             
@@ -165,25 +165,25 @@ struct DebrisSizeRow: View {
                 
                 Text(effect)
                     .font(.caption)
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(CascadeTheme.mutedText)
             }
             
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color(white: 0.15))
-                        .frame(height: 4)
+                        .fill(CascadeTheme.trackColor)
+                        .frame(height: CascadeTheme.trackHeight)
                     
                     Capsule()
                         .fill(statusColor.opacity(0.6))
-                        .frame(width: geo.size.width * proportion, height: 4)
+                        .frame(width: geo.size.width * proportion, height: CascadeTheme.trackHeight)
                 }
             }
-            .frame(height: 4)
+            .frame(height: CascadeTheme.trackHeight)
         }
-        .padding(14)
-        .background(Color(white: 0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .padding(CascadeTheme.compactPadding)
+        .background(CascadeTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.innerRadius))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(size): estimated \(count) objects, \(status). Effect: \(effect)")
     }

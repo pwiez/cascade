@@ -12,7 +12,7 @@ struct CausalFlowDiagram: View {
         VStack(alignment: .leading, spacing: 22) {
             Label("THE CASCADE LOOP", systemImage: "point.3.filled.connected.trianglepath.dotted")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(Color(white: 0.5))
+                .foregroundStyle(CascadeTheme.dimText)
                 .tracking(0.6)
             
             HStack(spacing: 0) {
@@ -31,8 +31,8 @@ struct CausalFlowDiagram: View {
                     .foregroundStyle(.red.opacity(0.6))
                 Text("Each stage feeds the next — the loop is self-reinforcing above the critical threshold.")
                     .font(.caption)
-                    .foregroundStyle(.gray)
-                    .lineSpacing(2)
+                    .foregroundStyle(CascadeTheme.mutedText)
+                    .lineSpacing(CascadeTheme.compactLineSpacing)
             }
             .padding(.top, 4)
         }
@@ -51,12 +51,7 @@ struct CausalFlowDiagram: View {
     
     func flowNode(icon: String, title: String, color: Color) -> some View {
         VStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(color)
-                .frame(width: 44, height: 44)
-                .background(color.opacity(0.12))
-                .clipShape(Circle())
+            ThemedIcon(systemName: icon, color: color, shape: .circle)
             
             Text(title)
                 .font(.caption.weight(.medium))
@@ -66,7 +61,7 @@ struct CausalFlowDiagram: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .background(Color(white: 0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(CascadeTheme.raisedBackground)
+        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.innerRadius))
     }
 }

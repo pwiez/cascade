@@ -24,7 +24,7 @@ struct RemediationChapter: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Label("ORBITAL DECAY BY ALTITUDE", systemImage: "arrow.down.to.line")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(Color(white: 0.5))
+                            .foregroundStyle(CascadeTheme.dimText)
                             .tracking(0.6)
                         
                         VStack(spacing: 12) {
@@ -37,8 +37,8 @@ struct RemediationChapter: View {
                         
                         Text("Solar activity cycles cause the upper atmosphere to expand and contract, significantly affecting drag rates. During solar maxima, decay accelerates; during minima, it slows.")
                             .font(.caption)
-                            .foregroundStyle(.gray)
-                            .lineSpacing(3)
+                            .foregroundStyle(CascadeTheme.mutedText)
+                            .lineSpacing(CascadeTheme.compactLineSpacing)
                             .padding(.top, 4)
                     }
                 }
@@ -46,7 +46,7 @@ struct RemediationChapter: View {
                 TextParagraph("Below approximately 600 km, atmospheric drag is effective enough to clear most debris within decades. This is why the International Space Station orbits at ~400 km — any debris generated at that altitude is naturally swept away relatively quickly. The challenge lies in higher orbits, where drag is negligible and debris persists for centuries.")
             }
             
-            Divider().overlay(.white.opacity(0.08))
+            Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
                 SectionLabel(text: "Engineered Solutions")
@@ -103,7 +103,7 @@ struct RemediationChapter: View {
                 }
             }
             
-            Divider().overlay(.white.opacity(0.08))
+            Divider().cascadeDivider()
             
             ScientificCard {
                 VStack(alignment: .leading, spacing: 14) {
@@ -113,7 +113,7 @@ struct RemediationChapter: View {
                     Text("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all LEO spacecraft be deorbited within 25 years of mission end. In 2022, the U.S. Federal Communications Commission adopted a stricter 5-year rule for U.S.-licensed satellites. Compliance remains voluntary for many operators worldwide.")
                         .font(.body)
                         .foregroundStyle(.secondary)
-                        .lineSpacing(5)
+                        .lineSpacing(CascadeTheme.bodyLineSpacing)
                 }
             }
         }
@@ -136,18 +136,18 @@ struct DragLifetimeRow: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color(white: 0.12))
+                        .fill(CascadeTheme.trackColor)
                     Capsule()
                         .fill(color.opacity(0.6))
-                        .frame(width: max(geo.size.width * intensity, 4))
+                        .frame(width: max(geo.size.width * intensity, CascadeTheme.trackHeight))
                 }
             }
-            .frame(height: 5)
+            .frame(height: CascadeTheme.trackHeight + 1)
             .clipShape(Capsule())
             
             Text(lifetime)
                 .font(.caption.monospacedDigit())
-                .foregroundStyle(.gray)
+                .foregroundStyle(CascadeTheme.mutedText)
                 .frame(width: 120, alignment: .trailing)
         }
         .accessibilityElement(children: .combine)
@@ -178,30 +178,25 @@ struct StrategyCard: View {
                         .foregroundStyle(.white)
                 }
                 Spacer()
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundStyle(accent)
-                    .frame(width: 44, height: 44)
-                    .background(accent.opacity(0.12))
-                    .clipShape(Circle())
+                ThemedIcon(systemName: icon, color: accent, shape: .circle)
             }
             
             if !maturity.isEmpty {
                 HStack(spacing: 10) {
                     Text("Readiness")
                         .font(.caption2.weight(.medium))
-                        .foregroundStyle(.gray)
+                        .foregroundStyle(CascadeTheme.mutedText)
                     
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             Capsule()
-                                .fill(Color(white: 0.12))
+                                .fill(CascadeTheme.trackColor)
                             Capsule()
                                 .fill(accent.opacity(0.7))
                                 .frame(width: geo.size.width * maturityLevel)
                         }
                     }
-                    .frame(height: 4)
+                    .frame(height: CascadeTheme.trackHeight)
                     .clipShape(Capsule())
                     
                     Text(maturity)
@@ -211,13 +206,13 @@ struct StrategyCard: View {
                 .accessibilityLabel("Technology readiness: \(maturity)")
             }
             
-            Divider().overlay(Color.white.opacity(0.08))
+            Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 16) {
                 Text(description)
                     .font(.body)
-                    .foregroundStyle(Color(white: 0.82))
-                    .lineSpacing(5)
+                    .foregroundStyle(CascadeTheme.bodyText)
+                    .lineSpacing(CascadeTheme.bodyLineSpacing)
                 
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: "gearshape.2.fill")
@@ -227,25 +222,18 @@ struct StrategyCard: View {
                     
                     Text(mechanism)
                         .font(.callout)
-                        .foregroundStyle(Color(white: 0.88))
-                        .lineSpacing(4)
+                        .foregroundStyle(CascadeTheme.bodyText)
+                        .lineSpacing(CascadeTheme.bodyLineSpacing)
                 }
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(accent.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(accent.opacity(0.1), lineWidth: 1)
-                )
+                .cascadeInnerCard(accent: accent)
             }
         }
-        .padding(22)
-        .background(Color(white: 0.07))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .padding(CascadeTheme.cardPadding)
+        .background(CascadeTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
+                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
         )
         .accessibilityElement(children: .contain)
     }
