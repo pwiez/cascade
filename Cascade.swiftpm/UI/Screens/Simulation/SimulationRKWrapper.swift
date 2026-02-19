@@ -1,10 +1,3 @@
-//
-//  ARViewContainer.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 import RealityKit
 
@@ -25,15 +18,12 @@ struct SimulationView: UIViewRepresentable {
         
         let spaceColor = UIColor(red: 0.05, green: 0.05, blue: 0.09, alpha: 1.0)
         arView.environment.background = .color(spaceColor)
+        arView.environment.lighting.intensityExponent = -1.0
         
         arView.renderOptions = [
-            .disableMotionBlur,
-            .disableDepthOfField,
-            .disableFaceMesh,
-            .disableHDR,
-            .disableGroundingShadows
+            .disableMotionBlur, .disableHDR, .disableDepthOfField, .disableCameraGrain, .disableFaceMesh, .disableAREnvironmentLighting, .disableGroundingShadows
         ]
-        
+          
         simulation.attachToView(arView)
         
         wrapper.arView = arView

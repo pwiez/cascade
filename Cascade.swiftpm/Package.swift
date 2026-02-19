@@ -34,7 +34,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AppModule",
-            path: "."
+            path: ".",
         )
     ],
     swiftLanguageVersions: [.version("6")]

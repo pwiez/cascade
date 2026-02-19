@@ -7,20 +7,20 @@ class CameraRig {
     let pivot: Entity
     let camera: Entity
     
-    private var zoomLevel: Float = 350.0
+    private var zoomLevel: Float = 555.0
     private var angleX: Float = -0.35
     private var angleY: Float = 3.25
     
     private var currentAspectRatio: Float = 1.77
-        private var targetScreenOffset: Float = 0.0
+    private var targetScreenOffset: Float = 0.0
     
     private var savedTransform: Transform?
     private var savedZoom: Float?
     private var savedAngleX: Float?
     private var savedAngleY: Float?
     
-    private let minZoom: Float = 120.0
-    private let maxZoom: Float = 800.0
+    private let minZoom: Float = 190.0
+    private let maxZoom: Float = 1200.0
     private let minAngleX: Float = -1.4
     private let maxAngleX: Float = 1.4
     
@@ -28,7 +28,8 @@ class CameraRig {
         self.pivot = Entity()
         self.camera = Entity()
         
-        let cameraComponent = PerspectiveCameraComponent(near: 0.1, far: 3000)
+        var cameraComponent = PerspectiveCameraComponent(near: 0.1, far: 3000)
+        cameraComponent.fieldOfViewInDegrees = 40.0
         camera.components.set(cameraComponent)
         
         pivot.addChild(camera)
@@ -37,7 +38,6 @@ class CameraRig {
         updateTransform()
         updatePosition(animated: false)
     }
-    
     
     func rotate(deltaX: Float, deltaY: Float) {
         angleX = max(minAngleX, min(maxAngleX, angleX + deltaX))
@@ -87,7 +87,7 @@ class CameraRig {
     func reset() {
         self.angleX = -0.35
         self.angleY = 3.25
-        self.zoomLevel = 350.0
+        self.zoomLevel = 555.0
         
         let targetOrientation = simd_quatf(angle: angleY, axis: [0, 1, 0]) * simd_quatf(angle: angleX, axis: [1, 0, 0])
         pivot.move(to: Transform(rotation: targetOrientation), relativeTo: pivot.parent, duration: 1.5, timingFunction: .easeInOut)
@@ -95,12 +95,11 @@ class CameraRig {
         updatePosition(animated: true)
     }
     
-    
     func setTargetOffset(ratio: Float, aspectRatio: Float) {
-            self.targetScreenOffset = ratio
-            self.currentAspectRatio = aspectRatio
-            updatePosition(animated: true)
-        }
+        self.targetScreenOffset = ratio
+        self.currentAspectRatio = aspectRatio
+        updatePosition(animated: true)
+    }
     
     private func updateTransform() {
         let rotationY = simd_quatf(angle: angleY, axis: [0, 1, 0])
@@ -109,18 +108,18 @@ class CameraRig {
     }
     
     private func updatePosition(animated: Bool) {
-            
-            let verticalFOVScalar: Float = 1.1547
-            let worldWidthAtZoom = zoomLevel * verticalFOVScalar * currentAspectRatio
-            
-            let targetX = worldWidthAtZoom * targetScreenOffset
-            
-            let targetTransform = Transform(scale: .one, rotation: .init(), translation: SIMD3<Float>(targetX, 0, zoomLevel))
-            
-            if animated {
-                camera.move(to: targetTransform, relativeTo: pivot, duration: 0.4, timingFunction: .easeInOut)
-            } else {
-                camera.transform = targetTransform
-            }
+        
+        let verticalFOVScalar: Float = 0.7279
+        let worldWidthAtZoom = zoomLevel * verticalFOVScalar * currentAspectRatio
+        
+        let targetX = worldWidthAtZoom * targetScreenOffset
+        
+        let targetTransform = Transform(scale: .one, rotation: .init(), translation: SIMD3<Float>(targetX, 0, zoomLevel))
+        
+        if animated {
+            camera.move(to: targetTransform, relativeTo: pivot, duration: 0.4, timingFunction: .easeInOut)
+        } else {
+            camera.transform = targetTransform
         }
+    }
 }

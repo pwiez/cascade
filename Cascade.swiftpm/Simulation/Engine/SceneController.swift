@@ -18,7 +18,7 @@ class SceneController: ObservableObject {
     
     private var earthEntity: Entity?
     private let mainSun = DirectionalLight()
-    private var fillLight: DirectionalLight?
+    private var fillLight: Entity?
     private var satellites: [ModelEntity] = []
     
     private var satelliteMaterial: UnlitMaterial
@@ -170,16 +170,24 @@ class SceneController: ObservableObject {
     }
     
     private func setupLighting() {
-        mainSun.light.intensity = 5000
-        mainSun.look(at: [0,0,0], from: [0, 50, -500], relativeTo: nil)
+        mainSun.light.intensity = 8000
+        mainSun.look(at: [0, 0, 0], from: [500, 0, -500], relativeTo: nil)
         rootAnchor.addChild(mainSun)
     }
     
     private func setupEarth() {
+        let blackTex = createBlackTexture()
+        
         let earthMesh = MeshResource.generateSphere(radius: earthRadius)
         var earthMaterial = PhysicallyBasedMaterial()
-        earthMaterial.roughness = 0.8
-        earthMaterial.specular = 0.1
+        
+        earthMaterial.roughness = 1.0
+        earthMaterial.metallic = 0.0
+        earthMaterial.specular = 0.0
+        
+        if let tex = blackTex {
+            earthMaterial.ambientOcclusion = .init(texture: .init(tex))
+        }
         
         if let texture = try? TextureResource.load(named: "earthTopographicMap") {
             earthMaterial.baseColor = .init(texture: .init(texture))
@@ -192,14 +200,20 @@ class SceneController: ObservableObject {
         self.earthEntity = earth
         rootAnchor.addChild(earth)
         
-        let atmMesh = MeshResource.generateSphere(radius: earthRadius + 2.0)
+        let atmMesh = MeshResource.generateSphere(radius: earthRadius + 1.2)
         var atmMat = PhysicallyBasedMaterial()
-        atmMat.baseColor = .init(tint: UIColor(red: 0.2, green: 0.7, blue: 1.0, alpha: 0.3))
+        
+        atmMat.baseColor = .init(tint: UIColor(red: 0.3, green: 0.7, blue: 1.0, alpha: 1.0))
         atmMat.roughness = 1.0
-        atmMat.blending = .transparent(opacity: 0.25)
+        atmMat.metallic = 0.0
+        atmMat.specular = 0.0
+        atmMat.blending = .transparent(opacity: 0.15)
+        
+        if let tex = blackTex {
+            atmMat.ambientOcclusion = .init(texture: .init(tex))
+        }
         
         let atmosphere = ModelEntity(mesh: atmMesh, materials: [atmMat])
-        atmosphere.components.set(OpacityComponent(opacity: 0.5))
         earth.addChild(atmosphere)
     }
     
@@ -289,9 +303,7 @@ class SceneController: ObservableObject {
                 
                 let anomaly = Float.random(in: 0...(2 * .pi))
                 let raan = Float.random(in: 0...(2 * .pi))
-                
                 let inclination = settings.useRandomInclination ? Float.random(in: 0...(.pi)) : 0
-                
                 let radius = orbitAlt + Float.random(in: -orbitVar...orbitVar)
                 
                 let x = radius * cos(anomaly)
@@ -340,18 +352,29 @@ class SceneController: ObservableObject {
               let data = victim.components[OrbitalData.self] else { return }
         
         victim.isEnabled = false
-        
         Task { await system.spawnExplosion(at: victim.position, velocity: data.velocity) }
     }
-    
+
     private func updateFillLight() {
         if settings.useOmniLight {
             if fillLight == nil {
-                let fill = DirectionalLight()
-                fill.light.intensity = 4000
-                fill.look(at: [0,0,0], from: [0, 50, 500], relativeTo: nil)
-                rootAnchor.addChild(fill)
-                self.fillLight = fill
+                let fillGroup = Entity()
+                
+                let fillLeft = DirectionalLight()
+                fillLeft.light.intensity = 6000
+                fillLeft.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
+                fillLeft.look(at: [0, 0, 0], from: [-500, 0, 100], relativeTo: nil)
+                
+                let fillRight = DirectionalLight()
+                fillRight.light.intensity = 6000
+                fillRight.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
+                fillRight.look(at: [0, 0, 0], from: [-100, 0, 500], relativeTo: nil)
+                
+                fillGroup.addChild(fillLeft)
+                fillGroup.addChild(fillRight)
+                
+                rootAnchor.addChild(fillGroup)
+                self.fillLight = fillGroup
             }
         } else {
             fillLight?.removeFromParent()
@@ -372,5 +395,16 @@ class SceneController: ObservableObject {
             rig.setTargetOffset(ratio: ratio, aspectRatio: aspectRatio)
         }
     }
+    
+    private func createBlackTexture() -> TextureResource? {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1))
+        let image = renderer.image { ctx in
+            UIColor.black.setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        }
+        guard let cgImage = image.cgImage else { return nil }
+        
+        let options = TextureResource.CreateOptions(semantic: .raw)
+        return try? TextureResource(image: cgImage, options: options)
+    }
 }
-

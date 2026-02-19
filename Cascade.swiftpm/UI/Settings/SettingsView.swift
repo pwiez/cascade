@@ -27,6 +27,7 @@ struct SettingsView: View {
                     Toggle("Show Earth", isOn: $simulation.showEarth)
                     Toggle("Show Satellites", isOn: $simulation.showSatellites)
                     Toggle("Show Simulation Stats", isOn: $simulation.showStats)
+                    Toggle("Bidirectional Light", isOn: $simulation.useOmniLight)
                     
                     DisclosureGroup("Colors & Scaling") {
                         ColorPicker("Satellite Color", selection: $simulation.satelliteColor, supportsOpacity: false)
