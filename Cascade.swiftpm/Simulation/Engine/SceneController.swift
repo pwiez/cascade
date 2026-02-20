@@ -170,7 +170,7 @@ class SceneController: ObservableObject {
     }
     
     private func setupLighting() {
-        mainSun.light.intensity = 8000
+        mainSun.light.intensity = 6200 
         mainSun.look(at: [0, 0, 0], from: [500, 0, -500], relativeTo: nil)
         rootAnchor.addChild(mainSun)
     }
@@ -183,14 +183,14 @@ class SceneController: ObservableObject {
         
         earthMaterial.roughness = 1.0
         earthMaterial.metallic = 0.0
-        earthMaterial.specular = 0.0
+        earthMaterial.specular = 0.5
         
         if let tex = blackTex {
             earthMaterial.ambientOcclusion = .init(texture: .init(tex))
         }
         
-        if let texture = try? TextureResource.load(named: "earthTopographicMap") {
-            earthMaterial.baseColor = .init(texture: .init(texture))
+        if let texture = try? TextureResource.load(named: "earthmap") {
+            earthMaterial.baseColor = .init(tint: .white, texture: .init(texture))
         } else {
             earthMaterial.baseColor = .init(tint: .systemBlue)
         }
@@ -206,7 +206,7 @@ class SceneController: ObservableObject {
         atmMat.baseColor = .init(tint: UIColor(red: 0.3, green: 0.7, blue: 1.0, alpha: 1.0))
         atmMat.roughness = 1.0
         atmMat.metallic = 0.0
-        atmMat.specular = 0.0
+        atmMat.specular = 0.5
         atmMat.blending = .transparent(opacity: 0.15)
         
         if let tex = blackTex {
@@ -356,31 +356,51 @@ class SceneController: ObservableObject {
     }
 
     private func updateFillLight() {
-        if settings.useOmniLight {
-            if fillLight == nil {
-                let fillGroup = Entity()
-                
-                let fillLeft = DirectionalLight()
-                fillLeft.light.intensity = 6000
-                fillLeft.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
-                fillLeft.look(at: [0, 0, 0], from: [-500, 0, 100], relativeTo: nil)
-                
-                let fillRight = DirectionalLight()
-                fillRight.light.intensity = 6000
-                fillRight.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
-                fillRight.look(at: [0, 0, 0], from: [-100, 0, 500], relativeTo: nil)
-                
-                fillGroup.addChild(fillLeft)
-                fillGroup.addChild(fillRight)
-                
-                rootAnchor.addChild(fillGroup)
-                self.fillLight = fillGroup
+            if settings.useOmniLight {
+                if fillLight == nil {
+                    let fillGroup = Entity()
+                    
+                    let numLights = 6
+                    let radius: Float = 500.0
+                    
+                    let startAngle: Float = 55.0 * .pi / 180.0
+                    let endAngle: Float = 215.0 * .pi / 180.0
+                    
+                    for i in 0..<numLights {
+                        let fraction = Float(i) / Float(numLights - 1)
+                        let angle = startAngle + fraction * (endAngle - startAngle)
+                        
+                        let x = cos(angle) * radius
+                        let z = sin(angle) * radius
+                        
+                        let light = DirectionalLight()
+                        light.light.intensity = 1500
+                        light.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
+                        light.look(at: [0, 0, 0], from: [x, 0, z], relativeTo: nil)
+                        
+                        fillGroup.addChild(light)
+                    }
+                    
+                    let northLight = DirectionalLight()
+                    northLight.light.intensity = 1500
+                    northLight.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
+                    northLight.look(at: [0, 0, 0], from: [-250, 400, 250], relativeTo: nil)
+                    fillGroup.addChild(northLight)
+                    
+                    let southLight = DirectionalLight()
+                    southLight.light.intensity = 1500
+                    southLight.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
+                    southLight.look(at: [0, 0, 0], from: [-250, -400, 250], relativeTo: nil)
+                    fillGroup.addChild(southLight)
+                    
+                    rootAnchor.addChild(fillGroup)
+                    self.fillLight = fillGroup
+                }
+            } else {
+                fillLight?.removeFromParent()
+                fillLight = nil
             }
-        } else {
-            fillLight?.removeFromParent()
-            fillLight = nil
         }
-    }
     
     func setPaused(_ paused: Bool) {
         self.isPaused = paused

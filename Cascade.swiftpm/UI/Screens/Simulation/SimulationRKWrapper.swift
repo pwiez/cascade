@@ -21,7 +21,7 @@ struct SimulationView: UIViewRepresentable {
         arView.environment.lighting.intensityExponent = -1.0
         
         arView.renderOptions = [
-            .disableMotionBlur, .disableHDR, .disableDepthOfField, .disableCameraGrain, .disableFaceMesh, .disableAREnvironmentLighting, .disableGroundingShadows
+            .disableMotionBlur, .disableCameraGrain, .disableFaceMesh, .disableAREnvironmentLighting, .disableGroundingShadows
         ]
           
         simulation.attachToView(arView)
