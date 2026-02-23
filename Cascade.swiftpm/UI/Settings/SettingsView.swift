@@ -23,7 +23,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    Toggle("Disable Camera Movement", isOn: $simulation.isCameraLocked)
+                    Toggle("Camera Movement", isOn: $simulation.isCameraEnabled)
                     Toggle("Show Earth", isOn: $simulation.showEarth)
                     Toggle("Show Satellites", isOn: $simulation.showSatellites)
                     Toggle("Show Simulation Stats", isOn: $simulation.showStats)
@@ -35,6 +35,13 @@ struct SettingsView: View {
                         ColorPicker("Universe Color", selection: $simulation.backgroundColor, supportsOpacity: false)
                         
                         NativeSliderRow(label: "Satellite Scale", value: $simulation.satelliteScale, range: 0.5...5.0, format: "%.1fx")
+                        
+                        if simulation.satelliteScale > (simulation.collisionRadius * 1.5) {
+                            Label("Visual scale exceeds collision radius. Objects may overlap visually.", systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.yellow)
+                                .padding(.bottom, 4)
+                        }
                         NativeSliderRow(label: "Debris Scale", value: $simulation.debrisScale, range: 0.5...5.0, format: "%.1fx")
                     }
                 } header: {
@@ -46,7 +53,7 @@ struct SettingsView: View {
                 Section {
                     VStack(spacing: 8) {
                         LabeledContent("Time Scale", value: String(format: "%.1fx", simulation.timeScale))
-                        Slider(value: $simulation.timeScale, in: 0.1...5.0, step: 0.1) {
+                        Slider(value: $simulation.timeScale, in: 0.1...5.0) {
                             Text("Time Scale")
                         } minimumValueLabel: {
                             Image(systemName: "tortoise.fill")
@@ -58,12 +65,12 @@ struct SettingsView: View {
                 } header: {
                     Text("Simulation Speed")
                 }
-
+                
                 Section {
                     NativeSliderRow(
                         label: "Initial Satellites",
                         value: $simulation.draft.satelliteCount,
-                        range: 100...200,
+                        range: 100...simulation.safeSatelliteLimit(),
                         step: 10, format: "%.0f",
                         requiresRestart: simulation.draft.satelliteCount != simulation.activeSatelliteCount
                     )
@@ -86,8 +93,15 @@ struct SettingsView: View {
                         requiresRestart: simulation.draft.orbitVariance != simulation.activeOrbitVariance
                     )
                     
-                    Toggle("Random Orbital Planes", isOn: $simulation.draft.useRandomInclination)
-                        .foregroundStyle(simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ? .orange : .primary)
+                    Toggle(isOn: $simulation.draft.useRandomInclination) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Randomize Orbital Planes")
+                            Text(simulation.draft.useRandomInclination ? "Satellites will form a shell around Earth." : "Satellites will form a flat ring around Earth.")
+                                .font(.caption)
+                                .foregroundStyle(simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ? .orange : .secondary)
+                        }
+                    }
+                    .foregroundStyle(simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ? .orange : .primary)
                     
                 } header: {
                     HStack {
@@ -104,14 +118,14 @@ struct SettingsView: View {
                             .foregroundStyle(.orange)
                     }
                 }
-
+                
                 Section {
-                    NativeSliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...7.0, step: 0.5, format: "%.1fx")
-                    NativeSliderRow(label: "Satellite Hitbox Size", value: $simulation.collisionRadius, range: 1.0...4.0, format: "%.1f")
+                    NativeSliderRow(label: "Earth Gravity Multiplier", value: $simulation.gravityMultiplier, range: 0.1...3.0, format: "%.1fx")
+                    NativeSliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...3.0, format: "%.1fx")
+                    NativeSliderRow(label: "Satellite Hitbox Size", value: $simulation.collisionRadius, range: 1.0...3.0, step: 0.1, format: "%.1f")
                     
-                    NativeSliderRow(label: "Debris per Collision", value: $simulation.draft.debrisPerCollision, range: 2...6, step: 1, format: "%.0f")
-                    
-                    NativeSliderRow(label: "Max Debris Count", value: $simulation.draft.maxDebris, range: 500...2500, step: 100, format: "%.0f")
+                    NativeSliderRow(label: "Debris per Collision", value: $simulation.debrisPerCollision, range: 2...6, step: 1, format: "%.0f")
+                    NativeSliderRow(label: "Max Debris Count", value: $simulation.maxDebris, range: 1000...3000, step: 100, format: "%.0f")
                     
                 } header: {
                     Text("Real Time Physics")
@@ -121,14 +135,33 @@ struct SettingsView: View {
                 
                 Section {
                     DisclosureGroup("Advanced Debris Spread") {
-                        NativeSliderRow(label: "Tangential (Velocity)", value: $simulation.spreadTangential, range: 0.0...2.0, step: 0.1)
                         
-                        NativeSliderRow(label: "Radial (Altitude)", value: $simulation.spreadRadial, range: 0.0...2.0, step: 0.1)
+                        VStack(alignment: .leading, spacing: 2) {
+                            NativeSliderRow(label: "Tangential (Velocity)", value: $simulation.spreadTangential, range: 0.0...2.0)
+                            Text("Stretches the cloud along the orbit.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.bottom, 6)
                         
-                        NativeSliderRow(label: "Normal (Inclination)", value: $simulation.spreadVertical, range: 0.0...2.0, step: 0.1)
+                        VStack(alignment: .leading, spacing: 2) {
+                            NativeSliderRow(label: "Radial (Altitude)", value: $simulation.spreadRadial, range: 0.0...2.0)
+                            Text("Changes the apogee and perigee of the orbit.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.bottom, 6)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            NativeSliderRow(label: "Normal (Inclination)", value: $simulation.spreadVertical, range: 0.0...2.0)
+                            Text("Spreads debris sideways into new orbital planes.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
                     }
                 } footer: {
-                    Text("Controls the shape of the debris cloud immediately after an explosion.\nTangential stretches the cloud along the orbit.\nRadial changes the apogee and perigee of the orbit.\nNormal spreads debris sideways into new orbital planes.")
+                    Text("Controls the shape of the debris cloud immediately after an explosion.")
                 }
                 
                 Section {
@@ -176,7 +209,7 @@ struct NativeSliderRow: View {
     let label: String
     @Binding var value: Double
     let range: ClosedRange<Double>
-    var step: Double.Stride = 0.1
+    var step: Double.Stride? = nil
     var format: String = "%.1f"
     var requiresRestart: Bool = false
     
@@ -196,9 +229,15 @@ struct NativeSliderRow: View {
                 .animation(.snappy, value: requiresRestart)
             }
             
-            Slider(value: $value, in: range, step: step)
-                .accessibilityLabel(label)
-                .accessibilityValue(String(format: format, value))
+            if let step = step {
+                Slider(value: $value, in: range, step: step)
+                    .accessibilityLabel(label)
+                    .accessibilityValue(String(format: format, value))
+            } else {
+                Slider(value: $value, in: range)
+                    .accessibilityLabel(label)
+                    .accessibilityValue(String(format: format, value))
+            }
         }
         .padding(.vertical, 4)
     }

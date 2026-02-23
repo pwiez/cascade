@@ -12,6 +12,12 @@ class DebrisPool {
     var velY: [Float]
     var velZ: [Float]
     
+    var rotAxisX: [Float]
+        var rotAxisY: [Float]
+        var rotAxisZ: [Float]
+        var spinRate: [Float]
+        var rotAngle: [Float]
+    
     var activeCount: Int = 0
     let capacity: Int
     
@@ -25,6 +31,12 @@ class DebrisPool {
         self.velX = Array(repeating: 0, count: capacity)
         self.velY = Array(repeating: 0, count: capacity)
         self.velZ = Array(repeating: 0, count: capacity)
+        
+        self.rotAxisX = Array(repeating: 0, count: capacity)
+            self.rotAxisY = Array(repeating: 1, count: capacity)
+            self.rotAxisZ = Array(repeating: 0, count: capacity)
+            self.spinRate = Array(repeating: 0, count: capacity)
+            self.rotAngle = Array(repeating: 0, count: capacity)
     }
     
     func reset() {
@@ -43,6 +55,13 @@ class DebrisPool {
         velY[index] = velocity.y
         velZ[index] = velocity.z
         
+            let axis = normalize(SIMD3<Float>(Float.random(in: -1...1), Float.random(in: -1...1), Float.random(in: -1...1)))
+            rotAxisX[index] = axis.x
+            rotAxisY[index] = axis.y
+            rotAxisZ[index] = axis.z
+            spinRate[index] = Float.random(in: 1.0...6.0)
+            rotAngle[index] = Float.random(in: 0...6.28)
+        
         activeCount += 1
     }
     
@@ -58,6 +77,12 @@ class DebrisPool {
             velX[index] = velX[lastIndex]
             velY[index] = velY[lastIndex]
             velZ[index] = velZ[lastIndex]
+            
+            rotAxisX[index] = rotAxisX[lastIndex]
+                rotAxisY[index] = rotAxisY[lastIndex]
+                rotAxisZ[index] = rotAxisZ[lastIndex]
+                spinRate[index] = spinRate[lastIndex]
+                rotAngle[index] = rotAngle[lastIndex]
         }
         activeCount -= 1
     }
@@ -99,6 +124,7 @@ class DebrisPool {
         vDSP_vma(velX, 1, &delta, 0, posX, 1, &posX, 1, vDSP_Length(activeCount))
         vDSP_vma(velY, 1, &delta, 0, posY, 1, &posY, 1, vDSP_Length(activeCount))
         vDSP_vma(velZ, 1, &delta, 0, posZ, 1, &posZ, 1, vDSP_Length(activeCount))
+        vDSP_vma(spinRate, 1, &delta, 0, rotAngle, 1, &rotAngle, 1, vDSP_Length(activeCount))
         
         var i = 0
         while i < activeCount {

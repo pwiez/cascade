@@ -15,10 +15,10 @@ struct SpatialGrid {
     
     let neighborOffsets: [Int]
     
-    let gridSize: Int = 64
-    let shiftY: Int = 6
-    let shiftZ: Int = 12
-    let mask: Int = 63
+    let gridSize: Int = 128
+    let shiftY: Int = 7
+    let shiftZ: Int = 14
+    let mask: Int = 127
     
     let offset: Float
     let cellSize: Float

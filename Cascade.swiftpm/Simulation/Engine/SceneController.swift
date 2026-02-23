@@ -73,7 +73,7 @@ class SceneController: ObservableObject {
         let currentTime = CACurrentMediaTime()
         if lastFrameTime == 0 { lastFrameTime = currentTime }
         if (currentTime - lastFrameTime) < 0.016 { return }
-        lastFrameTime = currentTime
+        lastFrameTime += 0.016
         
         processCommandQueue()
         
@@ -115,13 +115,17 @@ class SceneController: ObservableObject {
     }
     
     private func applySimulationFrame(_ frame: SimulationFrame) {
-        debrisBatchSystem.update(
-            activeCount: frame.count,
-            posX: frame.posX,
-            posY: frame.posY,
-            posZ: frame.posZ,
-            scale: Float(settings.debrisScale)
-        )
+            debrisBatchSystem.update(
+                activeCount: frame.count,
+                posX: frame.posX,
+                posY: frame.posY,
+                posZ: frame.posZ,
+                rotAngle: frame.rotAngle,
+                rotAxisX: frame.rotAxisX,
+                rotAxisY: frame.rotAxisY,
+                rotAxisZ: frame.rotAxisZ,
+                scale: Float(settings.debrisScale)
+            )
         
         for index in frame.killedSatelliteIndices {
             if index < satellites.count {
@@ -137,32 +141,37 @@ class SceneController: ObservableObject {
     }
     
     private func updateSatellites(dt: Float, earthMass: Float) {
-        let satScale = Float(settings.satelliteScale)
-        let showModels = settings.showSatellites
-        
-        for entity in satellites where entity.isEnabled {
-            guard var data = entity.components[OrbitalData.self] else { continue }
-            
-            let hasModel = entity.components.has(ModelComponent.self)
-            if showModels && !hasModel {
-                entity.components.set(ModelComponent(mesh: satelliteMesh, materials: [satelliteMaterial]))
-            } else if !showModels && hasModel {
-                entity.components.remove(ModelComponent.self)
+            for entity in satellites where entity.isEnabled {
+                guard var data = entity.components[OrbitalData.self] else { continue }
+                
+                let pos = entity.position
+                let distSq = length_squared(pos)
+                let gravityAccel = pos * (-earthMass / (distSq * sqrt(distSq)))
+                
+                data.velocity += gravityAccel * dt
+                entity.position += data.velocity * dt
+                entity.components[OrbitalData.self] = data
             }
-            
-            if entity.scale.x != satScale {
-                entity.scale = SIMD3<Float>(repeating: satScale)
-            }
-            
-            let pos = entity.position
-            let distSq = length_squared(pos)
-            let gravityAccel = pos * (-earthMass / (distSq * sqrt(distSq)))
-            
-            data.velocity += gravityAccel * dt
-            entity.position += data.velocity * dt
-            entity.components[OrbitalData.self] = data
         }
-    }
+    
+    private func updateSatelliteVisuals() {
+            let satScale = Float(settings.satelliteScale)
+            let showModels = settings.showSatellites
+            
+            for entity in satellites {
+                let hasModel = entity.components.has(ModelComponent.self)
+                
+                if showModels && !hasModel {
+                    entity.components.set(ModelComponent(mesh: satelliteMesh, materials: [satelliteMaterial]))
+                } else if !showModels && hasModel {
+                    entity.components.remove(ModelComponent.self)
+                }
+                
+                if entity.scale.x != satScale {
+                    entity.scale = SIMD3<Float>(repeating: satScale)
+                }
+            }
+        }
     
     private func updateEarthRotation() {
         let deltaTime = (1.0 / 300.0) * Float(settings.timeScale)
@@ -237,23 +246,29 @@ class SceneController: ObservableObject {
     }
     
     private func handleSettingsUpdate(_ newSettings: SimSettings) {
-        let colorChanged = (self.settings.satelliteColor != newSettings.satelliteColor) || (self.settings.debrisColor != newSettings.debrisColor)
-        
-        self.settings = newSettings
-        
-        updateFillLight()
-        
-        if colorChanged {
-            updateMaterials()
+            let colorChanged = (self.settings.satelliteColor != newSettings.satelliteColor) || (self.settings.debrisColor != newSettings.debrisColor)
+            
+            let visualsChanged = (self.settings.satelliteScale != newSettings.satelliteScale) || (self.settings.showSatellites != newSettings.showSatellites)
+            
+            self.settings = newSettings
+            
+            updateFillLight()
+            
+            if colorChanged {
+                updateMaterials()
+            }
+            
+            if visualsChanged {
+                updateSatelliteVisuals()
+            }
+            
+            let newBG = UIColor(settings.backgroundColor)
+            arView?.environment.background = .color(newBG)
+            
+            Task { await system.updateSettings(newSettings) }
+            
+            earthEntity?.isEnabled = newSettings.showEarth
         }
-        
-        let newBG = UIColor(settings.backgroundColor)
-        arView?.environment.background = .color(newBG)
-        
-        Task { await system.updateSettings(newSettings) }
-        
-        earthEntity?.isEnabled = newSettings.showEarth
-    }
     
     private func updateMaterials() {
         let satColor = UIColor(settings.satelliteColor)
@@ -277,7 +292,12 @@ class SceneController: ObservableObject {
         satellites.removeAll()
         
         Task { await system.reset() }
-        debrisBatchSystem.update(activeCount: 0, posX: [], posY: [], posZ: [], scale: 1.0)
+        debrisBatchSystem.update(
+            activeCount: 0,
+            posX: [], posY: [], posZ: [],
+            rotAngle: [], rotAxisX: [], rotAxisY: [], rotAxisZ: [],
+            scale: 1.0
+        )
         
         spawnSatellites(count: satelliteCount)
         cameraRig?.reset()
@@ -297,42 +317,48 @@ class SceneController: ObservableObject {
             var attempts = 0
             var finalPos: SIMD3<Float> = .zero
             var finalVel: SIMD3<Float> = .zero
-            
-            while !validPosition && attempts < 10 {
-                attempts += 1
-                
-                let anomaly = Float.random(in: 0...(2 * .pi))
-                let raan = Float.random(in: 0...(2 * .pi))
-                let inclination = settings.useRandomInclination ? Float.random(in: 0...(.pi)) : 0
-                let radius = orbitAlt + Float.random(in: -orbitVar...orbitVar)
-                
-                let x = radius * cos(anomaly)
-                let z = radius * sin(anomaly)
-                
-                let orbitalSpeed = sqrt((gravitationalConstant * earthMass * gravityMult) / radius)
-                let vx = -sin(anomaly) * orbitalSpeed
-                let vz = cos(anomaly) * orbitalSpeed
-                
-                let rotInclination = simd_quatf(angle: inclination, axis: [1, 0, 0])
-                let rotRAAN = simd_quatf(angle: raan, axis: [0, 1, 0])
-                let combinedRotation = rotRAAN * rotInclination
-                
-                let candidatePos = combinedRotation.act(SIMD3<Float>(x, 0, z))
-                let candidateVel = combinedRotation.act(SIMD3<Float>(vx, 0, vz))
-                
-                validPosition = true
-                for existing in spawnedPositions {
-                    if distance(existing, candidatePos) < 2.5 {
-                        validPosition = false
-                        break
-                    }
-                }
-                
-                if validPosition || attempts == 10 {
-                    finalPos = candidatePos
-                    finalVel = candidateVel
-                }
-            }
+            var requiredDistance = Float(settings.collisionRadius) * 3
+                        let maxAttempts = 100
+                        
+                        while !validPosition && attempts < maxAttempts {
+                            attempts += 1
+                            
+                            if attempts > 50 {
+                                requiredDistance = Float(settings.collisionRadius) * 2
+                            }
+                            
+                            let anomaly = Float.random(in: 0...(2 * .pi))
+                            let raan = Float.random(in: 0...(2 * .pi))
+                            let inclination = settings.useRandomInclination ? Float.random(in: 0...(.pi)) : 0
+                            let radius = orbitAlt + Float.random(in: -orbitVar...orbitVar)
+                            
+                            let x = radius * cos(anomaly)
+                            let z = radius * sin(anomaly)
+                            
+                            let orbitalSpeed = sqrt((gravitationalConstant * earthMass * gravityMult) / radius)
+                            let vx = -sin(anomaly) * orbitalSpeed
+                            let vz = cos(anomaly) * orbitalSpeed
+                            
+                            let rotInclination = simd_quatf(angle: inclination, axis: [1, 0, 0])
+                            let rotRAAN = simd_quatf(angle: raan, axis: [0, 1, 0])
+                            let combinedRotation = rotRAAN * rotInclination
+                            
+                            let candidatePos = combinedRotation.act(SIMD3<Float>(x, 0, z))
+                            let candidateVel = combinedRotation.act(SIMD3<Float>(vx, 0, vz))
+                            
+                            validPosition = true
+                            for existing in spawnedPositions {
+                                if distance(existing, candidatePos) < requiredDistance {
+                                    validPosition = false
+                                    break
+                                }
+                            }
+                            
+                            if validPosition || attempts == maxAttempts {
+                                finalPos = candidatePos
+                                finalVel = candidateVel
+                            }
+                        }
             
             spawnedPositions.append(finalPos)
             
@@ -358,43 +384,14 @@ class SceneController: ObservableObject {
     private func updateFillLight() {
             if settings.useOmniLight {
                 if fillLight == nil {
-                    let fillGroup = Entity()
+                    let light = DirectionalLight()
+                    light.light.intensity = 2000
+                    light.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
                     
-                    let numLights = 6
-                    let radius: Float = 500.0
+                    light.look(at: [0, 0, 0], from: [-500, 0, 500], relativeTo: nil)
                     
-                    let startAngle: Float = 55.0 * .pi / 180.0
-                    let endAngle: Float = 215.0 * .pi / 180.0
-                    
-                    for i in 0..<numLights {
-                        let fraction = Float(i) / Float(numLights - 1)
-                        let angle = startAngle + fraction * (endAngle - startAngle)
-                        
-                        let x = cos(angle) * radius
-                        let z = sin(angle) * radius
-                        
-                        let light = DirectionalLight()
-                        light.light.intensity = 1500
-                        light.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
-                        light.look(at: [0, 0, 0], from: [x, 0, z], relativeTo: nil)
-                        
-                        fillGroup.addChild(light)
-                    }
-                    
-                    let northLight = DirectionalLight()
-                    northLight.light.intensity = 1500
-                    northLight.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
-                    northLight.look(at: [0, 0, 0], from: [-250, 400, 250], relativeTo: nil)
-                    fillGroup.addChild(northLight)
-                    
-                    let southLight = DirectionalLight()
-                    southLight.light.intensity = 1500
-                    southLight.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
-                    southLight.look(at: [0, 0, 0], from: [-250, -400, 250], relativeTo: nil)
-                    fillGroup.addChild(southLight)
-                    
-                    rootAnchor.addChild(fillGroup)
-                    self.fillLight = fillGroup
+                    rootAnchor.addChild(light)
+                    self.fillLight = light
                 }
             } else {
                 fillLight?.removeFromParent()
