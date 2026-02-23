@@ -53,10 +53,9 @@ enum AppSection: String, CaseIterable, Identifiable {
 
 struct LearnMoreView: View {
     @State private var activeSection: AppSection? = .hero
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
     
     var body: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
+        NavigationSplitView() {
             List(selection: $activeSection) {
                 ForEach(AppSection.allCases) { section in
                     NavigationLink(value: section) {
@@ -78,7 +77,6 @@ struct LearnMoreView: View {
             }
             .navigationTitle("Learn More")
             .listStyle(.sidebar)
-            .toolbar(removing: .sidebarToggle)
         } detail: {
             if let section = activeSection {
                 ChapterContainerView(activeSection: section)
@@ -89,9 +87,6 @@ struct LearnMoreView: View {
             }
         }
         .navigationSplitViewStyle(.balanced)
-        .onChange(of: columnVisibility) { _, _ in
-            columnVisibility = .all
-        }
         .toolbar(.hidden)
         .preferredColorScheme(.dark)
     }
@@ -110,9 +105,13 @@ struct ChapterContainerView: View {
                     
                     if !activeSection.subtitle.isEmpty {
                         Text(activeSection.subtitle)
-                            .font(.title3)
+                            .font(.title2)
                             .foregroundStyle(CascadeTheme.dimText)
                     }
+                    
+                    Divider()
+                        .padding(.top, 24)
+                        .padding(.bottom, 8)
                 }
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityElement(children: .combine)

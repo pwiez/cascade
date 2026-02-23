@@ -46,8 +46,8 @@ extension SimSettings {
         
         maxDebris: 2000,
         useRandomInclination: true,
-        satelliteScale: 1.0,
-        debrisScale: 1.0,
+        satelliteScale: 1.5,
+        debrisScale: 1.5,
         gravityMultiplier: 1.0,
         orbitAltitude: 120,
         orbitVariance: 2.0,

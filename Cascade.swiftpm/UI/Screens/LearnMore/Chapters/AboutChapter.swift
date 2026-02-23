@@ -12,7 +12,6 @@ struct AboutChapter: View {
         VStack(alignment: .leading, spacing: 44) {
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Under the Hood")
                 
                 Text("Simulation Architecture")
                     .font(.title2.bold()).foregroundStyle(.white)
@@ -40,8 +39,7 @@ struct AboutChapter: View {
             Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Model Simplifications")
-                
+
                 Text("Compromises & Constraints")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
@@ -77,8 +75,6 @@ struct AboutChapter: View {
             Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Learning Outcomes")
-                
                 Text("What Cascade can teach you")
                     .font(.title2.bold()).foregroundStyle(.white)
                 

@@ -12,8 +12,6 @@ struct SituationChapter: View {
         VStack(alignment: .leading, spacing: 44) {
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Historical Record")
-                
                 Text("Timeline of Key Events")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
@@ -25,8 +23,6 @@ struct SituationChapter: View {
             Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Tracking Data")
-                
                 Text("Current Orbital Population")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
@@ -40,8 +36,6 @@ struct SituationChapter: View {
             Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Operational Impact")
-                
                 Text("What This Means in Practice")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
