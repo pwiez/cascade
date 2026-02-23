@@ -7,10 +7,15 @@ struct SimulationFrame: Sendable {
     let posY: [Float]
     let posZ: [Float]
     
+    let rotAngle: [Float]
+    let rotAxisX: [Float]
+    let rotAxisY: [Float]
+    let rotAxisZ: [Float]
+    
     let killedSatelliteIndices: [Int]
     let explosions: [CollisionEvent]
     
-    static let empty = SimulationFrame(count: 0, posX: [], posY: [], posZ: [], killedSatelliteIndices: [], explosions: [])
+    static let empty = SimulationFrame(count: 0, posX: [], posY: [], posZ: [], rotAngle: [], rotAxisX: [], rotAxisY: [], rotAxisZ: [], killedSatelliteIndices: [], explosions: [])
 }
 
 actor PhysicsSolver {
@@ -70,13 +75,17 @@ actor PhysicsSolver {
         
         let count = debrisPool.activeCount
         let frame = SimulationFrame(
-            count: count,
-            posX: Array(debrisPool.posX[0..<count]),
-            posY: Array(debrisPool.posY[0..<count]),
-            posZ: Array(debrisPool.posZ[0..<count]),
-            killedSatelliteIndices: killedSats,
-            explosions: explosions
-        )
+                    count: count,
+                    posX: Array(debrisPool.posX[0..<count]),
+                    posY: Array(debrisPool.posY[0..<count]),
+                    posZ: Array(debrisPool.posZ[0..<count]),
+                    rotAngle: Array(debrisPool.rotAngle[0..<count]),
+                    rotAxisX: Array(debrisPool.rotAxisX[0..<count]),
+                    rotAxisY: Array(debrisPool.rotAxisY[0..<count]),
+                    rotAxisZ: Array(debrisPool.rotAxisZ[0..<count]),
+                    killedSatelliteIndices: killedSats,
+                    explosions: explosions
+                )
         
         return frame
     }
@@ -114,7 +123,7 @@ actor PhysicsSolver {
             let scaleVertical = Float(settings.spreadVertical) * 3.0
             let scaleRadial = Float(settings.spreadRadial)
             
-            for _ in 0...debrisCount {
+            for _ in 0..<debrisCount {
                 if debrisPool.activeCount >= settings.maxDebris { break }
                 
                 let rT = Float.random(in: -0.2...0.2) * scaleTangential
@@ -214,7 +223,10 @@ actor PhysicsSolver {
                                abs(posA.y - posB.y) <= radius &&
                                abs(posA.z - posB.z) <= radius {
                                 
-                                if length_squared(posA - posB) < radiusSq {
+                                let isSatVsSat = neighborIdx < satCount
+                                let effectiveRadiusSq = isSatVsSat ? (radius * 2) * (radius * 2) : radiusSq
+
+                                if length_squared(posA - posB) < effectiveRadiusSq {
                                     localDeaths.append(satIdx[i])
                                     localExplosions.append(CollisionEvent(position: posA, velocity: satVel[i]))
                                     

@@ -33,10 +33,10 @@ extension SimSettings {
     static let defaults = SimSettings(
         debrisPerCollision: 4,
         explosionForce: 1.0,
-        collisionRadius: 3.0,
-        spreadTangential: 0.1,
-        spreadVertical: 1.0,
-        spreadRadial: 0.1,
+        collisionRadius: 1.5,
+        spreadTangential: 0.0,
+        spreadVertical: 0.7,
+        spreadRadial: 0.0,
         timeScale: 1.0,
         showSatellites: true,
         
@@ -44,7 +44,7 @@ extension SimSettings {
         debrisColor: .white,
         backgroundColor: .black,
         
-        maxDebris: 1800,
+        maxDebris: 2000,
         useRandomInclination: true,
         satelliteScale: 1.0,
         debrisScale: 1.0,
@@ -73,21 +73,12 @@ struct PopulationDraft {
     var orbitVariance: Double
     var useRandomInclination: Bool
     
-    var maxDebris: Double
-    var debrisPerCollision: Double
-    
     static let defaults = PopulationDraft(
         satelliteCount: 150,
         orbitAltitude: SimSettings.defaults.orbitAltitude,
         orbitVariance: SimSettings.defaults.orbitVariance,
         useRandomInclination: SimSettings.defaults.useRandomInclination,
-        maxDebris: Double(SimSettings.defaults.maxDebris),
-        debrisPerCollision: SimSettings.defaults.debrisPerCollision
     )
-    
-    func safeSatelliteLimit() -> Double {
-        return floor(maxDebris / (debrisPerCollision * 2))
-    }
 }
 
 @MainActor
@@ -113,7 +104,10 @@ class Simulation: ObservableObject {
     @Published var spreadVertical: Double = SimSettings.defaults.spreadVertical { didSet { syncSettings() } }
     @Published var spreadRadial: Double = SimSettings.defaults.spreadRadial { didSet { syncSettings() } }
     
-    @Published var isCameraLocked: Bool = false
+    @Published var debrisPerCollision: Double = SimSettings.defaults.debrisPerCollision { didSet { syncSettings() } }
+        @Published var maxDebris: Double = Double(SimSettings.defaults.maxDebris) { didSet { syncSettings() } }
+    
+    @Published var isCameraEnabled: Bool = false
     @Published var showSatellites: Bool = SimSettings.defaults.showSatellites { didSet { syncSettings() } }
     @Published var satelliteColor: Color = .cyan { didSet { syncSettings() } }
     @Published var debrisColor: Color = .red { didSet { syncSettings() } }
@@ -133,11 +127,6 @@ class Simulation: ObservableObject {
             .receive(on: RunLoop.main)
             .assign(to: &telemetry.$stats)
         
-        telemetry.objectWillChange
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in self?.objectWillChange.send() }
-            .store(in: &cancellables)
-        
         resetSettingsToDefaults()
     }
     
@@ -149,8 +138,12 @@ class Simulation: ObservableObject {
     }
     
     
+    func safeSatelliteLimit() -> Double {
+        return floor(maxDebris / (debrisPerCollision * 2))
+    }
+    
     func resetSimulation() {
-        let limit = draft.safeSatelliteLimit()
+        let limit = safeSatelliteLimit()
         if draft.satelliteCount > limit { draft.satelliteCount = limit }
         
         activeSatelliteCount = draft.satelliteCount
@@ -165,40 +158,43 @@ class Simulation: ObservableObject {
     }
     
     func syncSettings() {
-        let settings = SimSettings(
-            debrisPerCollision: draft.debrisPerCollision,
-            explosionForce: explosionForce,
-            collisionRadius: collisionRadius,
-            spreadTangential: spreadTangential,
-            spreadVertical: spreadVertical,
-            spreadRadial: spreadRadial,
-            timeScale: timeScale,
-            showSatellites: showSatellites,
+            let effectiveHitbox = collisionRadius + ((satelliteScale - 1.0) * 0.25)
             
-            satelliteColor: satelliteColor,
-            debrisColor: debrisColor,
-            backgroundColor: backgroundColor,
-            
-            maxDebris: Int(draft.maxDebris),
-            
-            useRandomInclination: activeUseRandomInclination,
-            
-            satelliteScale: satelliteScale,
-            debrisScale: debrisScale,
-            gravityMultiplier: gravityMultiplier,
-            
-            orbitAltitude: activeOrbitAltitude,
-            orbitVariance: activeOrbitVariance,
-            
-            useOmniLight: useOmniLight,
-            showEarth: showEarth
-        )
-        controller.queueCommand(.updateSettings(settings))
-    }
+            let settings = SimSettings(
+                debrisPerCollision: debrisPerCollision,
+                explosionForce: explosionForce,
+                collisionRadius: effectiveHitbox,
+                
+                spreadTangential: spreadTangential,
+                spreadVertical: spreadVertical,
+                spreadRadial: spreadRadial,
+                timeScale: timeScale,
+                showSatellites: showSatellites,
+                
+                satelliteColor: satelliteColor,
+                debrisColor: debrisColor,
+                backgroundColor: backgroundColor,
+                
+                maxDebris: Int(maxDebris),
+                
+                useRandomInclination: activeUseRandomInclination,
+                
+                satelliteScale: satelliteScale,
+                debrisScale: debrisScale,
+                gravityMultiplier: gravityMultiplier,
+                
+                orbitAltitude: activeOrbitAltitude,
+                orbitVariance: activeOrbitVariance,
+                
+                useOmniLight: useOmniLight,
+                showEarth: showEarth
+            )
+            controller.queueCommand(.updateSettings(settings))
+        }
     
     func resetSettingsToDefaults() {
         let d = SimSettings.defaults
-        isCameraLocked = false
+        isCameraEnabled = true
         timeScale = d.timeScale
         explosionForce = d.explosionForce
         collisionRadius = d.collisionRadius

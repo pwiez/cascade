@@ -100,7 +100,7 @@ struct SimulationScreen: View {
     private func updateCameraOffset(isOpen: Bool, geometry: GeometryProxy) {
         if isOpen {
             let aspect = geometry.size.width / geometry.size.height
-            let shiftRatio = (panelWidthRatio / 2.0) * 0.6875
+            let shiftRatio = (panelWidthRatio / 2.0) * 0.75
             simulation.setSettingsPanel(isOpen: true, ratio: shiftRatio, aspectRatio: Double(aspect))
         } else {
             let aspect = geometry.size.width / geometry.size.height
@@ -121,7 +121,7 @@ struct SimulationContainer: View {
                 SimultaneousGesture(
                     DragGesture()
                         .onChanged { value in
-                            guard !simulation.isCameraLocked else { return }
+                            guard simulation.isCameraEnabled else { return }
                             
                             let sensitivity: Float = 0.005
                             let deltaY = Float(value.translation.width - previousDrag.width) * -sensitivity
@@ -134,7 +134,7 @@ struct SimulationContainer: View {
                     
                     MagnificationGesture()
                         .onChanged { value in
-                            guard !simulation.isCameraLocked else { return }
+                            guard simulation.isCameraEnabled else { return }
                             
                             let delta = Float(value / lastScale)
                             lastScale = value

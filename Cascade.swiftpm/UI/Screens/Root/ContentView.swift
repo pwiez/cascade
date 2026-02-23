@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 import TipKit
 
@@ -17,55 +10,55 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader { geometry in
+            let isPortrait = geometry.size.height > geometry.size.width
+            
             ZStack {
-                if !showIntro {
-                    Group {
-                        TabView(selection: $selectedTab) {
-                            SimulationScreen(simulation: simulation)
-                                .tabItem { Label("Simulation", systemImage: "cube.transparent") }
-                                .tag(0)
-                            
-                            LearnMoreView()
-                                .tabItem { Label("Learn More", systemImage: "book.closed.fill") }
-                                .tag(1)
-                        }
-                        .onChange(of: selectedTab) { _, newTab in
-                            if newTab == 1 { simulation.pauseSimulation() }
-                            else if newTab == 0 { simulation.resumeSimulation() }
-                        }
-                    }
-                    .disabled(geometry.size.height > geometry.size.width)
-                    .blur(radius: geometry.size.height > geometry.size.width ? 10 : 0)
-                    .transition(.opacity)
+                TabView(selection: $selectedTab) {
+                    SimulationScreen(simulation: simulation)
+                        .tabItem { Label("Simulation", systemImage: "cube.transparent") }
+                        .tag(0)
+                    
+                    LearnMoreView()
+                        .tabItem { Label("Learn More", systemImage: "book.closed.fill") }
+                        .tag(1)
                 }
+                .onChange(of: selectedTab) { _, newTab in
+                    if newTab == 1 { simulation.pauseSimulation() }
+                    else if newTab == 0 && !showIntro { simulation.resumeSimulation() }
+                }
+                .disabled(isPortrait || showIntro)
+                .blur(radius: showIntro ? 16 : 0)
+                .animation(.easeInOut(duration: 0.4), value: showIntro)
                 
-                if showIntro {
-                    IntroScreen {
-                        withAnimation(.easeOut(duration: 0.6)) {
+                if showIntro && !isPortrait {
+                    OnboardingOverlay {
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
                             showIntro = false
                         }
-                        simulation.startSimulation()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            simulation.startSimulation()
+                        }
                     }
-                    .zIndex(200)
-                    .transition(.opacity)
+                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
+                    .zIndex(2000)
                 }
                 
-                if geometry.size.height > geometry.size.width {
+                if isPortrait {
                     PortraitWarningView()
-                        .zIndex(1000)
+                        .zIndex(3000)
                         .transition(.opacity.animation(.easeInOut))
                 }
             }
             .onChange(of: geometry.size) { oldSize, newSize in
-                let isPortrait = newSize.height > newSize.width
+                let currentPortrait = newSize.height > newSize.width
                 let wasPortrait = oldSize.height > oldSize.width
                 
-                if isPortrait && !wasPortrait {
+                if currentPortrait && !wasPortrait {
                     wasPlayingBeforeRotation = !simulation.isPaused
                     simulation.pauseSimulation()
                 }
-                else if !isPortrait && wasPortrait {
-                    if wasPlayingBeforeRotation {
+                else if !currentPortrait && wasPortrait {
+                    if wasPlayingBeforeRotation && !showIntro {
                         simulation.resumeSimulation()
                     }
                 }

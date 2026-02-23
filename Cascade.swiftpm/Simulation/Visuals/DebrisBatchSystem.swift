@@ -29,7 +29,7 @@ class DebrisBatchSystem {
         self.allNormals = Array(repeating: [0, 1, 0], count: totalVerts)
         self.allIndices = Array(repeating: 0, count: totalIndices)
         
-        let baseIndices: [UInt32] = [0, 1, 2, 0, 2, 3, 0, 3, 1, 1, 3, 2]
+        let baseIndices: [UInt32] = [0, 2, 1, 0, 3, 2, 0, 1, 3, 1, 2, 3]
         
         for i in 0..<maxDebris {
             let vertOffset = UInt32(i * 4)
@@ -50,24 +50,30 @@ class DebrisBatchSystem {
     }
     
     func update(activeCount: Int,
-                posX: [Float], posY: [Float], posZ: [Float],
-                scale: Float) {
-        
+                    posX: [Float], posY: [Float], posZ: [Float],
+                    rotAngle: [Float], rotAxisX: [Float], rotAxisY: [Float], rotAxisZ: [Float],
+                    scale: Float) {
+            
         allPositions.withUnsafeMutableBufferPointer { vPtr in
             for i in 0..<activeCount {
                 let pos = SIMD3<Float>(posX[i], posY[i], posZ[i])
+                
+                let axis = SIMD3<Float>(rotAxisX[i], rotAxisY[i], rotAxisZ[i])
+                let q = simd_quatf(angle: rotAngle[i], axis: axis)
+                
                 let base = i * 4
                 
-                vPtr[base + 0] = pos + (localVerts[0] * scale)
-                vPtr[base + 1] = pos + (localVerts[1] * scale)
-                vPtr[base + 2] = pos + (localVerts[2] * scale)
-                vPtr[base + 3] = pos + (localVerts[3] * scale)
+                vPtr[base + 0] = pos + (q.act(localVerts[0]) * scale)
+                vPtr[base + 1] = pos + (q.act(localVerts[1]) * scale)
+                vPtr[base + 2] = pos + (q.act(localVerts[2]) * scale)
+                vPtr[base + 3] = pos + (q.act(localVerts[3]) * scale)
             }
+            
             
             if activeCount < maxDebris {
                 let start = activeCount * 4
                 if start < vPtr.count {
-                     for k in start..<vPtr.count { vPtr[k] = .zero }
+                    for k in start..<vPtr.count { vPtr[k] = .zero }
                 }
             }
         }
