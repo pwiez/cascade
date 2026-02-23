@@ -34,7 +34,13 @@ struct SettingsView: View {
                         ColorPicker("Debris Color", selection: $simulation.debrisColor, supportsOpacity: false)
                         ColorPicker("Universe Color", selection: $simulation.backgroundColor, supportsOpacity: false)
                         
-                        NativeSliderRow(label: "Satellite Scale", value: $simulation.satelliteScale, range: 0.5...5.0, format: "%.1fx")
+                        sliderRow(
+                            label: "Satellite Scale",
+                            value: $simulation.satelliteScale,
+                            range: 0.5...5.0,
+                            step: nil,
+                            format: "%.1fx"
+                        )
                         
                         if simulation.satelliteScale > (simulation.collisionRadius * 1.5) {
                             Label("Visual scale exceeds collision radius. Objects may overlap visually.", systemImage: "exclamationmark.triangle.fill")
@@ -42,7 +48,13 @@ struct SettingsView: View {
                                 .foregroundStyle(.yellow)
                                 .padding(.bottom, 4)
                         }
-                        NativeSliderRow(label: "Debris Scale", value: $simulation.debrisScale, range: 0.5...5.0, format: "%.1fx")
+                        sliderRow(
+                            label: "Debris Scale",
+                            value: $simulation.debrisScale,
+                            range: 0.5...5.0,
+                            step: nil,
+                            format: "%.1fx"
+                        )
                     }
                 } header: {
                     Text("Accessibility & Visuals")
@@ -67,15 +79,16 @@ struct SettingsView: View {
                 }
                 
                 Section {
-                    NativeSliderRow(
+                    sliderRow(
                         label: "Initial Satellites",
                         value: $simulation.draft.satelliteCount,
-                        range: 100...simulation.safeSatelliteLimit(),
-                        step: 10, format: "%.0f",
+                        range: 100...250,
+                        step: 10,
+                        format: "%.0f",
                         requiresRestart: simulation.draft.satelliteCount != simulation.activeSatelliteCount
                     )
                     
-                    NativeSliderRow(
+                    sliderRow(
                         label: "Orbit Altitude",
                         value: $simulation.draft.orbitAltitude,
                         range: 110...150,
@@ -84,7 +97,7 @@ struct SettingsView: View {
                         requiresRestart: simulation.draft.orbitAltitude != simulation.activeOrbitAltitude
                     )
                     
-                    NativeSliderRow(
+                    sliderRow(
                         label: "Altitude Variance",
                         value: $simulation.draft.orbitVariance,
                         range: 0...10,
@@ -120,11 +133,11 @@ struct SettingsView: View {
                 }
                 
                 Section {
-                    NativeSliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...3.0, format: "%.1fx")
-                    NativeSliderRow(label: "Satellite Hitbox Size", value: $simulation.collisionRadius, range: 1.0...3.0, step: 0.1, format: "%.1f")
+                    sliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...3.0, step: nil, format: "%.1fx")
+                    sliderRow(label: "Satellite Hitbox Size", value: $simulation.collisionRadius, range: 1.0...3.0, step: 0.1, format: "%.1f")
                     
-                    NativeSliderRow(label: "Debris per Collision", value: $simulation.debrisPerCollision, range: 2...6, step: 1, format: "%.0f")
-                    NativeSliderRow(label: "Max Debris Count", value: $simulation.maxDebris, range: 1000...3000, step: 100, format: "%.0f")
+                    sliderRow(label: "Debris per Collision", value: $simulation.debrisPerCollision, range: 2...6, step: 1, format: "%.0f")
+                    sliderRow(label: "Max Debris Count", value: $simulation.maxDebris, range: 1000...3000, step: 100, format: "%.0f")
                     
                 } header: {
                     Text("Real Time Physics")
@@ -136,7 +149,7 @@ struct SettingsView: View {
                     DisclosureGroup("Advanced Debris Spread") {
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            NativeSliderRow(label: "Tangential (Velocity)", value: $simulation.spreadTangential, range: 0.0...2.0)
+                            sliderRow(label: "Tangential (Velocity)", value: $simulation.spreadTangential, range: 0.0...2.0)
                             Text("Stretches the cloud along the orbit.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -144,7 +157,7 @@ struct SettingsView: View {
                         .padding(.bottom, 6)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            NativeSliderRow(label: "Radial (Altitude)", value: $simulation.spreadRadial, range: 0.0...2.0)
+                            sliderRow(label: "Radial (Altitude)", value: $simulation.spreadRadial, range: 0.0...2.0)
                             Text("Changes the apogee and perigee of the orbit.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -152,7 +165,7 @@ struct SettingsView: View {
                         .padding(.bottom, 6)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            NativeSliderRow(label: "Normal (Inclination)", value: $simulation.spreadVertical, range: 0.0...2.0)
+                            sliderRow(label: "Normal (Inclination)", value: $simulation.spreadVertical, range: 0.0...2.0)
                             Text("Spreads debris sideways into new orbital planes.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -202,17 +215,16 @@ struct SettingsView: View {
             }
         }
     }
-}
 
-struct NativeSliderRow: View {
-    let label: String
-    @Binding var value: Double
-    let range: ClosedRange<Double>
-    var step: Double.Stride? = nil
-    var format: String = "%.1f"
-    var requiresRestart: Bool = false
-    
-    var body: some View {
+    @ViewBuilder
+    private func sliderRow(
+        label: String,
+        value: Binding<Double>,
+        range: ClosedRange<Double>,
+        step: Double? = nil,
+        format: String = "%.1f",
+        requiresRestart: Bool = false
+    ) -> some View {
         VStack(spacing: 4) {
             LabeledContent(label) {
                 HStack(spacing: 6) {
@@ -221,21 +233,21 @@ struct NativeSliderRow: View {
                             .font(.caption2.weight(.bold))
                             .imageScale(.small)
                     }
-                    Text(String(format: format, value))
+                    Text(String(format: format, value.wrappedValue))
                         .monospacedDigit()
                 }
                 .foregroundStyle(requiresRestart ? .orange : .secondary)
                 .animation(.snappy, value: requiresRestart)
             }
-            
-            if let step = step {
-                Slider(value: $value, in: range, step: step)
+
+            if let step {
+                Slider(value: value, in: range, step: step)
                     .accessibilityLabel(label)
-                    .accessibilityValue(String(format: format, value))
+                    .accessibilityValue(String(format: format, value.wrappedValue))
             } else {
-                Slider(value: $value, in: range)
+                Slider(value: value, in: range)
                     .accessibilityLabel(label)
-                    .accessibilityValue(String(format: format, value))
+                    .accessibilityValue(String(format: format, value.wrappedValue))
             }
         }
         .padding(.vertical, 4)

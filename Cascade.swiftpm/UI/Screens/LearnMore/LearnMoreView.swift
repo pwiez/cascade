@@ -109,7 +109,7 @@ struct ChapterContainerView: View {
                             .foregroundStyle(CascadeTheme.dimText)
                     }
                     
-                    Divider()
+                    Divider().overlay(.white)
                         .padding(.top, 24)
                         .padding(.bottom, 8)
                 }
@@ -126,7 +126,6 @@ struct ChapterContainerView: View {
                     case .credits:     CreditsChapter()
                     }
                 }
-                
             }
             .padding(.horizontal, 28)
             .frame(maxWidth: 800, alignment: .leading)

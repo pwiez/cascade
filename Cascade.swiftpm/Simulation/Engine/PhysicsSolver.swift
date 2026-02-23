@@ -30,11 +30,15 @@ actor PhysicsSolver {
     init(settings: SimSettings, earthRadius: Float) {
         self.settings = settings
         self.killRadiusSq = pow(earthRadius + 2.0, 2)
-        self.maxRadiusSq = 250.0 * 250.0
+        
+        self.maxRadiusSq = 175.0 * 175.0
         
         self.debrisPool = DebrisPool(capacity: 5_500)
         
-        let safeCellSize = Float(settings.collisionRadius * 2.1)
+        let minGridWidth: Float = 350.0
+        let requiredCellSizeForWidth = minGridWidth / 128.0
+        let safeCellSize = max(Float(settings.collisionRadius * 2.1), requiredCellSizeForWidth)
+        
         self.grid = SpatialGrid(maxObjects: 6_000, cellSize: safeCellSize)
     }
     
@@ -95,7 +99,10 @@ actor PhysicsSolver {
         let newRadius = Float(newSettings.collisionRadius)
         
         if abs(oldRadius - newRadius) > 0.5 {
-            let safeCellSize = newRadius * 2.1
+            let minGridWidth: Float = 350.0
+            let requiredCellSizeForWidth = minGridWidth / 128.0
+            let safeCellSize = max(newRadius * 2.1, requiredCellSizeForWidth)
+            
             self.grid = SpatialGrid(maxObjects: 6_000, cellSize: safeCellSize)
         }
         
@@ -179,14 +186,18 @@ actor PhysicsSolver {
             var debrisKills: [Int] = []
         }
         
-        let coreCount = ProcessInfo.processInfo.activeProcessorCount
+        let totalObjects = satCount + debrisPool.activeCount
+        let maxCores = ProcessInfo.processInfo.activeProcessorCount
+        
+        let objectsPerCore = 250
+        let desiredCores = max(1, totalObjects / objectsPerCore)
+        let coreCount = min(desiredCores, maxCores)
+        
         let buckets = (0..<coreCount).map { _ in ThreadResult() }
         
         DispatchQueue.concurrentPerform(iterations: coreCount) { coreIndex in
             let stepSize = coreCount
-            var localExplosions: [CollisionEvent] = []
-            var localDeaths: [Int] = []
-            var localDebrisKills: [Int] = []
+            let bucket = buckets[coreIndex]
             
             for i in stride(from: coreIndex, to: satCount, by: stepSize) {
                 
@@ -227,15 +238,15 @@ actor PhysicsSolver {
                                 let effectiveRadiusSq = isSatVsSat ? (radius * 2) * (radius * 2) : radiusSq
 
                                 if length_squared(posA - posB) < effectiveRadiusSq {
-                                    localDeaths.append(satIdx[i])
-                                    localExplosions.append(CollisionEvent(position: posA, velocity: satVel[i]))
+                                    bucket.deaths.append(satIdx[i])
+                                    bucket.explosions.append(CollisionEvent(position: posA, velocity: satVel[i]))
                                     
                                     if isDebris {
-                                        localDebrisKills.append(neighborIdx - satCount)
-                                        localExplosions.append(CollisionEvent(position: posB, velocity: velB))
+                                        bucket.debrisKills.append(neighborIdx - satCount)
+                                        bucket.explosions.append(CollisionEvent(position: posB, velocity: velB))
                                     } else {
-                                        localDeaths.append(satIdx[neighborIdx])
-                                        localExplosions.append(CollisionEvent(position: posB, velocity: velB))
+                                        bucket.deaths.append(satIdx[neighborIdx])
+                                        bucket.explosions.append(CollisionEvent(position: posB, velocity: velB))
                                     }
                                 }
                             }
@@ -244,11 +255,6 @@ actor PhysicsSolver {
                     }
                 }
             }
-            
-            let bucket = buckets[coreIndex]
-            bucket.explosions = localExplosions
-            bucket.deaths = localDeaths
-            bucket.debrisKills = localDebrisKills
         }
         
         let finalDeaths = buckets.flatMap { $0.deaths }

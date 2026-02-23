@@ -1,10 +1,3 @@
-//
-//  CreditsChapter.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 
 struct CreditsChapter: View {
@@ -69,7 +62,7 @@ struct CreditsChapter: View {
                     Text(entry)
                         .font(.subheadline)
                         .foregroundStyle(CascadeTheme.bodyText)
-                        .lineSpacing(CascadeTheme.compactLineSpacing)
+                        .lineSpacing(3)
                 }
             }
         }

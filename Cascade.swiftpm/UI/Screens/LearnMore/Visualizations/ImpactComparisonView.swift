@@ -1,10 +1,3 @@
-//
-//  ImpactComparisonView.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 
 struct ImpactComparisonView: View {
@@ -17,7 +10,7 @@ struct ImpactComparisonView: View {
             Text("Kinetic energy of a 1 cm aluminum sphere at orbital velocity, compared to familiar references.")
                 .font(.caption)
                 .foregroundStyle(CascadeTheme.mutedText)
-                .lineSpacing(CascadeTheme.compactLineSpacing)
+                .lineSpacing(3)
             
             VStack(spacing: 18) {
                 EnergyBar(label: ".22 LR Bullet", energy: "~140 J", fraction: 0.004, color: Color.gray.opacity(0.5), highlight: false)

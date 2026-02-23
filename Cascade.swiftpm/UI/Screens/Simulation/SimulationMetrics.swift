@@ -77,9 +77,8 @@ struct SimulationMetrics: View {
 
                 Spacer()
 
-                Divider()
+                Divider().cascadeDivider()
                     .frame(height: 32)
-                    .overlay(Color.white.opacity(0.2))
 
                 Spacer()
 
