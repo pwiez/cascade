@@ -30,17 +30,15 @@ struct OverviewChapter: View {
                 }
             }
             
-            ScientificCard {
-                VStack(alignment: .leading, spacing: 14) {
-                    Label("How to Use This Explainer", systemImage: "book.fill")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    
-                    VStack(alignment: .leading, spacing: 10) {
-                        GuideRow(number: "1", text: "**The Mechanics** — Understand the physics: why collisions at orbital velocity are so destructive, and how one event triggers the next.")
-                        GuideRow(number: "2", text: "**The Situation** — Review the historical timeline and current state of orbital debris, supported by tracking data.")
-                        GuideRow(number: "3", text: "**Remediation** — Explore the engineering strategies being developed to slow, halt, or reverse debris growth.")
-                    }
+            VStack(alignment: .leading, spacing: 24) {
+                Text("What Cascade can teach you")
+                    .font(.title2.bold()).foregroundStyle(.white)
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    LearningObjective(text: "Understand why collision cascades are self-reinforcing above a critical density threshold")
+                    LearningObjective(text: "Appreciate the role of orbital velocity in making even small debris lethal to other satellites")
+                    LearningObjective(text: "Visualize how debris spreads from a single point of impact into a planetary ring over time")
+                    LearningObjective(text: "Recognize that orbital space is a finite resource requiring active stewardship")
                 }
             }
         }

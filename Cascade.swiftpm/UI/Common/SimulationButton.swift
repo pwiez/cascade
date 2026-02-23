@@ -1,10 +1,3 @@
-//
-//  SimulationButton.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 
 struct SimulationButton: View {
@@ -20,20 +13,18 @@ struct SimulationButton: View {
                 .foregroundStyle(.primary)
                 .frame(width: 36, height: 36)
         }
-        .modifier(GlassStyleModifier(isProminent: isProminent, tint: tint))
+        .applyGlassStyle(isProminent: isProminent, tint: tint)
     }
 }
 
-struct GlassStyleModifier: ViewModifier {
-    var isProminent: Bool
-    var tint: Color?
-
-    func body(content: Content) -> some View {
+extension View {
+    @ViewBuilder
+    func applyGlassStyle(isProminent: Bool, tint: Color?) -> some View {
         if isProminent {
-            content.buttonStyle(.glassProminent)
+            self.buttonStyle(.glassProminent)
                 .tint(tint)
         } else {
-            content.buttonStyle(.glass)
+            self.buttonStyle(.glass)
         }
     }
 }

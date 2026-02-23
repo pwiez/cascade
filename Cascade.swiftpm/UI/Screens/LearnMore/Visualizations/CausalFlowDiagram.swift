@@ -1,10 +1,3 @@
-//
-//  CausalFlowDiagram.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 
 struct CausalFlowDiagram: View {
@@ -32,7 +25,6 @@ struct CausalFlowDiagram: View {
                 Text("Each stage feeds the next — the loop is self-reinforcing above the critical threshold.")
                     .font(.caption)
                     .foregroundStyle(CascadeTheme.mutedText)
-                    .lineSpacing(CascadeTheme.compactLineSpacing)
             }
             .padding(.top, 4)
         }
@@ -51,7 +43,7 @@ struct CausalFlowDiagram: View {
     
     func flowNode(icon: String, title: String, color: Color) -> some View {
         VStack(spacing: 10) {
-            ThemedIcon(systemName: icon, color: color, shape: .circle)
+            ThemedIcon(systemName: icon, color: color, isCircle: true)
             
             Text(title)
                 .font(.caption.weight(.medium))
@@ -61,7 +53,7 @@ struct CausalFlowDiagram: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .background(CascadeTheme.raisedBackground)
-        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.innerRadius))
+        .background(Color(white: 0.10))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }

@@ -1,10 +1,3 @@
-//
-//  DebrisChart.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 import Charts
 
@@ -33,8 +26,10 @@ struct DebrisChart: View {
         .init(year: 2015, count: 18000, annotation: nil),
         .init(year: 2018, count: 20000, annotation: nil),
         .init(year: 2020, count: 23000, annotation: nil),
-        .init(year: 2022, count: 27000, annotation: nil),
-        .init(year: 2024, count: 32000, annotation: nil)
+            .init(year: 2021, count: 25500, annotation: "Cosmos 1408 ASAT"),
+            .init(year: 2022, count: 27000, annotation: nil),
+            .init(year: 2024, count: 32000, annotation: nil),
+            .init(year: 2026, count: 35200, annotation: "Current")
     ]
     
     var body: some View {
@@ -44,7 +39,7 @@ struct DebrisChart: View {
                     .font(.headline).foregroundStyle(.white)
                 Text("Objects larger than 10 cm tracked by space surveillance networks, 1960–2024.")
                     .font(.caption).foregroundStyle(CascadeTheme.mutedText)
-                    .lineSpacing(CascadeTheme.compactLineSpacing)
+                    .lineSpacing(3)
             }
             .padding(.bottom, 16)
             
@@ -82,7 +77,7 @@ struct DebrisChart: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(.orange.opacity(CascadeTheme.iconBackgroundOpacity))
-                            .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.badgeRadius))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
                 
                 RuleMark(x: .value("Event", 2009))
@@ -95,7 +90,7 @@ struct DebrisChart: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(.red.opacity(CascadeTheme.iconBackgroundOpacity))
-                            .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.badgeRadius))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
             }
             .chartXScale(domain: 1960...2026)

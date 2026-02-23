@@ -138,14 +138,7 @@ class Simulation: ObservableObject {
     }
     
     
-    func safeSatelliteLimit() -> Double {
-        return floor(maxDebris / (debrisPerCollision * 2))
-    }
-    
     func resetSimulation() {
-        let limit = safeSatelliteLimit()
-        if draft.satelliteCount > limit { draft.satelliteCount = limit }
-        
         activeSatelliteCount = draft.satelliteCount
         activeOrbitAltitude = draft.orbitAltitude
         activeOrbitVariance = draft.orbitVariance

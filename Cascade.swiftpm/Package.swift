@@ -19,14 +19,11 @@ let package = Package(
             appIcon: .placeholder(icon: .smiley),
             accentColor: .presetColor(.blue),
             supportedDeviceFamilies: [
-                .pad,
-                .phone
+                .pad
             ],
             supportedInterfaceOrientations: [
                 .landscapeRight,
-                .landscapeLeft,
-                .portrait,
-                .portraitUpsideDown
+                .landscapeLeft
             ],
             appCategory: .education
         )

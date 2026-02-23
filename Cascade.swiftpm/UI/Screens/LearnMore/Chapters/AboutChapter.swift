@@ -1,10 +1,3 @@
-//
-//  AboutChapter.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 
 struct AboutChapter: View {
@@ -71,20 +64,6 @@ struct AboutChapter: View {
                     )
                 }
             }
-            
-            Divider().cascadeDivider()
-            
-            VStack(alignment: .leading, spacing: 24) {
-                Text("What Cascade can teach you")
-                    .font(.title2.bold()).foregroundStyle(.white)
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    LearningObjective(text: "Understand why collision cascades are self-reinforcing above a critical density threshold")
-                    LearningObjective(text: "Appreciate the role of orbital velocity in making even small debris lethal to other satellites")
-                    LearningObjective(text: "Visualize how debris spreads from a single point of impact into a planetary ring over time")
-                    LearningObjective(text: "Recognize that orbital space is a finite resource requiring active stewardship")
-                }
-            }
         }
     }
 }
@@ -96,7 +75,7 @@ struct SimplificationCard: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            ThemedIcon(systemName: icon, color: .orange, shape: .circle)
+            ThemedIcon(systemName: icon, color: .orange, isCircle: true)
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
@@ -109,7 +88,14 @@ struct SimplificationCard: View {
                     .lineSpacing(CascadeTheme.bodyLineSpacing)
             }
         }
-        .cascadeCard(padding: CascadeTheme.compactPadding)
+        .padding(CascadeTheme.compactPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(CascadeTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
+                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
+        )
     }
 }
 
@@ -150,7 +136,7 @@ struct LearningObjective: View {
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(CascadeTheme.bodyText)
-                .lineSpacing(CascadeTheme.compactLineSpacing)
+                .lineSpacing(3)
         }
         .accessibilityElement(children: .combine)
     }

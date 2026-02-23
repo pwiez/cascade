@@ -1,10 +1,3 @@
-//
-//  ScientificCard.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 
 struct ScientificCard<Content: View>: View {
@@ -64,7 +57,6 @@ struct GuideRow: View {
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .lineSpacing(CascadeTheme.compactLineSpacing)
         }
     }
 }
@@ -105,7 +97,14 @@ struct DefinitionCallout: View {
             }
             .padding(.vertical, 4)
         }
-        .cascadeAccentCard(.blue)
+        .padding(CascadeTheme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.blue.opacity(0.2))
+        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
+                .stroke(Color.blue.opacity(CascadeTheme.accentBorderOpacity), lineWidth: CascadeTheme.borderWidth)
+        )
         .accessibilityElement(children: .combine)
     }
 }
@@ -117,7 +116,7 @@ struct KeyConceptBox: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            ThemedIcon(systemName: icon, color: .orange, shape: .roundedRect)
+            ThemedIcon(systemName: icon, color: .orange, isCircle: false)
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
@@ -129,7 +128,30 @@ struct KeyConceptBox: View {
                     .lineSpacing(CascadeTheme.bodyLineSpacing)
             }
         }
-        .cascadeAccentCard(.orange)
+        .padding(CascadeTheme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(CascadeTheme.tintedBackgroundOpacity))
+        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
+                .stroke(Color.orange.opacity(CascadeTheme.accentBorderOpacity), lineWidth: CascadeTheme.borderWidth)
+        )
         .accessibilityElement(children: .combine)
+    }
+}
+
+struct ThemedIcon: View {
+    let systemName: String
+    let color: Color
+    var size: CGFloat = CascadeTheme.iconSize
+    var isCircle: Bool = false
+    
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.title3)
+            .foregroundStyle(color)
+            .frame(width: size, height: size)
+            .background(color.opacity(CascadeTheme.iconBackgroundOpacity))
+            .clipShape(isCircle ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: CascadeTheme.iconRadius)))
     }
 }

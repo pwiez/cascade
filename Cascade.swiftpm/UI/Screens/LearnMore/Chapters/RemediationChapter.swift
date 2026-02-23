@@ -1,10 +1,3 @@
-//
-//  RemediationChapter.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 
 struct RemediationChapter: View {
@@ -13,13 +6,13 @@ struct RemediationChapter: View {
             TextParagraph("Addressing orbital debris is a systems-level challenge requiring a three-pronged approach: prevent new debris generation through better design and operations, enforce responsible disposal of end-of-life spacecraft, and actively remove the highest-risk legacy objects before they fragment.")
             
             VStack(alignment: .leading, spacing: 24) {
-                Text("Our Greatest Ally: Atmospheric Drag")
+                Text("Atmospheric Drag")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
-                TextParagraph("Even at orbital altitudes, Earth's atmosphere does not end abruptly — it tapers off gradually. Residual gas molecules exert a faint but persistent drag force on orbiting objects. Over time, this drag lowers an object's altitude until it re-enters the atmosphere and burns up.")
+                TextParagraph("This is our main ally. Even at orbital altitudes, Earth's atmosphere does not just end. It tapers off gradually, eventually ending very high up. Even though they're few and far between, residual gas molecules at high altitudes exert persistent faint drag force on orbiting objects. Over time, this drag lowers an object's altitude until it re-enters the atmosphere and burns up. The length of time depends directly on the altitude of the object.")
                 
                 ScientificCard {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 24) {
                         Label("ORBITAL DECAY BY ALTITUDE", systemImage: "arrow.down.to.line")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(CascadeTheme.dimText)
@@ -36,12 +29,12 @@ struct RemediationChapter: View {
                         Text("Solar activity cycles cause the upper atmosphere to expand and contract, significantly affecting drag rates. During solar maxima, decay accelerates; during minima, it slows.")
                             .font(.caption)
                             .foregroundStyle(CascadeTheme.mutedText)
-                            .lineSpacing(CascadeTheme.compactLineSpacing)
+                            .lineSpacing(CascadeTheme.bodyLineSpacing)
                             .padding(.top, 4)
                     }
                 }
                 
-                TextParagraph("Below approximately 600 km, atmospheric drag is effective enough to clear most debris within decades. This is why the International Space Station orbits at ~400 km — any debris generated at that altitude is naturally swept away relatively quickly. The challenge lies in higher orbits, where drag is negligible and debris persists for centuries.")
+                TextParagraph("Below approximately 600 km, atmospheric drag is effective enough to clear most debris within a few decades. This is why the International Space Station orbits at ~400 km — even if disaster struck and it got destroyed, debris generated at that altitude is naturally swept away relatively quickly. The challenge lies in higher orbits, where drag is negligible and debris persists for centuries.")
             }
             
             Divider().cascadeDivider()
@@ -50,51 +43,35 @@ struct RemediationChapter: View {
                 Text("Active Removal Technologies")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
-                TextParagraph("Where atmospheric drag alone is insufficient, engineered interventions are required. Several approaches are under development, each targeting different aspects of the debris problem.")
+                TextParagraph("Where atmospheric drag alone is insufficient, engineered interventions are required. Several approaches are under development, each targeting different aspects of the debris problem. There have been a lot of advancements in proposed technologies, some tests have already been successful, and more are planned in coming years.")
                 
                 VStack(spacing: 20) {
                     StrategyCard(
-                        title: "Drag Augmentation",
-                        category: "Passive Deorbit",
+                        title: "Drag augmentation with drag sails",
                         icon: "wind",
-                        accent: .green,
-                        description: "Deployable drag sails or inflatable structures dramatically increase a spacecraft's cross-sectional area at end of life, accelerating orbital decay through atmospheric drag. These devices are lightweight and can be integrated into satellite design from the outset.",
-                        mechanism: "By increasing the area-to-mass ratio, atmospheric drag forces multiply, reducing deorbit time from centuries to years — even at 700–800 km altitude. Several commercial systems are now flight-proven.",
-                        maturity: "Flight-Proven",
-                        maturityLevel: 0.8
+                        description: "Deployable drag sails or inflatable structures dramatically increase a spacecraft's cross-sectional area, which increases its susceptibility to drag forces. At the end of life of a spacecraft, these devices can be deployed, accelerating orbital decay through atmospheric drag. Drag sails are lightweight and can be integrated into satellite design fairly easily, which makes this is a very cost-effective solution.",
+                        mechanism: "By increasing the area-to-mass ratio, atmospheric drag forces multiply, reducing deorbit time from centuries to years, or even months, even at high altitudes."
                     )
                     
                     StrategyCard(
-                        title: "Harpoon & Net Capture",
-                        category: "Active Debris Removal",
+                        title: "Harpoons, nets and chaser spacecraft",
                         icon: "lasso",
-                        accent: .orange,
-                        description: "A chaser spacecraft approaches a large defunct satellite or rocket body and secures it using a tethered harpoon or deployable net. Once captured, the combined system performs a controlled deorbit burn.",
-                        mechanism: "The RemoveDEBRIS mission (2018) successfully demonstrated both net capture and harpoon penetration in orbit. ESA's ClearSpace-1, planned for 2026, aims to be the first full-scale removal mission.",
-                        maturity: "Demonstrated",
-                        maturityLevel: 0.55
+                        description: "A specialized chaser spacecraft approaches a large defunct satellite or rocket body, or another type of large debris, and secures it using a tethered harpoon or deployable net. Once it's captured, the spacecraft performs a controlled burn that deorbits the debris.",
+                        mechanism: "The RemoveDEBRIS mission (2018) successfully demonstrated both net capture and harpoon penetration in orbit. ESA's ClearSpace-1, planned for 2026, aims to be the first full-scale removal mission."
                     )
                     
                     StrategyCard(
-                        title: "Laser Ablation",
-                        category: "Ground-Based Impulse",
+                        title: "Laser ablation",
                         icon: "dot.radiowaves.left.and.right",
-                        accent: .purple,
-                        description: "High-powered ground-based or orbital lasers target a debris object's surface, vaporizing a thin layer of material. The resulting gas jet acts as a miniature thruster, applying a small but precise impulse to the object.",
-                        mechanism: "Repeated laser passes over days or weeks gradually lower the object's perigee until atmospheric drag completes the deorbit. No physical contact is required.",
-                        maturity: "Experimental",
-                        maturityLevel: 0.25
+                        description: "High-powered ground-based or orbital lasers target a debris object's surface. The laser's focused energy vaporizes a small amount of material. This creates a gas jet that acts as a miniature thruster, applying a small but very precise impulse to the object.",
+                        mechanism: "Repeated laser passes over days or weeks can gradually lower the object's orbit until atmospheric drag finishes the job. No physical contact is required, and resource-wise this is fairly efficient."
                     )
                     
                     StrategyCard(
-                        title: "Magnetic Eddy-Current Tugs",
-                        category: "Contactless Interaction",
-                        icon: "magnet",
-                        accent: .blue,
-                        description: "Tumbling debris objects are dangerous to approach and impossible to dock with. Magnetic tugs generate rotating magnetic fields that induce eddy currents in the target's conductive body, producing forces and torques at a safe standoff distance.",
-                        mechanism: "Contactless detumbling stabilizes the target for subsequent capture, or sustained magnetic braking can directly lower the orbit over time. No mechanical attachment is needed.",
-                        maturity: "Research",
-                        maturityLevel: 0.15
+                        title: "Magnetic braking and stabilizing",
+                        icon: "gyroscope",
+                        description: "Tumbling debris objects are very dangerous to approach and impossible to dock with. Magnetic tugs generate rotating magnetic fields that induce eddy currents in the target's conductive body, producing forces and torques at a safe distance.",
+                        mechanism: "This can either stabilize the target for subsequent capture, or directly lower the orbit over time using magnetic braking. No mechanical attachment is needed, mitigating risk to equipment."
                     )
                 }
             }
@@ -106,7 +83,7 @@ struct RemediationChapter: View {
                     Label("The 25-Year Guideline", systemImage: "calendar.badge.clock")
                         .font(.headline).foregroundStyle(.white)
                     
-                    Text("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all LEO spacecraft be deorbited within 25 years of mission end. In 2022, the U.S. Federal Communications Commission adopted a stricter 5-year rule for U.S.-licensed satellites. Compliance remains voluntary for many operators worldwide.")
+                    Text("Given the worsening debris situation, the Inter-Agency Space Debris Coordination Committee (IADC) recommends since the early 2000s that all spacecraft in Low Earth Orbit be deorbited within 25 years of mission end. This means that, if a satellite's mission ends in 2030, it has until 2055 to deorbit or be moved into a safe graveyard orbit.\n\nIn the 2020s, however, a boom happened in the amount of satellite launches. Considering this, the U.S. Federal Communications Commission adopted a stricter rule: 5 years after end of life for U.S.-licensed satellites. However, while the FCC rule is enforced, compliance with the IADC guidelines remains voluntary for many operators worldwide.")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .lineSpacing(CascadeTheme.bodyLineSpacing)
@@ -153,75 +130,50 @@ struct DragLifetimeRow: View {
 
 struct StrategyCard: View {
     let title: String
-    let category: String
     let icon: String
-    let accent: Color
     let description: String
     let mechanism: String
-    var maturity: String = ""
-    var maturityLevel: Double = 0
     
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(category.uppercased())
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(accent)
-                        .tracking(0.6)
-                    Text(title)
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(.white)
-                }
+            HStack(alignment: .center) {
+                ThemedIcon(systemName: icon, color: .blue, isCircle: true)
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                
                 Spacer()
-                ThemedIcon(systemName: icon, color: accent, shape: .circle)
+                
+                
             }
             
-            if !maturity.isEmpty {
-                HStack(spacing: 10) {
-                    Text("Readiness")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(CascadeTheme.mutedText)
-                    
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule()
-                                .fill(CascadeTheme.trackColor)
-                            Capsule()
-                                .fill(accent.opacity(0.7))
-                                .frame(width: geo.size.width * maturityLevel)
-                        }
-                    }
-                    .frame(height: CascadeTheme.trackHeight)
-                    .clipShape(Capsule())
-                    
-                    Text(maturity)
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(accent)
-                }
-                .accessibilityLabel("Technology readiness: \(maturity)")
-            }
-            
-            Divider().cascadeDivider()
+            Divider().overlay(Color.white.opacity(0.1))
             
             VStack(alignment: .leading, spacing: 16) {
                 Text(description)
-                    .font(.body)
+                    .font(.subheadline)
                     .foregroundStyle(CascadeTheme.bodyText)
                     .lineSpacing(CascadeTheme.bodyLineSpacing)
                 
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: "gearshape.2.fill")
                         .font(.caption)
-                        .foregroundStyle(accent.opacity(0.8))
+                        .foregroundStyle(.blue.opacity(0.8))
                         .padding(.top, 4)
                     
                     Text(mechanism)
-                        .font(.callout)
+                        .font(.subheadline)
                         .foregroundStyle(CascadeTheme.bodyText)
                         .lineSpacing(CascadeTheme.bodyLineSpacing)
                 }
-                .cascadeInnerCard(accent: accent)
+                .padding(CascadeTheme.compactPadding)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.blue.opacity(0.05))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.blue.opacity(0.15), lineWidth: 1)
+                )
             }
         }
         .padding(CascadeTheme.cardPadding)
