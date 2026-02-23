@@ -12,10 +12,9 @@ struct MechanicsChapter: View {
         VStack(alignment: .leading, spacing: 44) {
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Feedback Loop")
                 
                 Text("The Cascade Effect")
-                    .font(.title2.bold()).foregroundStyle(.white)
+                    .font(.title3.bold()).foregroundStyle(.white)
                 
                 TextParagraph("Kessler Syndrome is not a single event — it is a self-reinforcing process. As the number of objects in a given orbital shell increases, the probability of collision rises proportionally. Each collision produces a cloud of fragments, and each fragment becomes a new potential projectile. Over time, the debris population grows exponentially, even without new launches.")
                 
@@ -33,8 +32,6 @@ struct MechanicsChapter: View {
             Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Collision Physics")
-                
                 Text("Orbital Energy")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
@@ -81,8 +78,6 @@ struct MechanicsChapter: View {
             Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
-                SectionLabel(text: "Detection Gap")
-                
                 Text("The Invisible Threat")
                     .font(.title2.bold()).foregroundStyle(.white)
                 

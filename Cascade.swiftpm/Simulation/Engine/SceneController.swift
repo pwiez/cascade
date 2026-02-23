@@ -18,7 +18,7 @@ class SceneController: ObservableObject {
     
     private var earthEntity: Entity?
     private let mainSun = DirectionalLight()
-    private var fillLight: Entity?
+    private var fillLights: [Entity] = []
     private var satellites: [ModelEntity] = []
     
     private var satelliteMaterial: UnlitMaterial
@@ -382,22 +382,30 @@ class SceneController: ObservableObject {
     }
 
     private func updateFillLight() {
-            if settings.useOmniLight {
-                if fillLight == nil {
+        if settings.useOmniLight {
+            if fillLights.isEmpty {
+                let fillPositions: [SIMD3<Float>] = [
+                    [-500,    0,  500],
+                    [-500,  300, -200],
+                    [ 200, -300,  500]
+                ]
+                
+                for pos in fillPositions {
                     let light = DirectionalLight()
-                    light.light.intensity = 2000
+                    light.light.intensity = 3500
                     light.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
                     
-                    light.look(at: [0, 0, 0], from: [-500, 0, 500], relativeTo: nil)
+                    light.look(at: [0, 0, 0], from: pos, relativeTo: nil)
                     
                     rootAnchor.addChild(light)
-                    self.fillLight = light
+                    fillLights.append(light)
                 }
-            } else {
-                fillLight?.removeFromParent()
-                fillLight = nil
             }
+        } else {
+            fillLights.forEach { $0.removeFromParent() }
+            fillLights.removeAll()
         }
+    }
     
     func setPaused(_ paused: Bool) {
         self.isPaused = paused

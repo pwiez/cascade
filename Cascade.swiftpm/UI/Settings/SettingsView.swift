@@ -120,7 +120,6 @@ struct SettingsView: View {
                 }
                 
                 Section {
-                    NativeSliderRow(label: "Earth Gravity Multiplier", value: $simulation.gravityMultiplier, range: 0.1...3.0, format: "%.1fx")
                     NativeSliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...3.0, format: "%.1fx")
                     NativeSliderRow(label: "Satellite Hitbox Size", value: $simulation.collisionRadius, range: 1.0...3.0, step: 0.1, format: "%.1f")
                     
