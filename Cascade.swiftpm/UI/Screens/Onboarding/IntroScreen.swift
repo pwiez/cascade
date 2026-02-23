@@ -2,16 +2,16 @@ import SwiftUI
 
 struct OnboardingOverlay: View {
     let onDismiss: () -> Void
-
+    
     @State private var appeared = false
     @State private var glowPulse = false
-
+    
     var body: some View {
         ZStack {
             Color.black.opacity(0.6)
                 .ignoresSafeArea()
                 .onTapGesture {}
-
+            
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 12) {
                     
@@ -21,8 +21,8 @@ struct OnboardingOverlay: View {
                         RoundedRectangle(cornerRadius: 1.5)
                             .fill(.blue)
                             .frame(width: 3)
-
-                        Text("Cascade is an educational simulator that lets you trigger and observe a Kessler Syndrome scenario in real time. You can move the camera around to see the satellites, represented by green cubes \(Text(Image(systemName: "cube.fill")).foregroundStyle(.green)), orbiting our planet. When they collide, they will produce small clouds of debris, represented by small pyramids \(Text(Image(systemName: "pyramid.fill")).foregroundStyle(.white)), which can collide with other satellites and produce a runaway collision cascade. Keep in mind that what you will see here is not-to-scale, though.\n\nYou can learn more about Kessler Syndrome and Cascade in the Learn More tab. You can also tweak the settings to change every aspect of the simulation, as well as Accessibility settings to ensure you have an awesome experience. Have fun!")
+                        
+                        Text("Cascade is an educational simulator that lets you create and observe a Kessler Syndrome scenario in real time. You can move the camera around Earth and zoom to see the satellites, represented by green cubes \(Text(Image(systemName: "cube.fill")).foregroundStyle(.green)), orbiting our planet.\n\nWhen satellites collide with each other or with debris, they will produce small clouds of debris, represented by small pyramids \(Text(Image(systemName: "pyramid.fill")).foregroundStyle(.white)), which can collide with other satellites and produce a runaway collision cascade. Keep in mind that the simulation is not-to-scale, though.\n\nYou can learn more about Kessler Syndrome and Cascade in the Learn More tab. You can also tweak the settings to change every aspect of the simulation, and there are many Accessibility settings to ensure you have an awesome experience.\n\nThe simulation will begin paused - hit the play button to get it going. Good luck and have fun!")
                             .font(.default)
                             .foregroundStyle(CascadeTheme.bodyText)
                             .lineSpacing(CascadeTheme.bodyLineSpacing)
@@ -31,75 +31,64 @@ struct OnboardingOverlay: View {
                 }
                 .padding(.horizontal, 28)
                 .padding(.bottom, 24)
-                .staggerIn(appeared: appeared, index: 1)
-
+                
                 Rectangle()
                     .fill(CascadeTheme.dividerColor)
                     .frame(height: CascadeTheme.borderWidth)
                     .padding(.horizontal, 28)
-
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("CONTROLS")
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(.white)
-
-                    VStack(spacing: 10) {
+                    .padding(.bottom, 16)
+                
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Simulation Controls")
+                        .font(.title2.weight(.semibold))
+                        .padding()
+                    
+                    VStack(spacing: 8) {
                         OnboardingControlRow(
                             icon: "burst.fill",
                             tint: .red,
                             label: "Detonate",
-                            detail: "Destroy a satellite manually to make the Cascade faster"
+                            detail: "Explode a random satellite to make the Cascade happen faster!"
                         )
                         OnboardingControlRow(
                             icon: "play.fill",
                             tint: .green,
                             label: "Play / Pause",
-                            detail: "Pause and resume the simulation at any moment"
+                            detail: "Pause and resume the simulation,"
                         )
                         OnboardingControlRow(
                             icon: "camera.metering.center.weighted",
-                            tint: .secondary,
-                            label: "Play / Pause",
-                            detail: "Reset the camera to its default position"
+                            tint: .white,
+                            label: "Reset Camera",
+                            detail: "Move the camera back to its default position."
                         )
                         OnboardingControlRow(
                             icon: "gearshape.fill",
-                            tint: .secondary,
+                            tint: .white,
                             label: "Settings",
-                            detail: "Change accessibility settings, physics parameters, and more"
+                            detail: "Change simulation parameters, accessibility settings, and more!"
                         )
                     }
                 }
                 .padding(28)
-                .staggerIn(appeared: appeared, index: 2)
-
+                
                 Button(action: onDismiss) {
                     HStack(spacing: 8) {
                         Text("Begin the Cascade")
                             .font(.subheadline.weight(.semibold))
-                        Image(systemName: "arrow.right")
-                            .font(.subheadline.weight(.semibold))
                     }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(.green)
-                    .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.innerRadius))
+                    .padding(.vertical, 6)
                 }
                 .buttonStyle(.plain)
-                .padding(.horizontal, 28)
-                .padding(.bottom, 28)
-                .staggerIn(appeared: appeared, index: 4)
+                .foregroundStyle(.green)
+                .frame(maxWidth: 360)
+                .padding(.horizontal)
+                .padding(.bottom)
             }
-            .frame(maxWidth: 700)
+            .frame(maxWidth: .infinity)
             .background(CascadeTheme.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
-            )
-            .shadow(color: .black.opacity(0.55), radius: 48, y: 14)
-            .padding(40)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .padding(128)
             .fixedSize(horizontal: false, vertical: true)
         }
         .onAppear {
@@ -115,73 +104,26 @@ private struct OnboardingControlRow: View {
     let tint: Color
     let label: String
     let detail: String
-
+    
     var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(tint)
-                .frame(width: 28, height: 28)
-                .background(tint.opacity(CascadeTheme.iconBackgroundOpacity))
-                .clipShape(RoundedRectangle(cornerRadius: 7))
-
-            Text(label)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.white)
-                .frame(width: 86, alignment: .leading)
-
+        HStack(spacing: 6){
+            VStack(spacing: 8) {
+                HStack{
+                    Image(systemName: icon)
+                        .font(.title2)
+                        .foregroundStyle(tint)
+                        .frame(width: 56, height: 56)
+                    
+                    Text(label)
+                        .font(.title3.weight(.medium))
+                    
+                    Spacer()
+                    
+                }
+            }
             Text(detail)
-                .font(.caption)
-                .foregroundStyle(CascadeTheme.dimText)
-                .lineLimit(1)
-
-            Spacer(minLength: 0)
+                .font(.body.weight(.regular))
+                .foregroundStyle(.secondary)
         }
-    }
-}
-
-private struct OnboardingCapability: View {
-    let icon: String
-    let label: String
-
-    var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.caption)
-                .foregroundStyle(.blue)
-            Text(label)
-                .font(.caption2.weight(.medium))
-                .foregroundStyle(CascadeTheme.dimText)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .background(Color.blue.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.blue.opacity(0.08), lineWidth: CascadeTheme.borderWidth)
-        )
-        .padding(.horizontal, 3)
-    }
-}
-
-private struct StaggerModifier: ViewModifier {
-    let appeared: Bool
-    let index: Int
-
-    func body(content: Content) -> some View {
-        content
-            .opacity(appeared ? 1 : 0)
-            .offset(y: appeared ? 0 : 14)
-            .animation(
-                .easeOut(duration: 0.5).delay(Double(index) * 0.08),
-                value: appeared
-            )
-    }
-}
-
-private extension View {
-    func staggerIn(appeared: Bool, index: Int) -> some View {
-        modifier(StaggerModifier(appeared: appeared, index: index))
     }
 }
