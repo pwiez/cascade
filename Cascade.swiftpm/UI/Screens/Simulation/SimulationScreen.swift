@@ -21,9 +21,6 @@ struct SimulationScreen: View {
                     .ignoresSafeArea()
                     .zIndex(0)
                 
-                
-                
-                
                 if simulation.showStats {
                     VStack {
                         Spacer()
@@ -48,7 +45,8 @@ struct SimulationScreen: View {
                         isPaused: $simulation.isPaused,
                         showSettings: $showSettings,
                         onResetCamera: { simulation.resetCamera() },
-                        onDetonate: { simulation.triggerDetonation() }
+                        onDetonate: { simulation.triggerDetonation() },
+                        onRestart: { simulation.resetSimulation() }
                     )
                     Spacer()
                 }

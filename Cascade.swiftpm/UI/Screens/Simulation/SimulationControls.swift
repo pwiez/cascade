@@ -13,6 +13,9 @@ struct SimulationControls: View {
     @Binding var showSettings: Bool
     let onResetCamera: () -> Void
     let onDetonate: () -> Void
+    let onRestart: () -> Void
+    
+    @State private var showRestartConfirmation = false
     
     let detonateTip = DetonateTip()
     let settingsTip = SettingsTip()
@@ -30,12 +33,28 @@ struct SimulationControls: View {
             .accessibilityLabel("Detonate Satellite")
             .accessibilityHint("Destroys a satellite and scatters debris into orbit")
             
+            SimulationButton(
+                icon: "arrow.triangle.2.circlepath",
+                action: { showRestartConfirmation = true },
+                isProminent: true,
+                tint: .orange
+            )
+            .popoverTip(detonateTip, arrowEdge: .leading)
+            .confirmationDialog("Restart?", isPresented: $showRestartConfirmation) {
+                Button("Restart", role: .destructive) {
+                    onRestart()
+                }
+            } message: {
+                Text("This will reset all satellites and debris.")
+            }
+            .accessibilityLabel("Restart Simulation")
+            .accessibilityHint("Restarts the simulation")
             
             SimulationButton(
                 icon: isPaused ? "play.fill" : "pause.fill",
                 action: { isPaused.toggle() },
                 isProminent: true,
-                tint: isPaused ? .green : .orange
+                tint: Color(red: 0.1, green: 0.1, blue: 0.1)
             )
             .accessibilityLabel(isPaused ? "Resume Simulation" : "Pause Simulation")
             .accessibilityHint(isPaused ? "Resumes the orbital simulation" : "Pauses the orbital simulation")
