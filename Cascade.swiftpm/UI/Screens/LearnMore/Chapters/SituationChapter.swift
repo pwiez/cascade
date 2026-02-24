@@ -4,6 +4,7 @@ struct SituationChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 44) {
             
+            
             VStack(alignment: .leading, spacing: 24) {
                 Text("Timeline of Key Events")
                     .font(.title2.bold()).foregroundStyle(.white)
@@ -14,6 +15,7 @@ struct SituationChapter: View {
             }
             
             Divider().cascadeDivider()
+            
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Current Orbital Population")
@@ -28,6 +30,7 @@ struct SituationChapter: View {
             
             Divider().cascadeDivider()
             
+            
             VStack(alignment: .leading, spacing: 24) {
                 Text("Operational Impacts")
                     .font(.title2.bold()).foregroundStyle(.white)
@@ -35,6 +38,7 @@ struct SituationChapter: View {
                 TextParagraph("As you learned in this and the previous chapters, the growing debris population has measurable consequences for active missions. Collision avoidance maneuvers are becoming routine, consuming propellant and reducing mission lifetime, and increasing risk to astronauts.")
                 
                 HStack(spacing: 14) {
+                    
                     OperationalStatCard(
                         value: "35.2k",
                         unit: "tracked",
@@ -42,6 +46,7 @@ struct SituationChapter: View {
                         icon: "scope",
                         accent: .red
                     )
+                    
                     
                     OperationalStatCard(
                         value: "14.5k",

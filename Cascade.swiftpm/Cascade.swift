@@ -4,7 +4,10 @@ import TipKit
 @main
 struct Cascade: App {    
     init() {
+        
         try? Tips.resetDatastore()
+        
+        
         
         try? Tips.configure([
             .displayFrequency(.immediate),

@@ -12,6 +12,7 @@ struct SettingsView: View {
     var onClose: () -> Void
     @State private var showRestartConfirmation = false
     
+    
     var hasPendingChanges: Bool {
         simulation.draft.orbitAltitude != simulation.activeOrbitAltitude ||
         simulation.draft.orbitVariance != simulation.activeOrbitVariance ||
@@ -22,6 +23,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                
                 Section {
                     Toggle("Camera Movement", isOn: $simulation.isCameraEnabled)
                     Toggle("Show Earth", isOn: $simulation.showEarth)
@@ -41,6 +43,7 @@ struct SettingsView: View {
                             step: nil,
                             format: "%.1fx"
                         )
+                        
                         
                         if simulation.satelliteScale > (simulation.collisionRadius * 1.5) {
                             Label("Visual scale exceeds collision radius. Objects may overlap visually.", systemImage: "exclamationmark.triangle.fill")
@@ -62,6 +65,7 @@ struct SettingsView: View {
                     Text("Adjust scaling to make small objects easier to see on smaller screens.")
                 }
                 
+                
                 Section {
                     VStack(spacing: 8) {
                         LabeledContent("Time Scale", value: String(format: "%.1fx", simulation.timeScale))
@@ -78,7 +82,9 @@ struct SettingsView: View {
                     Text("Simulation Speed")
                 }
                 
+                
                 Section {
+                    
                     sliderRow(
                         label: "Initial Satellites",
                         value: $simulation.draft.satelliteCount,
@@ -88,6 +94,7 @@ struct SettingsView: View {
                         requiresRestart: simulation.draft.satelliteCount != simulation.activeSatelliteCount
                     )
                     
+                    
                     sliderRow(
                         label: "Orbit Altitude",
                         value: $simulation.draft.orbitAltitude,
@@ -96,6 +103,7 @@ struct SettingsView: View {
                         format: "%.0f Units",
                         requiresRestart: simulation.draft.orbitAltitude != simulation.activeOrbitAltitude
                     )
+                    
                     
                     sliderRow(
                         label: "Altitude Variance",
@@ -120,7 +128,8 @@ struct SettingsView: View {
                     HStack {
                         Text("Scenario Setup")
                         if hasPendingChanges {
-                            Image(systemName: "exclamationmark.triangle.fill")
+                            Spacer()
+                            Text("Restart Pending")
                                 .foregroundStyle(.orange)
                                 .font(.default)
                         }
@@ -132,7 +141,9 @@ struct SettingsView: View {
                     }
                 }
                 
+                
                 Section {
+
                     sliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...3.0, step: nil, format: "%.1fx")
                     sliderRow(label: "Satellite Hitbox Size", value: $simulation.collisionRadius, range: 1.0...3.0, step: 0.1, format: "%.1f")
                     
@@ -144,6 +155,7 @@ struct SettingsView: View {
                 } footer: {
                     Text("Higher ejection forces will create larger clouds, and larger hitboxes will make satellites easier to hit.")
                 }
+                
                 
                 Section {
                     DisclosureGroup("Advanced Debris Spread") {
@@ -175,6 +187,7 @@ struct SettingsView: View {
                 } footer: {
                     Text("Controls the shape of the debris cloud immediately after an explosion.")
                 }
+                
                 
                 Section {
                     Button("Reset Defaults") {

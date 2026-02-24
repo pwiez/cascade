@@ -4,6 +4,7 @@ struct MechanicsChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 44) {
             
+            
             VStack(alignment: .leading, spacing: 24) {
                 
                 Text("The Cascade Effect")
@@ -24,11 +25,13 @@ struct MechanicsChapter: View {
             
             Divider().cascadeDivider()
             
+            
             VStack(alignment: .leading, spacing: 24) {
                 Text("Orbital Energy")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
                 TextParagraph("Why are orbital collisions so catastrophic? Velocity!\n\nObjects in Low Earth Orbit travel at approximately 7.5 km/s — over 27,000 km/h, or approximately 16700 mph. At these speeds, kinetic energy scales dramatically, and even very small particles carry enough energy to severely damage whatever they hit.")
+                
                 
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 16) {
@@ -71,6 +74,7 @@ struct MechanicsChapter: View {
             
             Divider().cascadeDivider()
             
+            
             VStack(alignment: .leading, spacing: 24) {
                 Text("The Invisible Threat")
                     .font(.title2.bold()).foregroundStyle(.white)
@@ -93,7 +97,7 @@ struct DebrisSizeClassView: View {
             VStack(spacing: 14) {
                 DebrisSizeRow(
                     size: "> 10 cm",
-                    count: "~35,000",
+                    count: "~35,000", 
                     status: "Tracked",
                     statusColor: .green,
                     effect: "Catastrophic breakup",
@@ -101,19 +105,19 @@ struct DebrisSizeClassView: View {
                 )
                 DebrisSizeRow(
                     size: "1 – 10 cm",
-                    count: "~1.2 million",
-                    status: "Untracked",
+                    count: "~1.2 million", 
+                    status: "Untracked", 
                     statusColor: .yellow,
                     effect: "Mission-ending damage",
                     proportion: 0.5
                 )
                 DebrisSizeRow(
                     size: "1 mm – 1 cm",
-                    count: "~140 million",
+                    count: "~140 million", 
                     status: "Untracked",
                     statusColor: .red,
                     effect: "Degradation, destruction of fragile components",
-                    proportion: 0.1
+                    proportion: 0.1 
                 )
             }
         }

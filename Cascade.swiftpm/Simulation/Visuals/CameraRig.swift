@@ -4,20 +4,24 @@ import Foundation
 
 @MainActor
 class CameraRig {
+    
     let pivot: Entity
     let camera: Entity
     
-    private var zoomLevel: Float = 555.0
+    
+    private var zoomLevel: Float = 555.0 
     private var angleX: Float = -0.35
     private var angleY: Float = 3.25
     
-    private var currentAspectRatio: Float = 1.77
+    private var currentAspectRatio: Float = 1.77 
     private var targetScreenOffset: Float = 0.0
+    
     
     private var savedTransform: Transform?
     private var savedZoom: Float?
     private var savedAngleX: Float?
     private var savedAngleY: Float?
+    
     
     private let minZoom: Float = 190.0
     private let maxZoom: Float = 1200.0
@@ -28,12 +32,14 @@ class CameraRig {
         self.pivot = Entity()
         self.camera = Entity()
         
+        
         var cameraComponent = PerspectiveCameraComponent(near: 0.1, far: 3000)
-        cameraComponent.fieldOfViewInDegrees = 40.0
+        cameraComponent.fieldOfViewInDegrees = 40.0 
         camera.components.set(cameraComponent)
         
         pivot.addChild(camera)
         rootAnchor.addChild(pivot)
+        
         
         updateTransform()
         updatePosition(animated: false)
@@ -95,6 +101,8 @@ class CameraRig {
         updatePosition(animated: true)
     }
     
+    
+    
     func setTargetOffset(ratio: Float, aspectRatio: Float) {
         self.targetScreenOffset = ratio
         self.currentAspectRatio = aspectRatio
@@ -109,8 +117,13 @@ class CameraRig {
     
     private func updatePosition(animated: Bool) {
         
+        
+        
+        
+        
         let verticalFOVScalar: Float = 0.7279
         let worldWidthAtZoom = zoomLevel * verticalFOVScalar * currentAspectRatio
+        
         
         let targetX = worldWidthAtZoom * targetScreenOffset
         

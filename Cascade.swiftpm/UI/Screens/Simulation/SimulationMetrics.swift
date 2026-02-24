@@ -34,13 +34,17 @@ enum OrbitalStatus: String {
     static func evaluate(current: Int, initial: Int) -> OrbitalStatus {
         guard initial > 0 else { return .stable }
         
+        
         if current >= initial { return .stable }
         
         let ratio = Double(current) / Double(initial)
         
+        
         if ratio < 0.35 { return .critical }
         
+        
         if ratio < 0.75 { return .danger }
+        
         
         return .warning
     }
@@ -60,6 +64,7 @@ struct SimulationMetrics: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            
             HStack(spacing: 8) {
                 Image(systemName: status.icon)
                 Text(status.rawValue)
@@ -68,6 +73,7 @@ struct SimulationMetrics: View {
             .foregroundStyle(status.tint)
             .accessibilityElement(children: .combine)
 
+            
             HStack(spacing: 0) {
                 metricColumn(
                     title: "Satellites",
@@ -90,7 +96,7 @@ struct SimulationMetrics: View {
             }
         }
         .padding(18)
-        .frame(width: 240)
+        .frame(width: 240) 
         .glassEffect(in: .rect(cornerRadius: 12))
         .animation(.snappy, value: status)
     }
@@ -111,6 +117,6 @@ struct SimulationMetrics: View {
                 .contentTransition(.numericText())
                 .animation(.snappy, value: value)
         }
-        .frame(minWidth: 80, alignment: .leading)
+        .frame(minWidth: 80, alignment: .leading) 
     }
 }

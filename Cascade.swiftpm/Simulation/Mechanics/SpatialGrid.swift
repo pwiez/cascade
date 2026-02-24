@@ -15,6 +15,7 @@ struct SpatialGrid {
     
     let neighborOffsets: [Int]
     
+    
     let gridSize: Int = 128
     let shiftY: Int = 7
     let shiftZ: Int = 14
@@ -34,6 +35,7 @@ struct SpatialGrid {
         self.headCell = ContiguousArray(repeating: -1, count: cellCount)
         self.nextParticle = ContiguousArray(repeating: -1, count: maxObjects)
         self.usedCells.reserveCapacity(maxObjects)
+        
         
         var offsets: [Int] = []
         offsets.reserveCapacity(27)

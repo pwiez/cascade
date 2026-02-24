@@ -19,6 +19,7 @@ struct SimulationControls: View {
     
     var body: some View {
         VStack(spacing: 16) {
+            
             SimulationButton(
                 icon: "burst.fill",
                 action: onDetonate,
@@ -29,6 +30,7 @@ struct SimulationControls: View {
             .accessibilityLabel("Detonate Satellite")
             .accessibilityHint("Destroys a satellite and scatters debris into orbit")
             
+            
             SimulationButton(
                 icon: isPaused ? "play.fill" : "pause.fill",
                 action: { isPaused.toggle() },
@@ -38,6 +40,7 @@ struct SimulationControls: View {
             .accessibilityLabel(isPaused ? "Resume Simulation" : "Pause Simulation")
             .accessibilityHint(isPaused ? "Resumes the orbital simulation" : "Pauses the orbital simulation")
             
+            
             SimulationButton(
                 icon: "camera.metering.center.weighted",
                 action: onResetCamera,
@@ -46,6 +49,7 @@ struct SimulationControls: View {
             )
             .accessibilityLabel("Reset Camera")
             .accessibilityHint("Returns the camera to its default position")
+            
             
             SimulationButton(
                 icon: "gearshape.fill",

@@ -4,6 +4,7 @@ import simd
 import Accelerate
 
 class DebrisPool {
+    
     var posX: [Float]
     var posY: [Float]
     var posZ: [Float]
@@ -55,11 +56,12 @@ class DebrisPool {
         velY[index] = velocity.y
         velZ[index] = velocity.z
         
+        
             let axis = normalize(SIMD3<Float>(Float.random(in: -1...1), Float.random(in: -1...1), Float.random(in: -1...1)))
             rotAxisX[index] = axis.x
             rotAxisY[index] = axis.y
             rotAxisZ[index] = axis.z
-            spinRate[index] = Float.random(in: 1.0...6.0)
+            spinRate[index] = Float.random(in: 1.0...6.0) 
             rotAngle[index] = Float.random(in: 0...6.28)
         
         activeCount += 1
@@ -92,13 +94,16 @@ class DebrisPool {
         
         let count = activeCount
         
+        
         withSixBuffers(&posX, &posY, &posZ, &velX, &velY, &velZ) { ptrX, ptrY, ptrZ, vPtrX, vPtrY, vPtrZ in
             
             if count < 1000 {
+                
                 for i in 0..<count {
                     DebrisPool.performGravity(i: i, ptrX: ptrX, ptrY: ptrY, ptrZ: ptrZ, vPtrX: vPtrX, vPtrY: vPtrY, vPtrZ: vPtrZ, earthMass: earthMass, dt: dt, killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq)
                 }
             } else {
+                
                 struct PointerPack: @unchecked Sendable {
                     let px: UnsafeMutableBufferPointer<Float>
                     let py: UnsafeMutableBufferPointer<Float>
@@ -120,11 +125,13 @@ class DebrisPool {
             }
         }
         
+        
         var delta = dt
         vDSP_vma(velX, 1, &delta, 0, posX, 1, &posX, 1, vDSP_Length(activeCount))
         vDSP_vma(velY, 1, &delta, 0, posY, 1, &posY, 1, vDSP_Length(activeCount))
         vDSP_vma(velZ, 1, &delta, 0, posZ, 1, &posZ, 1, vDSP_Length(activeCount))
         vDSP_vma(spinRate, 1, &delta, 0, rotAngle, 1, &rotAngle, 1, vDSP_Length(activeCount))
+        
         
         var i = 0
         while i < activeCount {
@@ -140,6 +147,7 @@ class DebrisPool {
             }
         }
     }
+    
     
     @inline(__always)
     static func performGravity(i: Int,
@@ -159,6 +167,7 @@ class DebrisPool {
         let distSq = (px*px) + (py*py) + (pz*pz)
         
         if distSq < killRadiusSq || distSq > maxRadiusSq { return }
+        
         
         let invDist = simd_rsqrt(distSq)
         let invDist3 = invDist * invDist * invDist
