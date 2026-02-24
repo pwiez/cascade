@@ -10,8 +10,7 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            let isPortrait = geometry.size.height > geometry.size.width
-            
+    
             ZStack {
                 
                 TabView(selection: $selectedTab) {
@@ -27,12 +26,10 @@ struct ContentView: View {
                     if newTab == 1 { simulation.pauseSimulation() }
                     else if newTab == 0 && !showIntro { simulation.resumeSimulation() }
                 }
-                .disabled(isPortrait || showIntro)
                 .blur(radius: showIntro ? 16 : 0)
                 .animation(.easeInOut(duration: 0.4), value: showIntro)
                 
-                
-                if showIntro && !isPortrait {
+                if showIntro {
                     OnboardingOverlay {
                         withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
                             showIntro = false
@@ -44,13 +41,6 @@ struct ContentView: View {
                     }
                     .transition(.opacity.combined(with: .scale(scale: 0.97)))
                     .zIndex(2000)
-                }
-                
-                
-                if isPortrait {
-                    PortraitWarningView()
-                        .zIndex(3000)
-                        .transition(.opacity.animation(.easeInOut))
                 }
             }
             .onChange(of: geometry.size) { oldSize, newSize in

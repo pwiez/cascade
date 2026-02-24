@@ -30,8 +30,6 @@ extension MeshResource {
             let startIndex = UInt32(positions.count)
             positions.append(contentsOf: [v1, v2, v3])
             indices.append(contentsOf: [startIndex, startIndex + 1, startIndex + 2])
-            
-            
             let n = normalize(cross(v2 - v1, v3 - v1))
             normals.append(contentsOf: [n, n, n])
         }

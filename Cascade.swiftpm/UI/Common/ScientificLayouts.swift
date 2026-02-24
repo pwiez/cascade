@@ -130,7 +130,7 @@ struct KeyConceptBox: View {
         }
         .padding(CascadeTheme.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.orange.opacity(0.2))
+        .background(Color.orange.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
         .overlay(
             RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)

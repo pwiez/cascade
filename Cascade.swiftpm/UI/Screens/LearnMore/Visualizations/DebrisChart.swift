@@ -1,6 +1,5 @@
 import SwiftUI
 import Charts
-
 struct DebrisChart: View {
     struct DebrisDataPoint: Identifiable {
         let id = UUID()
@@ -11,37 +10,39 @@ struct DebrisChart: View {
     
     let data: [DebrisDataPoint] = [
         .init(year: 1960, count: 200, annotation: nil),
-        .init(year: 1965, count: 600, annotation: nil),
-        .init(year: 1970, count: 1800, annotation: nil),
-        .init(year: 1975, count: 3400, annotation: nil),
-        .init(year: 1980, count: 5000, annotation: nil),
-        .init(year: 1985, count: 6200, annotation: nil),
-        .init(year: 1990, count: 7500, annotation: nil),
-        .init(year: 1995, count: 8500, annotation: nil),
-        .init(year: 2000, count: 9700, annotation: nil),
-        .init(year: 2005, count: 10500, annotation: nil),
-        .init(year: 2007, count: 13500, annotation: "Fengyun-1C ASAT"),
-        .init(year: 2009, count: 16000, annotation: "Iridium-Cosmos"),
-        .init(year: 2012, count: 17000, annotation: nil),
-        .init(year: 2015, count: 18000, annotation: nil),
-        .init(year: 2018, count: 20000, annotation: nil),
-        .init(year: 2020, count: 23000, annotation: nil),
-            .init(year: 2021, count: 25500, annotation: "Cosmos 1408 ASAT"), 
-            .init(year: 2022, count: 27000, annotation: nil),
-            .init(year: 2024, count: 32000, annotation: nil),
-            .init(year: 2026, count: 35200, annotation: "Current")
+        .init(year: 1965, count: 1200, annotation: nil),
+        .init(year: 1970, count: 2000, annotation: nil),
+        .init(year: 1975, count: 3800, annotation: nil),
+        .init(year: 1980, count: 4800, annotation: nil),
+        .init(year: 1985, count: 6000, annotation: nil),
+        .init(year: 1990, count: 7100, annotation: nil),
+        .init(year: 1995, count: 8200, annotation: nil),
+        .init(year: 2000, count: 8900, annotation: nil),
+        .init(year: 2005, count: 9500, annotation: nil),
+        .init(year: 2007, count: 12500, annotation: "Fengyun-1C ASAT"),
+        .init(year: 2009, count: 15000, annotation: "Iridium-Cosmos"),
+        .init(year: 2012, count: 16500, annotation: nil),
+        .init(year: 2015, count: 17500, annotation: nil),
+        .init(year: 2018, count: 19000, annotation: nil),
+        .init(year: 2020, count: 21500, annotation: nil),
+        .init(year: 2021, count: 24000, annotation: "Cosmos 1408 ASAT"),
+        .init(year: 2022, count: 27500, annotation: nil),
+        .init(year: 2023, count: 34000, annotation: nil),
+        .init(year: 2024, count: 39500, annotation: nil),
+        .init(year: 2025, count: 42500, annotation: nil),
+        .init(year: 2026, count: 45000, annotation: "Current")
     ]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Cataloged Objects in Earth Orbit")
+                Text("Evolution of cataloged objects in Earth orbit")
                     .font(.headline).foregroundStyle(.white)
-                Text("Objects larger than 10 cm tracked by space surveillance networks, 1960–2024.")
+                Text("Objects larger than 10 cm tracked by space surveillance networks, 1960–2026.")
                     .font(.caption).foregroundStyle(CascadeTheme.mutedText)
                     .lineSpacing(3)
             }
-            .padding(.bottom, 16)
+            .padding(.bottom, 32)
             
             Chart {
                 ForEach(data) { point in
@@ -51,7 +52,7 @@ struct DebrisChart: View {
                     )
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [Color.cyan.opacity(0.25), Color.cyan.opacity(0.02)],
+                            colors: [Color.blue.opacity(0.30), Color.blue.opacity(0.03)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -97,7 +98,7 @@ struct DebrisChart: View {
             .chartXScale(domain: 1960...2026)
             .chartYScale(domain: 0...36000)
             .chartXAxis {
-                AxisMarks(values: stride(from: 1960, through: 2024, by: 10).map { $0 }) { value in
+                AxisMarks(values: stride(from: 1960, through: 2026, by: 10).map { $0 }) { value in
                     AxisGridLine().foregroundStyle(CascadeTheme.cardBorder)
                     AxisValueLabel {
                         if let intVal = value.as(Int.self) {
@@ -109,7 +110,7 @@ struct DebrisChart: View {
                 }
             }
             .chartYAxis {
-                AxisMarks(values: stride(from: 0, through: 35000, by: 5000).map { $0 }) { value in
+                AxisMarks(values: stride(from: 0, through: 46000, by: 5000).map { $0 }) { value in
                     AxisGridLine().foregroundStyle(CascadeTheme.cardBorder)
                     AxisValueLabel {
                         if let intValue = value.as(Int.self) {
@@ -120,8 +121,8 @@ struct DebrisChart: View {
                     }
                 }
             }
-            .frame(height: 260)
-            .accessibilityLabel("Line chart showing growth of tracked orbital objects from about 200 in 1960 to over 32,000 in 2024, with sharp increases after the 2007 Fengyun-1C test and 2009 Iridium-Cosmos collision.")
+            .frame(height: 300)
+            .accessibilityLabel("Line chart showing growth of tracked orbital objects from a few hundred in 1960 to over 45,000 in 2026, with sharp increases after the 2007 Fengyun-1C test and 2009 Iridium-Cosmos collision.")
         }
     }
 }

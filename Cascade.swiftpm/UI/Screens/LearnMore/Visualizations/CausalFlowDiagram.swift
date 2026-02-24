@@ -3,20 +3,18 @@ import SwiftUI
 struct CausalFlowDiagram: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            Label("THE CASCADE LOOP", systemImage: "point.3.filled.connected.trianglepath.dotted")
+            Text("How does a Cascade even start, anyway?")
                 .font(.caption.weight(.bold))
                 .foregroundStyle(CascadeTheme.dimText)
-                .tracking(0.6)
-            
             
             HStack(spacing: 0) {
-                flowNode(icon: "cube.fill", title: "Density\nIncreases", color: .blue)
+                flowNode(icon: "cube.fill", title: "Density of objects\nin orbit increases", color: .blue)
                 flowConnector
-                flowNode(icon: "burst.fill", title: "Collision\nOccurs", color: .orange)
+                flowNode(icon: "burst.fill", title: "A collision happens\nbetween them", color: .orange)
                 flowConnector
-                flowNode(icon: "aqi.medium", title: "Fragments\nSpread", color: .gray)
+                flowNode(icon: "aqi.medium", title: "Many new objects are\ncreated by the impact", color: .gray)
                 flowConnector
-                flowNode(icon: "exclamationmark.triangle.fill", title: "Risk\nEscalates", color: .red)
+                flowNode(icon: "exclamationmark.triangle.fill", title: "Collision risk\nincreases exponentially", color: .red)
             }
             
             
@@ -24,7 +22,7 @@ struct CausalFlowDiagram: View {
                 Image(systemName: "arrow.turn.up.left")
                     .font(.caption)
                     .foregroundStyle(.red.opacity(0.6))
-                Text("Each stage feeds the next — the loop is self-reinforcing above the critical threshold.")
+                Text("Each of these events feeds every other event!")
                     .font(.caption)
                     .foregroundStyle(CascadeTheme.mutedText)
             }
@@ -58,4 +56,8 @@ struct CausalFlowDiagram: View {
         .background(Color(white: 0.10))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
+}
+
+#Preview(traits: .landscapeLeft) {
+    CausalFlowDiagram()
 }

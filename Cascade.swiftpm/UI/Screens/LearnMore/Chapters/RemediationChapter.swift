@@ -3,37 +3,31 @@ import SwiftUI
 struct RemediationChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 36) {
-            TextParagraph("Addressing orbital debris is a systems-level challenge requiring a three-pronged approach: prevent new debris generation through better design and operations, enforce responsible disposal of end-of-life spacecraft, and actively remove the highest-risk legacy objects before they fragment.")
+            TextParagraph("The picture painted so far is pretty grim, but orbital debris is a challenge that can be dealt with. Fundamentally, it is a systems-level challenge requiring a three-pronged approach: prevent new debris generation through better design and operations, enforce responsible disposal of end-of-life spacecraft, and actively remove the highest-risk legacy and defunct objects before they have a chance to create more debris.")
             
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Atmospheric Drag")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
-                TextParagraph("This is our main ally. Even at orbital altitudes, Earth's atmosphere does not just end. It tapers off gradually, eventually ending very high up. Even though they're few and far between, residual gas molecules at high altitudes exert persistent faint drag force on orbiting objects. Over time, this drag lowers an object's altitude until it re-enters the atmosphere and burns up. The length of time depends directly on the altitude of the object.")
+                TextParagraph("This is our main ally. Even at orbital altitudes, did you know Earth's atmosphere does not just end? It tapers off gradually, eventually ending very, very high up in space. Even though they're few and far between, residual gas molecules at high altitudes exert a persistent, albeit faint, drag force on orbiting objects. Over time, this drag lowers an object's altitude until it re-enters the atmosphere and burns up. The time this takes depends directly on the altitude and size of the object.")
                 
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 24) {
-                        Label("ORBITAL DECAY BY ALTITUDE", systemImage: "arrow.down.to.line")
+                        Text("How long does it take for an object to deorbit through drag alone?")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(CascadeTheme.dimText)
-                            .tracking(0.6)
-                        
+
                         VStack(spacing: 12) {
                             DragLifetimeRow(altitude: "300 km", lifetime: "Weeks to months", intensity: 1.0, color: .green)
-                            DragLifetimeRow(altitude: "400 km", lifetime: "~1 year", intensity: 0.7, color: .green)
-                            DragLifetimeRow(altitude: "600 km", lifetime: "~25 years", intensity: 0.4, color: .yellow)
-                            DragLifetimeRow(altitude: "800 km", lifetime: "~100–200 years", intensity: 0.15, color: .orange)
-                            DragLifetimeRow(altitude: "1,000 km", lifetime: "~1,000+ years", intensity: 0.04, color: .red)
+                            DragLifetimeRow(altitude: "400 km", lifetime: "~1 year", intensity: 0.75, color: .green)
+                            DragLifetimeRow(altitude: "600 km", lifetime: "~25 years", intensity: 0.45, color: .yellow)
+                            DragLifetimeRow(altitude: "800 km", lifetime: "~100–200 years", intensity: 0.10, color: .orange)
+                            DragLifetimeRow(altitude: "1,000 km", lifetime: "~1,000+ years", intensity: 0.02, color: .red)
                         }
-                        
-                        Text("Solar activity cycles cause the upper atmosphere to expand and contract, significantly affecting drag rates. During solar maxima, decay accelerates; during minima, it slows.")
-                            .font(.caption)
-                            .foregroundStyle(CascadeTheme.mutedText)
-                            .lineSpacing(CascadeTheme.bodyLineSpacing)
-                            .padding(.top, 4)
                     }
                 }
+                .padding(.vertical)
                 
                 TextParagraph("Below approximately 600 km, atmospheric drag is effective enough to clear most debris within a few decades. This is why the International Space Station orbits at ~400 km — even if disaster struck and it got destroyed, debris generated at that altitude is naturally swept away relatively quickly. The challenge lies in higher orbits, where drag is negligible and debris persists for centuries.")
             }
@@ -45,35 +39,35 @@ struct RemediationChapter: View {
                 Text("Active Removal Technologies")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
-                TextParagraph("Where atmospheric drag alone is insufficient, engineered interventions are required. Several approaches are under development, each targeting different aspects of the debris problem. There have been a lot of advancements in proposed technologies, some tests have already been successful, and more are planned in coming years.")
+                TextParagraph("As you may have guessed, atmospheric drag alone is powerful, but largely insufficient. Therefore, engineered interventions are required. Several approaches are under development, each targeting different aspects of the debris problem. There have been a lot of advancements in proposed technologies, some tests have already been successful, and more are planned in coming years.\n\nHere are the coolest ones:")
                 
                 VStack(spacing: 20) {
                     StrategyCard(
-                        title: "Drag augmentation with drag sails",
+                        title: "Drag Augmentation",
                         icon: "wind",
-                        description: "Deployable drag sails or inflatable structures dramatically increase a spacecraft's cross-sectional area, which increases its susceptibility to drag forces. At the end of life of a spacecraft, these devices can be deployed, accelerating orbital decay through atmospheric drag. Drag sails are lightweight and can be integrated into satellite design fairly easily, which makes this is a very cost-effective solution.",
+                        description: "Deployable drag sails or inflatable structures dramatically increase a satellite or spacecraft's cross-sectional area, which increases its susceptibility to drag forces. At the end of the operational life of the object, these devices can be deployed, accelerating orbital decay through atmospheric drag. Drag sails are lightweight and can be integrated into satellite and craft design fairly easily from the outset, which makes this is a very cost-effective solution.",
                         mechanism: "By increasing the area-to-mass ratio, atmospheric drag forces multiply, reducing deorbit time from centuries to years, or even months, even at high altitudes."
                     )
                     
                     StrategyCard(
-                        title: "Harpoons, nets and chaser spacecraft",
+                        title: "Harpoons & Nets",
                         icon: "lasso",
                         description: "A specialized chaser spacecraft approaches a large defunct satellite or rocket body, or another type of large debris, and secures it using a tethered harpoon or deployable net. Once it's captured, the spacecraft performs a controlled burn that deorbits the debris.",
-                        mechanism: "The RemoveDEBRIS mission (2018) successfully demonstrated both net capture and harpoon penetration in orbit. ESA's ClearSpace-1, planned for 2026, aims to be the first full-scale removal mission."
+                        mechanism: "The RemoveDEBRIS mission (2018) successfully demonstrated both net capture and harpoon penetration in orbit. It was also supposed to demonstrate the use of drag sails, but they failed to deploy. ESA's ClearSpace-1, planned for launching in 2029, aims to be the first full-scale removal mission. The goal is to deorbit the ESA's own PROBA-1 satellite, which weighs 95kg and was launched all the way back in 2001."
                     )
                     
                     StrategyCard(
-                        title: "Laser ablation",
+                        title: "Laser Ablation",
                         icon: "dot.radiowaves.left.and.right",
                         description: "High-powered ground-based or orbital lasers target a debris object's surface. The laser's focused energy vaporizes a small amount of material. This creates a gas jet that acts as a miniature thruster, applying a small but very precise impulse to the object.",
                         mechanism: "Repeated laser passes over days or weeks can gradually lower the object's orbit until atmospheric drag finishes the job. No physical contact is required, and resource-wise this is fairly efficient."
                     )
                     
                     StrategyCard(
-                        title: "Magnetic braking and stabilizing",
+                        title: "Magnetic Stabilization & Braking",
                         icon: "gyroscope",
                         description: "Tumbling debris objects are very dangerous to approach and impossible to dock with. Magnetic tugs generate rotating magnetic fields that induce eddy currents in the target's conductive body, producing forces and torques at a safe distance.",
-                        mechanism: "This can either stabilize the target for subsequent capture, or directly lower the orbit over time using magnetic braking. No mechanical attachment is needed, mitigating risk to equipment."
+                        mechanism: "This can either stabilize the target for subsequent capture, or directly lower the orbit over time using magnetic braking. No mechanical attachment is needed, mitigating risk to equipment. This strategy is still highly experimental and under research."
                     )
                 }
             }
@@ -144,11 +138,7 @@ struct StrategyCard: View {
                 Text(title)
                     .font(.headline)
                     .foregroundStyle(.white)
-                
                 Spacer()
-                
-                
-                
             }
             
             Divider().overlay(Color.white.opacity(0.1))
