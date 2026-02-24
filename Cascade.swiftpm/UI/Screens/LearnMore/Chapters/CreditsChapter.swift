@@ -4,8 +4,7 @@ struct CreditsChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 36) {
             
-            TextParagraph("The information presented in this explainer is drawn from publicly available scientific publications, institutional reports, and official data repositories maintained by international space agencies and reputable non-profit organizations.")
-            
+            TextParagraph("Cascade's premise as well as the information and data shown here are all drawn from publicly available scientific publications, institutional reports, and official data repositories maintained by international space agencies and reputable non-profit organizations.")
             
             ScientificCard {
                 VStack(alignment: .leading, spacing: 18) {
@@ -15,6 +14,14 @@ struct CreditsChapter: View {
                         "H. Klinkrad — \"Space Debris: Models and Risk Analysis\" (Springer-Verlag, 2006)"
                     ])
                     
+                    Divider().cascadeDivider()
+                    
+                    CreditSection(role: "Assets & Orbital Data", entries: [
+                        "Earth texture and cloud map by Tom Patterson (www.shadedrelief.com), based on NASA Earth Observatory images by Reto Stöckli.",
+                        "ESA Space Debris User Portal — discosweb.esoc.esa.int",
+                        "CelesTrak (T.S. Kelso) — TLE catalog and orbital element data"
+                    ])
+                
                     Divider().cascadeDivider()
                     
                     CreditSection(role: "Institutional Data Sources", entries: [
@@ -30,17 +37,6 @@ struct CreditsChapter: View {
                         "S. Forshaw et al. — \"RemoveDEBRIS: An In-Orbit Active Debris Removal Demonstration Mission\" (Acta Astronautica, Vol. 127, 2016)",
                         "ESA ClearSpace-1 Mission Overview — esa.int/clearspace",
                         "C. Bombardelli & J. Peláez — \"Ion Beam Shepherd for Contactless Space Debris Removal\" (Journal of Guidance, Control, and Dynamics, Vol. 34, 2011)"
-                    ])
-                }
-            }
-            
-            
-            ScientificCard {
-                VStack(alignment: .leading, spacing: 18) {
-                    CreditSection(role: "Imagery & Orbital Data", entries: [
-                        "Earth texture from NASA Earth Observatory images by Reto Stöckli, based on data from NASA and NOAA.",
-                        "ESA Space Debris User Portal — discosweb.esoc.esa.int",
-                        "CelesTrak (T.S. Kelso) — TLE catalog and orbital element data"
                     ])
                 }
             }

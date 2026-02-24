@@ -88,11 +88,8 @@ class Simulation: ObservableObject {
     private let controller = SceneController()
     let telemetry = Telemetry()
     private var cancellables = Set<AnyCancellable>()
-    
-    
+
     @Published var draft = PopulationDraft.defaults
-    
-    
     
     @Published private(set) var activeSatelliteCount: Double = PopulationDraft.defaults.satelliteCount
     @Published private(set) var activeOrbitAltitude: Double = SimSettings.defaults.orbitAltitude
@@ -111,8 +108,6 @@ class Simulation: ObservableObject {
     
     @Published var debrisPerCollision: Double = SimSettings.defaults.debrisPerCollision { didSet { syncSettings() } }
         @Published var maxDebris: Double = Double(SimSettings.defaults.maxDebris) { didSet { syncSettings() } }
-    
-    
     @Published var isCameraEnabled: Bool = false
     @Published var showSatellites: Bool = SimSettings.defaults.showSatellites { didSet { syncSettings() } }
     @Published var satelliteColor: Color = .cyan { didSet { syncSettings() } }
@@ -122,8 +117,6 @@ class Simulation: ObservableObject {
     @Published var debrisScale: Double = SimSettings.defaults.debrisScale { didSet { syncSettings() } }
     @Published var useOmniLight: Bool = SimSettings.defaults.useOmniLight { didSet { syncSettings() } }
     @Published var showEarth: Bool = SimSettings.defaults.showEarth { didSet { syncSettings() } }
-    
-    
     @Published var showStats: Bool = true
     @Published var isPaused: Bool = true { didSet { controller.isPaused = isPaused } }
     @Published private(set) var hasStarted: Bool = false
@@ -136,20 +129,14 @@ class Simulation: ObservableObject {
         
         resetSettingsToDefaults()
     }
-    
-    
-    
+
     func startSimulation() {
         guard !hasStarted else { return }
         hasStarted = true
         resetSimulation()
-        
     }
-    
-    
-    
+
     func resetSimulation() {
-        
         activeSatelliteCount = draft.satelliteCount
         activeOrbitAltitude = draft.orbitAltitude
         activeOrbitVariance = draft.orbitVariance
@@ -163,7 +150,6 @@ class Simulation: ObservableObject {
     func syncSettings() {
             
             let effectiveHitbox = collisionRadius + ((satelliteScale - 1.0) * 0.25)
-            
             let settings = SimSettings(
                 
                 debrisPerCollision: debrisPerCollision,
@@ -180,16 +166,12 @@ class Simulation: ObservableObject {
                 debrisColor: debrisColor,
                 backgroundColor: backgroundColor,
                 
-                
                 maxDebris: Int(maxDebris),
-                
-                
                 useRandomInclination: activeUseRandomInclination,
                 
                 satelliteScale: satelliteScale,
                 debrisScale: debrisScale,
                 gravityMultiplier: gravityMultiplier, 
-                
                 
                 orbitAltitude: activeOrbitAltitude,
                 orbitVariance: activeOrbitVariance,

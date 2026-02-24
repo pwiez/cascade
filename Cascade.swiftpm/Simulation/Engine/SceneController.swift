@@ -6,30 +6,23 @@ import RealityKit
 @MainActor
 class SceneController: ObservableObject {
     
-    
     @Published var simulationStats = SimStats()
     var isPaused: Bool = true
     
-    
     private weak var arView: ARView?
     private let rootAnchor = AnchorEntity(world: .zero)
-    
-    
+
     private var cameraRig: CameraRig?
     private var system: PhysicsSolver
     private var debrisBatchSystem: DebrisBatchSystem
-    
-    
+
     private var earthEntity: Entity?
     private let mainSun = DirectionalLight()
     private var fillLights: [Entity] = []
     private var satellites: [ModelEntity] = []
-    
-    
     private var satelliteMaterial: UnlitMaterial
     private var debrisMaterial: UnlitMaterial
     private let satelliteMesh: MeshResource
-    
     
     private var settings = SimSettings.defaults
     private var frameCounter = 0
@@ -38,11 +31,9 @@ class SceneController: ObservableObject {
     private var commandQueue: [EngineCommand] = []
     private var sceneUpdateSubscription: Cancellable?
     
-    
     private let earthRadius: Float = 100.0
     private let gravitationalConstant: Float = 1.0
     private let earthMass: Float = 50000
-    
     
     init() {
         OrbitalData.registerComponent()
@@ -59,8 +50,7 @@ class SceneController: ObservableObject {
         
         rootAnchor.addChild(debrisBatchSystem.entity)
     }
-    
-    
+
     func attach(to view: ARView) {
         self.arView = view
         
@@ -77,7 +67,6 @@ class SceneController: ObservableObject {
             self?.runSimulationFrame()
         }
     }
-    
     
     private func runSimulationFrame() {
         let currentTime = CACurrentMediaTime()
@@ -191,7 +180,6 @@ class SceneController: ObservableObject {
         earthEntity?.orientation *= simd_quatf(angle: 0.2 * deltaTime, axis: [0, 1, 0])
     }
     
-    
     private func setupLighting() {
         mainSun.light.intensity = 6200
         mainSun.look(at: [0, 0, 0], from: [500, 0, -500], relativeTo: nil)
@@ -200,7 +188,6 @@ class SceneController: ObservableObject {
     
     private func setupEarth() {
         let blackTex = createBlackTexture()
-        
         
         let earthMesh = MeshResource.generateSphere(radius: earthRadius)
         var earthMaterial = PhysicallyBasedMaterial()
@@ -213,7 +200,6 @@ class SceneController: ObservableObject {
             earthMaterial.ambientOcclusion = .init(texture: .init(tex))
         }
         
-        
         if let texture = try? TextureResource.load(named: "earthmap") {
             earthMaterial.baseColor = .init(tint: .white, texture: .init(texture))
         } else {
@@ -224,7 +210,6 @@ class SceneController: ObservableObject {
         earth.orientation = simd_quatf(angle: 23.5 * .pi / 180, axis: [0, 0, 1])
         self.earthEntity = earth
         rootAnchor.addChild(earth)
-        
         
         let atmMesh = MeshResource.generateSphere(radius: earthRadius + 1.2)
         var atmMat = PhysicallyBasedMaterial()
@@ -277,7 +262,6 @@ class SceneController: ObservableObject {
         if colorChanged {
             updateMaterials()
         }
-        
         
         if visualsChanged {
             updateSatelliteVisuals()
@@ -389,7 +373,6 @@ class SceneController: ObservableObject {
         if settings.useOmniLight {
             if fillLights.isEmpty {
                 
-                
                 let fillPositions: [SIMD3<Float>] = [
                     [-500,    0,  500], 
                     [-500,  300, -200], 
@@ -398,10 +381,8 @@ class SceneController: ObservableObject {
                 
                 for pos in fillPositions {
                     let light = DirectionalLight()
-                    
                     light.light.intensity = 3500
                     light.light.color = .init(red: 0.7, green: 0.85, blue: 1.0, alpha: 1.0)
-                    
                     light.look(at: [0, 0, 0], from: pos, relativeTo: nil)
                     
                     rootAnchor.addChild(light)
