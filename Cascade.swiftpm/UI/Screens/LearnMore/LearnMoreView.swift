@@ -98,6 +98,7 @@ struct ChapterContainerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 32) {
+                
                 VStack(alignment: .leading, spacing: 8) {
                     Text(activeSection.title)
                         .font(.largeTitle.weight(.bold))
@@ -115,6 +116,7 @@ struct ChapterContainerView: View {
                 }
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityElement(children: .combine)
+                
                 
                 Group {
                     switch activeSection {

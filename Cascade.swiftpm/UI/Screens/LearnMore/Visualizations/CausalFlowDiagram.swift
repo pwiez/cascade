@@ -8,6 +8,7 @@ struct CausalFlowDiagram: View {
                 .foregroundStyle(CascadeTheme.dimText)
                 .tracking(0.6)
             
+            
             HStack(spacing: 0) {
                 flowNode(icon: "cube.fill", title: "Density\nIncreases", color: .blue)
                 flowConnector
@@ -17,6 +18,7 @@ struct CausalFlowDiagram: View {
                 flowConnector
                 flowNode(icon: "exclamationmark.triangle.fill", title: "Risk\nEscalates", color: .red)
             }
+            
             
             HStack(spacing: 8) {
                 Image(systemName: "arrow.turn.up.left")

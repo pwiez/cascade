@@ -13,6 +13,7 @@ struct ContentView: View {
             let isPortrait = geometry.size.height > geometry.size.width
             
             ZStack {
+                
                 TabView(selection: $selectedTab) {
                     SimulationScreen(simulation: simulation)
                         .tabItem { Label("Simulation", systemImage: "cube.transparent") }
@@ -30,11 +31,13 @@ struct ContentView: View {
                 .blur(radius: showIntro ? 16 : 0)
                 .animation(.easeInOut(duration: 0.4), value: showIntro)
                 
+                
                 if showIntro && !isPortrait {
                     OnboardingOverlay {
                         withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
                             showIntro = false
                         }
+                        
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                             simulation.startSimulation()
                         }
@@ -42,6 +45,7 @@ struct ContentView: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.97)))
                     .zIndex(2000)
                 }
+                
                 
                 if isPortrait {
                     PortraitWarningView()
@@ -58,6 +62,7 @@ struct ContentView: View {
                     simulation.pauseSimulation()
                 }
                 else if !currentPortrait && wasPortrait {
+                    
                     if wasPlayingBeforeRotation && !showIntro {
                         simulation.resumeSimulation()
                     }

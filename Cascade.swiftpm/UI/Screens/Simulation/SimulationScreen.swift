@@ -16,9 +16,12 @@ struct SimulationScreen: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
+                
                 SimulationContainer(simulation: simulation)
                     .ignoresSafeArea()
                     .zIndex(0)
+                
+                
                 
                 
                 if simulation.showStats {
@@ -39,6 +42,7 @@ struct SimulationScreen: View {
                     .zIndex(1)
                 }
                 
+                
                 HStack {
                     SimulationControls(
                         isPaused: $simulation.isPaused,
@@ -53,6 +57,7 @@ struct SimulationScreen: View {
                 .ignoresSafeArea()
                 .zIndex(2)
                 
+                
                 VStack {
                     Spacer()
                     Text("This simulation is not-to-scale.")
@@ -62,6 +67,7 @@ struct SimulationScreen: View {
                         .padding(.bottom, 8)
                 }
                 .zIndex(1)
+                
                 
                 if showSettings {
                     HStack {

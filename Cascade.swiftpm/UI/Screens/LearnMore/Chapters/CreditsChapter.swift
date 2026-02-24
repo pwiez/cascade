@@ -6,6 +6,7 @@ struct CreditsChapter: View {
             
             TextParagraph("The information presented in this explainer is drawn from publicly available scientific publications, institutional reports, and official data repositories maintained by international space agencies and reputable non-profit organizations.")
             
+            
             ScientificCard {
                 VStack(alignment: .leading, spacing: 18) {
                     CreditSection(role: "Foundational Publications", entries: [
@@ -32,6 +33,7 @@ struct CreditsChapter: View {
                     ])
                 }
             }
+            
             
             ScientificCard {
                 VStack(alignment: .leading, spacing: 18) {

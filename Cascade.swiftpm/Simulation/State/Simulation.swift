@@ -41,7 +41,7 @@ extension SimSettings {
         showSatellites: true,
         
         satelliteColor: .green,
-        debrisColor: .white,
+        debrisColor: .red,
         backgroundColor: .black,
         
         maxDebris: 2000,
@@ -68,6 +68,7 @@ enum EngineCommand {
 }
 
 struct PopulationDraft {
+    
     var satelliteCount: Double
     var orbitAltitude: Double
     var orbitVariance: Double
@@ -88,12 +89,16 @@ class Simulation: ObservableObject {
     let telemetry = Telemetry()
     private var cancellables = Set<AnyCancellable>()
     
+    
     @Published var draft = PopulationDraft.defaults
+    
+    
     
     @Published private(set) var activeSatelliteCount: Double = PopulationDraft.defaults.satelliteCount
     @Published private(set) var activeOrbitAltitude: Double = SimSettings.defaults.orbitAltitude
     @Published private(set) var activeOrbitVariance: Double = SimSettings.defaults.orbitVariance
     @Published private(set) var activeUseRandomInclination: Bool = SimSettings.defaults.useRandomInclination
+    
     
     @Published var timeScale: Double = SimSettings.defaults.timeScale { didSet { syncSettings() } }
     @Published var gravityMultiplier: Double = SimSettings.defaults.gravityMultiplier { didSet { syncSettings() } }
@@ -107,6 +112,7 @@ class Simulation: ObservableObject {
     @Published var debrisPerCollision: Double = SimSettings.defaults.debrisPerCollision { didSet { syncSettings() } }
         @Published var maxDebris: Double = Double(SimSettings.defaults.maxDebris) { didSet { syncSettings() } }
     
+    
     @Published var isCameraEnabled: Bool = false
     @Published var showSatellites: Bool = SimSettings.defaults.showSatellites { didSet { syncSettings() } }
     @Published var satelliteColor: Color = .cyan { didSet { syncSettings() } }
@@ -116,6 +122,7 @@ class Simulation: ObservableObject {
     @Published var debrisScale: Double = SimSettings.defaults.debrisScale { didSet { syncSettings() } }
     @Published var useOmniLight: Bool = SimSettings.defaults.useOmniLight { didSet { syncSettings() } }
     @Published var showEarth: Bool = SimSettings.defaults.showEarth { didSet { syncSettings() } }
+    
     
     @Published var showStats: Bool = true
     @Published var isPaused: Bool = true { didSet { controller.isPaused = isPaused } }
@@ -131,14 +138,18 @@ class Simulation: ObservableObject {
     }
     
     
+    
     func startSimulation() {
         guard !hasStarted else { return }
         hasStarted = true
         resetSimulation()
+        
     }
     
     
+    
     func resetSimulation() {
+        
         activeSatelliteCount = draft.satelliteCount
         activeOrbitAltitude = draft.orbitAltitude
         activeOrbitVariance = draft.orbitVariance
@@ -146,17 +157,18 @@ class Simulation: ObservableObject {
         initialSatelliteCount = Int(activeSatelliteCount)
         
         syncSettings()
-        
         controller.queueCommand(.reset(Int(activeSatelliteCount)))
     }
     
     func syncSettings() {
+            
             let effectiveHitbox = collisionRadius + ((satelliteScale - 1.0) * 0.25)
             
             let settings = SimSettings(
+                
                 debrisPerCollision: debrisPerCollision,
                 explosionForce: explosionForce,
-                collisionRadius: effectiveHitbox,
+                collisionRadius: effectiveHitbox, 
                 
                 spreadTangential: spreadTangential,
                 spreadVertical: spreadVertical,
@@ -168,13 +180,16 @@ class Simulation: ObservableObject {
                 debrisColor: debrisColor,
                 backgroundColor: backgroundColor,
                 
+                
                 maxDebris: Int(maxDebris),
+                
                 
                 useRandomInclination: activeUseRandomInclination,
                 
                 satelliteScale: satelliteScale,
                 debrisScale: debrisScale,
-                gravityMultiplier: gravityMultiplier,
+                gravityMultiplier: gravityMultiplier, 
+                
                 
                 orbitAltitude: activeOrbitAltitude,
                 orbitVariance: activeOrbitVariance,
@@ -200,15 +215,15 @@ class Simulation: ObservableObject {
         spreadRadial = d.spreadRadial
         
         satelliteColor = .green
-        debrisColor = .white
+        debrisColor = .red
         backgroundColor = .black
         
         useOmniLight = d.useOmniLight
         showEarth = d.showEarth
         
         draft = PopulationDraft.defaults
-        
     }
+    
     
     func attachToView(_ arView: ARView) { controller.attach(to: arView) }
     func togglePause() { isPaused.toggle() }

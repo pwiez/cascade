@@ -26,7 +26,7 @@ struct DebrisChart: View {
         .init(year: 2015, count: 18000, annotation: nil),
         .init(year: 2018, count: 20000, annotation: nil),
         .init(year: 2020, count: 23000, annotation: nil),
-            .init(year: 2021, count: 25500, annotation: "Cosmos 1408 ASAT"),
+            .init(year: 2021, count: 25500, annotation: "Cosmos 1408 ASAT"), 
             .init(year: 2022, count: 27000, annotation: nil),
             .init(year: 2024, count: 32000, annotation: nil),
             .init(year: 2026, count: 35200, annotation: "Current")
@@ -66,6 +66,7 @@ struct DebrisChart: View {
                     .lineStyle(StrokeStyle(lineWidth: 2.5))
                     .interpolationMethod(.catmullRom)
                 }
+                
                 
                 RuleMark(x: .value("Event", 2007))
                     .foregroundStyle(.orange.opacity(0.4))

@@ -7,6 +7,7 @@ struct SimulationFrame: Sendable {
     let posY: [Float]
     let posZ: [Float]
     
+    
     let rotAngle: [Float]
     let rotAxisX: [Float]
     let rotAxisY: [Float]
@@ -31,9 +32,11 @@ actor PhysicsSolver {
         self.settings = settings
         self.killRadiusSq = pow(earthRadius + 2.0, 2)
         
+        
         self.maxRadiusSq = 175.0 * 175.0
         
         self.debrisPool = DebrisPool(capacity: 5_500)
+        
         
         let minGridWidth: Float = 350.0
         let requiredCellSizeForWidth = minGridWidth / 128.0
@@ -48,6 +51,7 @@ actor PhysicsSolver {
               satelliteVelocities: [SIMD3<Float>],
               satelliteIndices: [Int]) -> SimulationFrame {
         
+        
         debrisPool.updatePhysics(
             dt: dt,
             earthMass: earthMass,
@@ -55,10 +59,12 @@ actor PhysicsSolver {
             maxRadiusSq: maxRadiusSq
         )
         
+        
         if debrisPool.activeCount > settings.maxDebris {
             let excess = debrisPool.activeCount - settings.maxDebris
             for _ in 0..<excess { debrisPool.kill(at: 0) }
         }
+        
         
         var killedSats: [Int] = []
         var explosions: [CollisionEvent] = []
@@ -76,6 +82,7 @@ actor PhysicsSolver {
             killedSats = results.deaths
             explosions = results.explosions
         }
+        
         
         let count = debrisPool.activeCount
         let frame = SimulationFrame(
@@ -160,6 +167,7 @@ actor PhysicsSolver {
         
         grid.clear()
         
+        
         for i in 0..<satCount {
             grid.add(objectIndex: i, position: satPos[i])
         }
@@ -170,6 +178,7 @@ actor PhysicsSolver {
         
         let radius = Float(settings.collisionRadius)
         let radiusSq = radius * radius
+        
         
         let localGrid = self.grid
         let dPosX = debrisPool.posX
@@ -188,6 +197,7 @@ actor PhysicsSolver {
         
         let totalObjects = satCount + debrisPool.activeCount
         let maxCores = ProcessInfo.processInfo.activeProcessorCount
+        
         
         let objectsPerCore = 250
         let desiredCores = max(1, totalObjects / objectsPerCore)

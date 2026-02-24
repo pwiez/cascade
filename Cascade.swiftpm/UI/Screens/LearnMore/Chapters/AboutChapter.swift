@@ -3,13 +3,12 @@ import SwiftUI
 struct AboutChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 44) {
-            
             VStack(alignment: .leading, spacing: 24) {
                 
                 Text("Simulation Architecture")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
-                TextParagraph("Cascade runs a custom deterministic physics engine written in Swift. To maintain 60 FPS on mobile devices while tracking thousands of objects, the simulation employs specific architectural patterns and mathematical simplifications.")
+                TextParagraph("Cascade runs a custom deterministic physics engine written in Swift. To maintain a stable framerate on your device while tracking from hundreds to thousands of objects, the engine uses several math optimizations and makes some significant physics concessions.")
                 
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 18) {
@@ -31,36 +30,43 @@ struct AboutChapter: View {
             
             Divider().cascadeDivider()
             
+            
             VStack(alignment: .leading, spacing: 24) {
-
+                
                 Text("Compromises & Constraints")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
-                TextParagraph("A full-fidelity orbital simulation requires supercomputers. To run locally on your device, Cascade makes three major physics compromises:")
+                TextParagraph("A full-fidelity orbital simulation requires supercomputers. To run smoothly on your device, Cascade makes a few major physics compromises:")
                 
                 VStack(spacing: 20) {
                     SimplificationCard(
                         title: "No Debris-Debris Collisions",
                         icon: "bolt.slash.fill",
-                        description: "The simulation calculates Satellite-vs-Satellite and Satellite-vs-Debris impacts. However, debris fragments do not collide with each other. Calculating interactions between thousands of debris particles would grow exponentially (O(n²)), stalling the engine."
+                        description: "The simulation calculates Satellite-vs-Satellite and Satellite-vs-Debris impacts. However, debris fragments do not collide with each other. Calculations for interactions between thousands of debris particles would grow exponentially, stalling the engine and freezing Cascade."
                     )
                     
                     SimplificationCard(
                         title: "Representative Density",
                         icon: "square.grid.3x3.middle.filled",
-                        description: "We cannot render the 100+ million actual fragments in orbit. Instead, Cascade uses 'Representative Debris': one visible particle in the simulation represents a dense cloud of thousands of real-world lethal fragments."
+                        description: "It is impossible to render 100+ million fragments in orbit. Instead, Cascade uses 'representative debris': one visible debris in the simulation represents a dense cloud of thousands of fragments."
                     )
                     
                     SimplificationCard(
                         title: "Idealized Gravity",
                         icon: "circle.dashed",
-                        description: "The simulation treats Earth as a perfect sphere. It omits 'J2 Perturbations' (the effect of Earth's equatorial bulge) and atmospheric drag. Objects only deorbit if they physically collide with the planet's surface."
+                        description: "The simulation treats Earth as a perfect sphere. It omits gravitational disturbances caused Earth's equatorial bulge. Gravity behaves the exact same in every point of every orbit."
+                    )
+                    
+                    SimplificationCard(
+                        title: "Scaling",
+                        icon: "square.resize.up",
+                        description: "In Cascade, Earth's size is drastically reduced and satellites / debris sizes are drastically increased, to make it possible for you to visualize Kessler Syndrome. In reality, if you were to view Earth from afar, you would see...nothing - just Earth. Space looks incredibly peaceful because debris and satellites are incredibly small in the grand scale of things. Looks are deceiving!"
                     )
                     
                     SimplificationCard(
                         title: "No Atmospheric Drag",
                         icon: "wind",
-                        description: "Cascade does not account for atmospheric drag at orbital altitudes - which, as you learned in previous chapters, is essential for deorbiting debris over the years. In the simulation, debris that achieves a stable orbital path remains in orbit forever."
+                        description: "Cascade does not account for atmospheric drag at orbital altitudes - which, as you learned in previous chapters, is essential for deorbiting debris over the years. In the simulation, debris that achieves a stable orbital path remains in orbit forever. However, if debris does come into contact with Earth by any means, it is deleted from the simulation."
                     )
                 }
             }

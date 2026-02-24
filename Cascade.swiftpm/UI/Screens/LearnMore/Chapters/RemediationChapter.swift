@@ -5,6 +5,7 @@ struct RemediationChapter: View {
         VStack(alignment: .leading, spacing: 36) {
             TextParagraph("Addressing orbital debris is a systems-level challenge requiring a three-pronged approach: prevent new debris generation through better design and operations, enforce responsible disposal of end-of-life spacecraft, and actively remove the highest-risk legacy objects before they fragment.")
             
+            
             VStack(alignment: .leading, spacing: 24) {
                 Text("Atmospheric Drag")
                     .font(.title2.bold()).foregroundStyle(.white)
@@ -38,6 +39,7 @@ struct RemediationChapter: View {
             }
             
             Divider().cascadeDivider()
+            
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Active Removal Technologies")
@@ -77,6 +79,7 @@ struct RemediationChapter: View {
             }
             
             Divider().cascadeDivider()
+            
             
             ScientificCard {
                 VStack(alignment: .leading, spacing: 14) {
@@ -145,6 +148,7 @@ struct StrategyCard: View {
                 Spacer()
                 
                 
+                
             }
             
             Divider().overlay(Color.white.opacity(0.1))
@@ -168,6 +172,7 @@ struct StrategyCard: View {
                 }
                 .padding(CascadeTheme.compactPadding)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                
                 .background(Color.blue.opacity(0.05))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(
