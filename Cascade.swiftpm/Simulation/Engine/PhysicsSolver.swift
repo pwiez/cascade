@@ -13,14 +13,14 @@ actor PhysicsSolver {
     init(settings: SimSettings, earthRadius: Float) {
         self.settings = settings
         self.killRadiusSq = pow(earthRadius + 2.0, 2)
-        self.maxRadiusSq = 175.0 * 175.0
+        self.maxRadiusSq = 300 * 300
 
-        self.debrisPool = DebrisPool(capacity: 5_500)
+        self.debrisPool = DebrisPool(capacity: 3100)
 
         let minGridWidth: Float = 350.0
         let requiredCellSize = minGridWidth / 128.0
         let safeCellSize = max(Float(settings.collisionRadius * 2.1), requiredCellSize)
-        self.grid = SpatialGrid(maxObjects: 6_000, cellSize: safeCellSize)
+        self.grid = SpatialGrid(maxObjects: 5000, cellSize: safeCellSize)
     }
 
     func step(dt: Float,

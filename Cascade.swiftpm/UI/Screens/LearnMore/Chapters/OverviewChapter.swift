@@ -10,14 +10,12 @@ import SwiftUI
 struct OverviewChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 32) {
-            
-            
+        
             DefinitionCallout(
                 term: "Kessler Syndrome",
-                definition: "A theoretical scenario proposed by NASA scientist Donald J. Kessler in 1978, in which the density of objects in Low Earth Orbit becomes high enough that collisions between objects generate sufficient debris to trigger a self-sustaining cascade of further collisions. Each impact produces hundreds or thousands of new fragments, each capable of destroying another object.",
-                source: "Kessler & Cour-Palais, Journal of Geophysical Research, 1978"
+                definition: "A theoretical scenario proposed by NASA scientists Donald J. Kessler and Burton G. Cour-Palais in 1978, in which the density of objects in Low Earth Orbit becomes high enough that collisions between objects generate sufficient debris to trigger a self-sustaining cascade of further collisions. Each impact produces hundreds or thousands of new fragments, each capable of destroying another object.",
+                source: "Kessler & Cour-Palais, Journal of Geophysical Research, vol. 83, issue A6, 1978"
             )
-            
             
             ScientificCard {
                 VStack(alignment: .leading, spacing: 14) {
@@ -43,6 +41,7 @@ struct OverviewChapter: View {
                     LearningObjective(text: "Recognize that orbital space is a finite resource requiring active stewardship")
                 }
             }
+            .padding(.horizontal, 8)
         }
     }
 }

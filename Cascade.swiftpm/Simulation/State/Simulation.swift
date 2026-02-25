@@ -39,13 +39,13 @@ extension SimSettings {
         spreadRadial: 0.0,
         timeScale: 1.0,
         showSatellites: true,
-        satelliteColor: .green,
+        satelliteColor: Color(red: 0.108, green: 0.500, blue: 0.229),
         debrisColor: .red,
         backgroundColor: .black,
         maxDebris: 2000,
         useRandomInclination: true,
-        satelliteScale: 1.5,
-        debrisScale: 1.5,
+        satelliteScale: 2.0,
+        debrisScale: 2.0,
         gravityMultiplier: 1.0,
         orbitAltitude: 120,
         orbitVariance: 2.0,
@@ -136,6 +136,8 @@ class Simulation: ObservableObject {
     }
 
     func resetSimulation() {
+        isPaused = true
+
         activeSatelliteCount = draft.satelliteCount
         activeOrbitAltitude = draft.orbitAltitude
         activeOrbitVariance = draft.orbitVariance
@@ -185,7 +187,7 @@ class Simulation: ObservableObject {
         spreadTangential = d.spreadTangential
         spreadVertical = d.spreadVertical
         spreadRadial = d.spreadRadial
-        satelliteColor = .green
+        satelliteColor = Color(red: 0.108, green: 0.500, blue: 0.229)
         debrisColor = .red
         backgroundColor = .black
         useOmniLight = d.useOmniLight
