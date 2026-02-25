@@ -4,189 +4,165 @@ import simd
 import Accelerate
 
 class DebrisPool {
-    
+
     var posX: [Float]
     var posY: [Float]
     var posZ: [Float]
-    
+
     var velX: [Float]
     var velY: [Float]
     var velZ: [Float]
-    
+
     var rotAxisX: [Float]
-        var rotAxisY: [Float]
-        var rotAxisZ: [Float]
-        var spinRate: [Float]
-        var rotAngle: [Float]
-    
-    var activeCount: Int = 0
+    var rotAxisY: [Float]
+    var rotAxisZ: [Float]
+    var spinRate:  [Float]
+    var rotAngle:  [Float]
+
+    private(set) var activeCount: Int = 0
     let capacity: Int
-    
+
     init(capacity: Int) {
         self.capacity = capacity
-        
-        self.posX = Array(repeating: 0, count: capacity)
-        self.posY = Array(repeating: 0, count: capacity)
-        self.posZ = Array(repeating: 0, count: capacity)
-        
-        self.velX = Array(repeating: 0, count: capacity)
-        self.velY = Array(repeating: 0, count: capacity)
-        self.velZ = Array(repeating: 0, count: capacity)
-        
-        self.rotAxisX = Array(repeating: 0, count: capacity)
-            self.rotAxisY = Array(repeating: 1, count: capacity)
-            self.rotAxisZ = Array(repeating: 0, count: capacity)
-            self.spinRate = Array(repeating: 0, count: capacity)
-            self.rotAngle = Array(repeating: 0, count: capacity)
+
+        posX = Array(repeating: 0, count: capacity)
+        posY = Array(repeating: 0, count: capacity)
+        posZ = Array(repeating: 0, count: capacity)
+
+        velX = Array(repeating: 0, count: capacity)
+        velY = Array(repeating: 0, count: capacity)
+        velZ = Array(repeating: 0, count: capacity)
+
+        rotAxisX = Array(repeating: 0, count: capacity)
+        rotAxisY = Array(repeating: 1, count: capacity)
+        rotAxisZ = Array(repeating: 0, count: capacity)
+        spinRate = Array(repeating: 0, count: capacity)
+        rotAngle = Array(repeating: 0, count: capacity)
     }
-    
+
     func reset() {
         activeCount = 0
     }
-    
+
     func spawn(at position: SIMD3<Float>, velocity: SIMD3<Float>) {
         guard activeCount < capacity else { return }
-        let index = activeCount
-        
-        posX[index] = position.x
-        posY[index] = position.y
-        posZ[index] = position.z
-        
-        velX[index] = velocity.x
-        velY[index] = velocity.y
-        velZ[index] = velocity.z
-        
-        
-            let axis = normalize(SIMD3<Float>(Float.random(in: -1...1), Float.random(in: -1...1), Float.random(in: -1...1)))
-            rotAxisX[index] = axis.x
-            rotAxisY[index] = axis.y
-            rotAxisZ[index] = axis.z
-            spinRate[index] = Float.random(in: 1.0...6.0) 
-            rotAngle[index] = Float.random(in: 0...6.28)
-        
+        let i = activeCount
+
+        posX[i] = position.x
+        posY[i] = position.y
+        posZ[i] = position.z
+
+        velX[i] = velocity.x
+        velY[i] = velocity.y
+        velZ[i] = velocity.z
+
+        let axis = normalize(SIMD3<Float>(
+            Float.random(in: -1...1),
+            Float.random(in: -1...1),
+            Float.random(in: -1...1)
+        ))
+        rotAxisX[i] = axis.x
+        rotAxisY[i] = axis.y
+        rotAxisZ[i] = axis.z
+        spinRate[i] = Float.random(in: 1.0...6.0)
+        rotAngle[i] = Float.random(in: 0...6.28)
+
         activeCount += 1
     }
-    
+
     func kill(at index: Int) {
         guard index < activeCount else { return }
-        let lastIndex = activeCount - 1
-        
-        if index != lastIndex {
-            posX[index] = posX[lastIndex]
-            posY[index] = posY[lastIndex]
-            posZ[index] = posZ[lastIndex]
-            
-            velX[index] = velX[lastIndex]
-            velY[index] = velY[lastIndex]
-            velZ[index] = velZ[lastIndex]
-            
-            rotAxisX[index] = rotAxisX[lastIndex]
-                rotAxisY[index] = rotAxisY[lastIndex]
-                rotAxisZ[index] = rotAxisZ[lastIndex]
-                spinRate[index] = spinRate[lastIndex]
-                rotAngle[index] = rotAngle[lastIndex]
+        let last = activeCount - 1
+
+        if index != last {
+            posX[index] = posX[last]
+            posY[index] = posY[last]
+            posZ[index] = posZ[last]
+
+            velX[index] = velX[last]
+            velY[index] = velY[last]
+            velZ[index] = velZ[last]
+
+            rotAxisX[index] = rotAxisX[last]
+            rotAxisY[index] = rotAxisY[last]
+            rotAxisZ[index] = rotAxisZ[last]
+            spinRate[index] = spinRate[last]
+            rotAngle[index] = rotAngle[last]
         }
         activeCount -= 1
     }
-    
+
     func updatePhysics(dt: Float, earthMass: Float, killRadiusSq: Float, maxRadiusSq: Float) {
         guard activeCount > 0 else { return }
-        
         let count = activeCount
-        
-        
-        withSixBuffers(&posX, &posY, &posZ, &velX, &velY, &velZ) { ptrX, ptrY, ptrZ, vPtrX, vPtrY, vPtrZ in
-            
+
+        withSixBuffers(&posX, &posY, &posZ, &velX, &velY, &velZ) { pX, pY, pZ, vX, vY, vZ in
             if count < 1000 {
-                
                 for i in 0..<count {
-                    DebrisPool.performGravity(i: i, ptrX: ptrX, ptrY: ptrY, ptrZ: ptrZ, vPtrX: vPtrX, vPtrY: vPtrY, vPtrZ: vPtrZ, earthMass: earthMass, dt: dt, killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq)
+                    DebrisPool.applyGravity(
+                        i: i,
+                        ptrX: pX, ptrY: pY, ptrZ: pZ,
+                        vPtrX: vX, vPtrY: vY, vPtrZ: vZ,
+                        earthMass: earthMass, dt: dt,
+                        killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq
+                    )
                 }
             } else {
-                
-                struct PointerPack: @unchecked Sendable {
-                    let px: UnsafeMutableBufferPointer<Float>
-                    let py: UnsafeMutableBufferPointer<Float>
-                    let pz: UnsafeMutableBufferPointer<Float>
-                    let vx: UnsafeMutableBufferPointer<Float>
-                    let vy: UnsafeMutableBufferPointer<Float>
-                    let vz: UnsafeMutableBufferPointer<Float>
+                struct Ptrs: @unchecked Sendable {
+                    let px, py, pz, vx, vy, vz: UnsafeMutableBufferPointer<Float>
                 }
-                
-                let pack = PointerPack(px: ptrX, py: ptrY, pz: ptrZ, vx: vPtrX, vy: vPtrY, vz: vPtrZ)
-                
+                let p = Ptrs(px: pX, py: pY, pz: pZ, vx: vX, vy: vY, vz: vZ)
                 DispatchQueue.concurrentPerform(iterations: count) { i in
-                    DebrisPool.performGravity(i: i,
-                                              ptrX: pack.px, ptrY: pack.py, ptrZ: pack.pz,
-                                              vPtrX: pack.vx, vPtrY: pack.vy, vPtrZ: pack.vz,
-                                              earthMass: earthMass, dt: dt,
-                                              killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq)
+                    DebrisPool.applyGravity(
+                        i: i,
+                        ptrX: p.px, ptrY: p.py, ptrZ: p.pz,
+                        vPtrX: p.vx, vPtrY: p.vy, vPtrZ: p.vz,
+                        earthMass: earthMass, dt: dt,
+                        killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq
+                    )
                 }
             }
         }
-        
-        
+
         var delta = dt
-        vDSP_vma(velX, 1, &delta, 0, posX, 1, &posX, 1, vDSP_Length(activeCount))
-        vDSP_vma(velY, 1, &delta, 0, posY, 1, &posY, 1, vDSP_Length(activeCount))
-        vDSP_vma(velZ, 1, &delta, 0, posZ, 1, &posZ, 1, vDSP_Length(activeCount))
-        vDSP_vma(spinRate, 1, &delta, 0, rotAngle, 1, &rotAngle, 1, vDSP_Length(activeCount))
-        
-        
+        vDSP_vma(velX, 1, &delta, 0, posX, 1, &posX, 1, vDSP_Length(count))
+        vDSP_vma(velY, 1, &delta, 0, posY, 1, &posY, 1, vDSP_Length(count))
+        vDSP_vma(velZ, 1, &delta, 0, posZ, 1, &posZ, 1, vDSP_Length(count))
+        vDSP_vma(spinRate, 1, &delta, 0, rotAngle, 1, &rotAngle, 1, vDSP_Length(count))
+
         var i = 0
         while i < activeCount {
-            let px = posX[i]
-            let py = posY[i]
-            let pz = posZ[i]
-            let distSq = (px*px) + (py*py) + (pz*pz)
-            
-            if distSq < killRadiusSq || distSq > maxRadiusSq {
-                kill(at: i)
-            } else {
-                i += 1
-            }
+            let d = posX[i] * posX[i] + posY[i] * posY[i] + posZ[i] * posZ[i]
+            if d < killRadiusSq || d > maxRadiusSq { kill(at: i) } else { i += 1 }
         }
     }
-    
-    
+
     @inline(__always)
-    static func performGravity(i: Int,
-                               ptrX: UnsafeMutableBufferPointer<Float>,
-                               ptrY: UnsafeMutableBufferPointer<Float>,
-                               ptrZ: UnsafeMutableBufferPointer<Float>,
-                               vPtrX: UnsafeMutableBufferPointer<Float>,
-                               vPtrY: UnsafeMutableBufferPointer<Float>,
-                               vPtrZ: UnsafeMutableBufferPointer<Float>,
-                               earthMass: Float, dt: Float,
-                               killRadiusSq: Float, maxRadiusSq: Float) {
-        
-        let px = ptrX[i]
-        let py = ptrY[i]
-        let pz = ptrZ[i]
-        
-        let distSq = (px*px) + (py*py) + (pz*pz)
-        
-        if distSq < killRadiusSq || distSq > maxRadiusSq { return }
-        
-        
+    static func applyGravity(i: Int,
+                             ptrX: UnsafeMutableBufferPointer<Float>,
+                             ptrY: UnsafeMutableBufferPointer<Float>,
+                             ptrZ: UnsafeMutableBufferPointer<Float>,
+                             vPtrX: UnsafeMutableBufferPointer<Float>,
+                             vPtrY: UnsafeMutableBufferPointer<Float>,
+                             vPtrZ: UnsafeMutableBufferPointer<Float>,
+                             earthMass: Float, dt: Float,
+                             killRadiusSq: Float, maxRadiusSq: Float) {
+        let px = ptrX[i], py = ptrY[i], pz = ptrZ[i]
+        let distSq = px*px + py*py + pz*pz
+        guard distSq >= killRadiusSq && distSq <= maxRadiusSq else { return }
+
         let invDist = simd_rsqrt(distSq)
-        let invDist3 = invDist * invDist * invDist
-        let factor = -earthMass * invDist3 * dt
-        
+        let factor = -earthMass * invDist * invDist * invDist * dt
         vPtrX[i] += px * factor
         vPtrY[i] += py * factor
         vPtrZ[i] += pz * factor
     }
-    
+
     @inline(__always)
-    func position(at i: Int) -> SIMD3<Float> {
-        return SIMD3<Float>(posX[i], posY[i], posZ[i])
-    }
-    
+    func position(at i: Int) -> SIMD3<Float> { SIMD3<Float>(posX[i], posY[i], posZ[i]) }
+
     @inline(__always)
-    func velocity(at i: Int) -> SIMD3<Float> {
-        return SIMD3<Float>(velX[i], velY[i], velZ[i])
-    }
+    func velocity(at i: Int) -> SIMD3<Float> { SIMD3<Float>(velX[i], velY[i], velZ[i]) }
 }
 
 @inline(__always)
