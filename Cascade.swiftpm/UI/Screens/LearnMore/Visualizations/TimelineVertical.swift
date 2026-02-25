@@ -13,7 +13,7 @@ struct TimelineVertical: View {
             
             ("June 1961", "Ablestar", "An Ablestar upper stage rocket, used to launch the U.S. Transit 4A satellite, suffers an anomalous explosion in orbit. This marks the first known fragmentation event in space history, instantly generating nearly 300 trackable pieces of debris and highlighting the dangers of leftover propellant."),
             
-            ("June 1978", "The Kessler Hypothesis", "NASA scientists Donald J. Kessler and Burton Cour-Palais publish a landmark paper modeling LEO collision frequencies. They predict that as satellite density increases, random collisions will trigger a self-sustaining cascade of debris, fundamentally changing how the world views orbital safety."),
+            ("June 1978", "The Kessler Hypothesis", "NASA scientists Donald J. Kessler and Burton G. Cour-Palais publish a landmark paper modeling collision frequencies in Low Earth Orbit. They predict that as satellite density increases, random collisions could trigger a self-sustaining cascade of debris, creating a barrier to future launches and craft survivability. This fundamentally changed views on orbit safety and the pollution of space."),
             
             ("July 1996", "Cerise Collision", "In the first confirmed accidental collision involving two cataloged objects, a briefcase-sized fragment from an Ariane 1 rocket stage (which had exploded in 1986) strikes the French Cerise military satellite at nearly 15 km/s, hitting its 6-meter stabilization boom."),
             
