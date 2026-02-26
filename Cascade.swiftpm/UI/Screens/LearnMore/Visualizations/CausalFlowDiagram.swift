@@ -3,30 +3,30 @@ import SwiftUI
 struct CausalFlowDiagram: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            Text("How does a Cascade even start, anyway?")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(CascadeTheme.dimText)
             
             HStack(spacing: 0) {
                 flowNode(icon: "cube.fill", title: "Density of objects\nin orbit increases", color: .blue)
                 flowConnector
                 flowNode(icon: "burst.fill", title: "A collision happens\nbetween them", color: .orange)
                 flowConnector
-                flowNode(icon: "aqi.medium", title: "Many new objects are\ncreated by the impact", color: .gray)
+                flowNode(icon: "aqi.medium", title: "Many new objects\nare created", color: .gray)
                 flowConnector
-                flowNode(icon: "exclamationmark.triangle.fill", title: "Collision risk\nincreases exponentially", color: .red)
+                flowNode(icon: "exclamationmark.triangle.fill", title: "Collision risk\nincreases", color: .red)
             }
-            
             
             HStack(spacing: 8) {
                 Image(systemName: "arrow.turn.up.left")
                     .font(.caption)
-                    .foregroundStyle(.red.opacity(0.6))
+                    .foregroundStyle(.green.opacity(0.6))
                 Text("Each of these events feeds every other event!")
                     .font(.caption)
                     .foregroundStyle(CascadeTheme.mutedText)
+                Image(systemName: "arrow.turn.up.right")
+                    .font(.caption)
+                    .foregroundStyle(.green.opacity(0.6))
             }
-            .padding(.top, 4)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 5)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Cascade loop diagram: increasing density leads to collisions, which create fragments, which escalate risk, which further increases density. The loop is self-reinforcing.")

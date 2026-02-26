@@ -7,8 +7,6 @@ struct ContentView: View {
     @State private var showIntro: Bool = true
     @State private var wasPlayingBeforeRotation: Bool = false
     
-    let learnMoreTip = LearnMoreTip()
-    
     var body: some View {
         GeometryReader { geometry in
             ZStack {

@@ -2,12 +2,13 @@ import SwiftUI
 
 struct SituationChapter: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 44) {
+        VStack(alignment: .leading, spacing: 40) {
+            
             VStack(alignment: .leading, spacing: 24) {
                 Text("Timeline of Key Events")
-                    .font(.title2.bold()).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.white)
                 
-                TextParagraph("The accumulation of orbital debris is not a recent phenomenon. It started all the way back in the 1950s and has been increasing ever since. Several pivotal events injected massive debris populations into heavily used orbital regions, each one demonstrating the fragility of the orbital commons.")
+                TextParagraph("Orbital debris accumulation started in the 1950s. It has grown ever since. A few pivotal events injected massive debris clouds into heavily used orbits. Each event proved how fragile the orbital environment actually is.")
                 
                 TimelineVertical()
             }
@@ -16,25 +17,24 @@ struct SituationChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Current Orbital Population")
-                    .font(.title2.bold()).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.white)
                 
-                TextParagraph("Space surveillance networks — primarily the U.S. Space Surveillance Network and ESA's Space Debris Office — continuously track objects larger than 10 cm in Low Earth Orbit. The cataloged population has grown dramatically, with sharp inflections corresponding to fragmentation events and increases in satellite launches, such as in the early 2020s.")
+                TextParagraph("The U.S. Space Surveillance Network and ESA continuously track objects larger than 10 cm. The cataloged population has grown dramatically. The sharp spikes in the data map directly to weapon tests, accidental collisions, and the recent boom in mega-constellations.")
                 
                 ScientificCard { DebrisChart() }
             }
             
             Divider().cascadeDivider()
             
-            
             VStack(alignment: .leading, spacing: 24) {
                 Text("Operational Impacts")
-                    .font(.title2.bold()).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.white)
                 
-                TextParagraph("As you learned in this and the previous chapters, the growing debris population has measurable consequences for active missions. Collision avoidance maneuvers are becoming routine, consuming propellant and reducing mission lifetime, and increasing risk to astronauts.")
+                TextParagraph("This growing debris cloud has immediate consequences for active missions. Collision avoidance maneuvers are now routine. Every maneuver burns irreplaceable fuel, shortens a satellite's lifespan, and puts human crews at risk.")
                 
                 HStack(spacing: 14) {
                     OperationalStatCard(
-                        value: "45k +",
+                        value: "55k +",
                         unit: "tracked",
                         label: "objects in orbit",
                         icon: "",
@@ -69,8 +69,8 @@ struct SituationChapter: View {
                 }
                 
                 KeyConceptBox(
-                    title: "On conjunctions and avoidance maneuvers",
-                    bodyText: "Conjunction is the name for the event of an object passing dangerously close to another in orbit. Every tracked object's trajectory is projected forward and compared against all others. When the predicted miss distance falls below a threshold (typically a few hundred meters), operators have to decide whether to execute an avoidance maneuver, which consumes irreplaceable fuel and disrupts mission operations. Avoidance maneuvers are common with companies and organizations that inject a great number of satellites into similar orbital altitudes. Thanks to the debris problem, it's becoming common even for the ISS, which is a bigger target. It currently performs about 4 of them every year.",
+                    title: "Conjunctions and Avoidance",
+                    bodyText: "A conjunction happens when two objects pass dangerously close to each other. Operators project trajectories forward. If the predicted miss distance is too tight, they execute an avoidance maneuver. The International Space Station currently performs about four of these maneuvers every year.",
                     icon: "point.topleft.down.to.point.bottomright.curvepath"
                 )
             }
