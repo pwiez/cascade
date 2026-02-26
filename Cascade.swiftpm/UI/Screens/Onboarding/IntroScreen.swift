@@ -41,27 +41,27 @@ struct OnboardingOverlay: View {
                                     GridRow(alignment: .firstTextBaseline) {
                                         Image(systemName: "burst.fill").foregroundStyle(.red).font(.body).imageScale(.large)
                                         Text("Detonate").font(.body.weight(.medium))
-                                        Text("Explode a random satellite to hasten the chaos").font(.subheadline).foregroundStyle(.secondary)
+                                        Text("Explode a random satellite").font(.subheadline).foregroundStyle(.secondary)
                                     }
                                     GridRow(alignment: .firstTextBaseline) {
                                         Image(systemName: "arrow.triangle.2.circlepath").foregroundStyle(.orange).font(.body).imageScale(.large)
                                         Text("Restart").font(.body.weight(.medium))
-                                        Text("Clear debris and restart the simulation").font(.subheadline).foregroundStyle(.secondary)
+                                        Text("Restart the simulation").font(.subheadline).foregroundStyle(.secondary)
                                     }
                                     GridRow(alignment: .firstTextBaseline) {
                                         Image(systemName: "play.fill").foregroundStyle(.green).font(.body).imageScale(.large)
                                         Text("Play / Pause").font(.body.weight(.medium))
-                                        Text("Pause or resume the simulation.").font(.subheadline).foregroundStyle(.secondary)
+                                        Text("Control the flow of time").font(.subheadline).foregroundStyle(.secondary)
                                     }
                                     GridRow(alignment: .firstTextBaseline) {
                                         Image(systemName: "camera.metering.center.weighted").foregroundStyle(.white).font(.body).imageScale(.large)
                                         Text("Reset Camera").font(.body.weight(.medium))
-                                        Text("Move the camera back to its default position").font(.subheadline).foregroundStyle(.secondary)
+                                        Text("Reset the camera's position and zoom").font(.subheadline).foregroundStyle(.secondary)
                                     }
                                     GridRow(alignment: .firstTextBaseline) {
                                         Image(systemName: "gearshape.fill").foregroundStyle(.white).font(.body).imageScale(.large)
                                         Text("Settings").font(.body.weight(.medium))
-                                        Text("Change physics, accessibility, and visuals").font(.subheadline).foregroundStyle(.secondary)
+                                        Text("Control visuals and other parameters").font(.subheadline).foregroundStyle(.secondary)
                                     }
                                 }
                             }
@@ -100,7 +100,7 @@ struct OnboardingOverlay: View {
                                 .fill(.blue)
                                 .frame(width: 4)
                             
-                            Text("Cascade's settings have a range of Accessibility settings to make sure you have the best possible experience. It also has full VoiceOver support.\n\nIf you want to learn more about Kessler Syndrome and Cascade itself, you can do so by tapping the Learn More tab. The simulation will be paused for you when you switch tabs.\n\nThe simulation will begin paused - simply tap the play button to get it going. Have fun, and I hope you learn a lot about this fascinating (and worrying) topic!")
+                            Text("Cascade has a range of visual settings to make sure you have the best possible experience. If you want to learn more about Kessler Syndrome and Cascade itself, you can do so by tapping the Learn More tab. The simulation will be paused for you when you switch tabs.\n\nThe simulation will begin paused - simply tap the play button to get it going. Have fun, and I hope you learn a lot about this fascinating (and worrying) topic!")
                                 .font(.body)
                                 .foregroundStyle(CascadeTheme.bodyText)
                                 .lineSpacing(CascadeTheme.bodyLineSpacing)
@@ -123,7 +123,8 @@ struct OnboardingOverlay: View {
                 .frame(maxWidth: .infinity)
                 .background(CascadeTheme.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
-                .padding(64)
+                .padding(.horizontal, 128)
+                .padding(.vertical, 64)
             }
             .opacity(appeared ? 1 : 0)
             .onAppear {

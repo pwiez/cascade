@@ -5,9 +5,9 @@ Package.resolved
 
 # --- Xcode User Data (Personal Settings) ---
 xcuserdata/
-*.xcworkspace/xcuserdata/
-*.xcodeproj/xcuserdata/
-*.xcodeproj/project.xcworkspace/
+*.xcworkspace/xcuserdata/*
+*.xcodeproj/xcuserdata/*
+*.xcodeproj/project.xcworkspace/*
 
 # --- Build Artifacts ---
 DerivedData/
@@ -15,3 +15,5 @@ DerivedData/
 
 # --- macOS ---
 .DS_Store
+
+repomix-output.xml

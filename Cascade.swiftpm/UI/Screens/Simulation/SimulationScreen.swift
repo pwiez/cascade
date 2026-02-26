@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import TipKit
 
 struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
@@ -17,7 +16,6 @@ struct SimulationScreen: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                
                 SimulationContainer(simulation: simulation)
                     .ignoresSafeArea()
                     .zIndex(0)
@@ -25,21 +23,15 @@ struct SimulationScreen: View {
                 if simulation.showStats {
                     VStack {
                         Spacer()
-                        HStack {
-                            SimulationMetrics(
-                                telemetry: simulation.telemetry,
-                                initialSatellites: simulation.initialSatelliteCount,
-                                satelliteColor: simulation.satelliteColor,
-                                debrisColor: simulation.debrisColor
-                            )
-                            Spacer()
-                        }
-                        .padding(.leading)
-                        .padding(.bottom)
+                        SimulationMetrics(
+                            telemetry: simulation.telemetry,
+                            initialSatellites: simulation.initialSatelliteCount,
+                            satelliteColor: simulation.satelliteColor,
+                            debrisColor: simulation.debrisColor
+                        )
                     }
                     .zIndex(1)
                 }
-                
                 
                 HStack {
                     SimulationControls(
@@ -51,21 +43,10 @@ struct SimulationScreen: View {
                     )
                     Spacer()
                 }
-                .padding(.leading, 24)
+                .padding(.leading)
                 .frame(maxHeight: .infinity)
                 .ignoresSafeArea()
                 .zIndex(2)
-                
-                
-                VStack {
-                    Spacer()
-                    Text("This simulation is not-to-scale.")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.bottom, 8)
-                }
-                .zIndex(1)
                 
                 if showSettings {
                     HStack {
@@ -79,7 +60,6 @@ struct SimulationScreen: View {
                             }
                         )
                         .frame(width: geometry.size.width * panelWidthRatio)
-                        .background(.thinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
                         .padding(.vertical)
                         .padding(.trailing)

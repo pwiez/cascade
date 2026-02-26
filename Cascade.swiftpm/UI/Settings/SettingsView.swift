@@ -22,18 +22,18 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                
                 Section {
-                    Toggle("Camera Movement", isOn: $simulation.isCameraEnabled)
                     Toggle("Show Earth", isOn: $simulation.showEarth)
                     Toggle("Show Satellites", isOn: $simulation.showSatellites)
                     Toggle("Show Simulation Stats", isOn: $simulation.showStats)
-                    Toggle("Bidirectional Light", isOn: $simulation.useOmniLight)
+                    Toggle("Camera Control", isOn: $simulation.isCameraEnabled)
+                    Toggle("Debris Rotation", isOn: $simulation.debrisRotation)
+                    Toggle("Full Lighting", isOn: $simulation.useOmniLight)
                     
                     DisclosureGroup("Colors & Scaling") {
                         ColorPicker("Satellite Color", selection: $simulation.satelliteColor, supportsOpacity: false)
                         ColorPicker("Debris Color", selection: $simulation.debrisColor, supportsOpacity: false)
-                        ColorPicker("Universe Color", selection: $simulation.backgroundColor, supportsOpacity: false)
+                        ColorPicker("Background Color", selection: $simulation.backgroundColor, supportsOpacity: false)
                         
                         sliderRow(
                             label: "Satellite Scale",
@@ -134,21 +134,18 @@ struct SettingsView: View {
                     }
                 }
                 
-                
                 Section {
-
                     sliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...3.0, step: nil, format: "%.1fx")
-                    sliderRow(label: "Satellite Hitbox Size", value: $simulation.collisionRadius, range: 1.0...3.0, step: 0.1, format: "%.1f")
+                    sliderRow(label: "Collision Radius", value: $simulation.collisionRadius, range: 1.0...3.0, step: 0.1, format: "%.1f")
                     
                     sliderRow(label: "Debris per Collision", value: $simulation.debrisPerCollision, range: 2...6, step: 1, format: "%.0f")
                     sliderRow(label: "Max Debris Count", value: $simulation.maxDebris, range: 1000...3000, step: 100, format: "%.0f")
                     
                 } header: {
-                    Text("Real Time Physics")
+                    Text("Collision Physics")
                 } footer: {
                     Text("Higher ejection forces will create larger clouds, and larger hitboxes will make satellites easier to hit.")
                 }
-                
                 
                 Section {
                     DisclosureGroup("Advanced Debris Spread") {
@@ -181,7 +178,6 @@ struct SettingsView: View {
                     Text("Controls the shape of the debris cloud immediately after an explosion.")
                 }
                 
-                
                 Section {
                     Button("Reset Defaults") {
                         withAnimation { simulation.resetSettingsToDefaults() }
@@ -212,8 +208,6 @@ struct SettingsView: View {
             }
             .navigationTitle("Parameters")
             .navigationBarTitleDisplayMode(.inline)
-            .scrollContentBackground(.hidden)
-            .background(Color.clear)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { onClose() }.fontWeight(.semibold)
@@ -221,7 +215,7 @@ struct SettingsView: View {
             }
         }
     }
-
+    
     @ViewBuilder
     private func sliderRow(
         label: String,
@@ -245,7 +239,7 @@ struct SettingsView: View {
                 .foregroundStyle(requiresRestart ? .orange : .secondary)
                 .animation(.snappy, value: requiresRestart)
             }
-
+            
             if let step {
                 Slider(value: value, in: range, step: step)
                     .accessibilityLabel(label)

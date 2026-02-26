@@ -11,7 +11,7 @@ enum CascadeTheme {
     static let iconBackgroundOpacity: Double = 0.12
     
     static let cardBackground = Color(white: 0.08)
-    static let cardBorder = Color.white.opacity(0.06)
+    static let cardBorder = Color.white.opacity(0.20)
     
     static let accentBorderOpacity: Double = 0.12
     static let borderWidth: CGFloat = 1

@@ -28,7 +28,7 @@ struct CausalFlowDiagram: View {
             .frame(maxWidth: .infinity)
             .padding(.top, 5)
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Cascade loop diagram: increasing density leads to collisions, which create fragments, which escalate risk, which further increases density. The loop is self-reinforcing.")
     }
     

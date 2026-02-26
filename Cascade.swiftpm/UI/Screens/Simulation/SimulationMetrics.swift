@@ -1,10 +1,3 @@
-//
-//  OrbitalStatus.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 
 struct SimulationMetrics: View {
@@ -16,49 +9,33 @@ struct SimulationMetrics: View {
     private var stats: SimStats { telemetry.stats }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 0) {
-                metricColumn(
-                    title: "Satellites",
-                    value: stats.satellites,
-                    color: satelliteColor
-                )
-                
-                Spacer()
-                
-                Divider().cascadeDivider()
-                    .frame(height: 32)
-                
-                Spacer()
-                
-                metricColumn(
-                    title: "Debris",
-                    value: stats.debris,
-                    color: debrisColor
-                )
-            }
+        HStack(spacing: 16) {
+            metricItem(title: "SATELLITES", value: stats.satellites, color: satelliteColor)
+            
+            Divider()
+                .cascadeDivider()
+                .frame(height: 16)
+            
+            metricItem(title: "DEBRIS", value: stats.debris, color: debrisColor)
         }
-        .padding()
-        .frame(width: 240)
-        .glassEffect(.regular, in: .rect(cornerRadius: 12))
+        .padding(.horizontal, 24)
+        .padding(.vertical, 12)
+        .glassEffect()
     }
     
     @ViewBuilder
-    private func metricColumn(title: String, value: Int, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+    private func metricItem(title: String, value: Int, color: Color) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .tracking(0.5)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.primary)
             
             Text(value.formatted())
-                .font(.system(.title3, design: .rounded).weight(.bold))
+                .font(.system(.body).weight(.bold))
                 .monospacedDigit()
                 .foregroundStyle(color)
                 .contentTransition(.numericText())
                 .animation(.snappy, value: value)
         }
-        .frame(minWidth: 80, alignment: .leading)
     }
 }

@@ -206,7 +206,7 @@ struct DebrisSizeRow: View {
         .padding(CascadeTheme.compactPadding)
         .background(CascadeTheme.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(size): estimated \(count) objects, \(status). Effect: \(effect)")
     }
 }

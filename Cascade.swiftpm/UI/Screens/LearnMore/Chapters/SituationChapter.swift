@@ -113,7 +113,7 @@ struct OperationalStatCard: View {
             RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
                 .stroke(accent.opacity(0.12), lineWidth: CascadeTheme.borderWidth)
         )
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(value) \(unit): \(label)")
     }
 }

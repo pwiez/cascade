@@ -16,14 +16,16 @@ let package = Package(
             teamIdentifier: "",
             displayVersion: "1.0",
             bundleVersion: "1",
-            appIcon: .placeholder(icon: .smiley),
+            appIcon: .asset("AppIcon"),
             accentColor: .presetColor(.blue),
             supportedDeviceFamilies: [
                 .pad
             ],
             supportedInterfaceOrientations: [
                 .landscapeRight,
-                .landscapeLeft
+                .landscapeLeft,
+                .portrait,
+                .portraitUpsideDown
             ],
             appCategory: .education
         )
@@ -31,7 +33,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AppModule",
-            path: ".",
+            path: "."
         )
     ],
     swiftLanguageVersions: [.version("6")]

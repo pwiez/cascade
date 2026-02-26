@@ -27,6 +27,7 @@ struct SimSettings {
     var orbitVariance: Double
     var useOmniLight: Bool
     var showEarth: Bool
+    var debrisRotation: Bool
 }
 
 extension SimSettings {
@@ -39,7 +40,7 @@ extension SimSettings {
         spreadRadial: 0.0,
         timeScale: 1.0,
         showSatellites: true,
-        satelliteColor: Color(red: 0.108, green: 0.500, blue: 0.229),
+        satelliteColor: Color(red: 0.108, green: 0.750, blue: 0.229),
         debrisColor: .red,
         backgroundColor: .black,
         maxDebris: 2000,
@@ -50,7 +51,8 @@ extension SimSettings {
         orbitAltitude: 120,
         orbitVariance: 2.0,
         useOmniLight: false,
-        showEarth: true
+        showEarth: true,
+        debrisRotation: true
     )
 }
 
@@ -112,6 +114,7 @@ class Simulation: ObservableObject {
     @Published var backgroundColor: Color = .black { didSet { syncSettings() } }
     @Published var satelliteScale: Double = SimSettings.defaults.satelliteScale { didSet { syncSettings() } }
     @Published var debrisScale: Double = SimSettings.defaults.debrisScale { didSet { syncSettings() } }
+    @Published var debrisRotation: Bool = SimSettings.defaults.debrisRotation { didSet { syncSettings() } }
     @Published var useOmniLight: Bool = SimSettings.defaults.useOmniLight { didSet { syncSettings() } }
     @Published var showEarth: Bool = SimSettings.defaults.showEarth { didSet { syncSettings() } }
 
@@ -170,7 +173,8 @@ class Simulation: ObservableObject {
             orbitAltitude: activeOrbitAltitude,
             orbitVariance: activeOrbitVariance,
             useOmniLight: useOmniLight,
-            showEarth: showEarth
+            showEarth: showEarth,
+            debrisRotation: debrisRotation
         )
         controller.queueCommand(.updateSettings(settings))
     }
@@ -187,7 +191,7 @@ class Simulation: ObservableObject {
         spreadTangential = d.spreadTangential
         spreadVertical = d.spreadVertical
         spreadRadial = d.spreadRadial
-        satelliteColor = Color(red: 0.108, green: 0.500, blue: 0.229)
+        satelliteColor = Color(red: 0.108, green: 0.750, blue: 0.229)
         debrisColor = .red
         backgroundColor = .black
         useOmniLight = d.useOmniLight
