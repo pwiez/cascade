@@ -70,11 +70,7 @@ struct LearnMoreView: View {
                         sidebarLink(for: section)
                     }
                 }
-                
-                VStack{
-                    Divider()
-                }
-                
+ 
                 Section {
                     ForEach(AppSection.allCases.dropFirst(5)) { section in
                         sidebarLink(for: section)

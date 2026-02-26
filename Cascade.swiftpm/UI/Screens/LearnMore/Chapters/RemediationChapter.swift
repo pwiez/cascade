@@ -3,20 +3,20 @@ import SwiftUI
 struct RemediationChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 40) {
-            TextParagraph("The situation is grim, but fixable. We need to do three things: stop making new debris, responsibly dispose of dead satellites, and drag the most dangerous junk out of orbit before it gets hit.")
+            TextParagraph("As you learned in previous chapters, the situation is pretty grim, but it is fixable. We need to do three things: stop making new debris, responsibly dispose of dead satellites, and drag the most dangerous junk out of orbit before it gets hit.")
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Atmospheric Drag")
                     .font(.title2.weight(.bold)).foregroundStyle(.white)
                 
-                TextParagraph("Earth's atmosphere does not just end. It tapers off gradually. The sparse gas molecules at high altitudes exert a persistent drag force on orbiting objects. Over time, this drag lowers an object's altitude until it burns up in the thicker atmosphere.")
+                TextParagraph("This is our main ally in this. Did you know Earth's atmosphere does not just end when you get to space? Instead, it tapers off gradually. Gas molecules at very high altitudes are few and far between, but they exert a persistent drag force on orbiting objects. Over time, this drag lowers an object's altitude until it burns up in the thicker atmosphere.")
                 
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 24) {
-                        Text("How long does it take for an object to deorbit through drag alone?")
+                        Text("How long does it take for an object to deorbit through drag forces?")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(CascadeTheme.dimText)
-
+                        
                         VStack(spacing: 12) {
                             DragLifetimeRow(altitude: "300 km", lifetime: "Weeks to months", intensity: 1.0, color: .green)
                             DragLifetimeRow(altitude: "400 km", lifetime: "~1 year", intensity: 0.75, color: .green)
@@ -28,7 +28,7 @@ struct RemediationChapter: View {
                 }
                 .padding(.vertical)
                 
-                TextParagraph("Below 600 km, drag clears most debris within a few decades. The real challenge lies in higher orbits, where drag is negligible and debris persists for centuries.")
+                TextParagraph("Below 600 km, drag can clear most debris within a few decades. The real challenge lies in higher orbits, where drag is negligible and debris can persist for centuries.")
             }
             
             Divider().cascadeDivider()
@@ -37,51 +37,48 @@ struct RemediationChapter: View {
                 Text("Active Removal Technologies")
                     .font(.title2.weight(.bold)).foregroundStyle(.white)
                 
-                TextParagraph("Atmospheric drag alone is insufficient. We need engineered interventions to clear higher orbits. Several approaches are currently under development. These sound like science fiction, but they are real hardware being tested today.")
+                TextParagraph("Atmospheric drag is powerful, but it is insufficient. We need engineered interventions to clear higher orbits or at least make them safer. Several approaches are currently under development. Some of them may seem like they came out of science fiction, but they are very real ideas being researched and tested currently.")
                 
                 VStack(spacing: 20) {
                     StrategyCard(
+                        title: "Graveyard Orbits",
+                        icon: "arrowshape.up.fill",
+                        description: "Instead of deorbiting, operators can use the satellite's very last reserves of propellant to push it about 300 kilometers higher into a graveyard orbit, also known as a disposal orbit. This safely removes it from the highly congested operational lanes. It's like parking the satellite permanently out of the way. This is done for satellites in GEO, where speeds are lower and graveyard orbits are safer.",
+                    )
+                    
+                    StrategyCard(
                         title: "Drag Augmentation",
                         icon: "wind",
-                        description: "Deployable sails or inflatable structures dramatically increase a satellite's cross-sectional area. Operators deploy these devices at the end of a mission to accelerate orbital decay.",
-                        mechanism: "Increasing the area-to-mass ratio multiplies the effect of atmospheric drag. This reduces deorbit time from centuries to years."
+                        description: "Deployable sails or inflatable structures dramatically increase a satellite's cross-sectional area, which in turn increases its susceptibility to drag forces. Since they can be integrated in craft design far before it is even launched, this is a mechanical and preventive measure which is quite effective.",
                     )
                     
                     StrategyCard(
                         title: "Harpoons & Nets",
                         icon: "lasso",
-                        description: "A chaser spacecraft approaches a defunct satellite or rocket body and secures it using a tethered harpoon or a deployable net. The chaser then fires its engines to drag both craft down.",
-                        mechanism: "The RemoveDEBRIS mission demonstrated net capture in 2018. ESA's ClearSpace-1 mission plans to perform the first full-scale removal of a 95kg payload adapter in 2028."
+                        description: "A chaser spacecraft approaches a defunct satellite or rocket body and secures it using a tethered harpoon or a deployable net. The chaser then fires its engines to deorbit the captured debris. The RemoveDEBRIS mission demonstrated net capture in 2018. It was supposed to demonstrate the drag sail technique as well, but the drag sails failed to deploy. ESA's ClearSpace-1 mission plans to perform the first full-scale removal operation, deorbiting ESA's own PROBA-1 satellite. It is planned to launch in 2029.",
                     )
                     
                     StrategyCard(
                         title: "Laser Ablation",
                         icon: "dot.radiowaves.left.and.right",
-                        description: "Ground-based or orbital lasers target a piece of debris. The focused energy vaporizes a tiny amount of surface material. The ejected vapor acts as a miniature thruster, pushing the debris.",
-                        mechanism: "Repeated laser passes gradually slow the object down until atmospheric drag takes over. It requires no physical contact."
+                        description: "Ground-based or orbital lasers target the surface of a piece of debris. The focused laser energy vaporizes a tiny amount of material, and the ejected vapor acts as a miniature thruster. Over time, with repeated laser passes, the object can be slowed enough to deorbit or be pushed up into a safer orbit. Cost-wise, this is a very effective solution since it does not necessarily involve launching specialized crafts into space.",
                     )
                     
                     StrategyCard(
                         title: "Magnetic Stabilization & Braking",
                         icon: "gyroscope",
-                        description: "Tumbling debris is dangerous to approach. Magnetic tugs generate rotating magnetic fields that induce eddy currents in the target's metal hull, creating drag forces from a safe distance.",
-                        mechanism: "These forces stabilize tumbling targets for capture or directly slow them down. This technology remains highly experimental."
+                        description: "Tumbling debris is very dangerous to approach. A spacecraft can approach the objects with magnetic tugs, which generate rotating magnetic fields. These fields induce eddy currents in the target's metal hull, creating drag forces from a safe distance. These forces can stabilize the debris' rotation and slow it down over time. This technology is highly experimental and currently being researched.",
                     )
                 }
             }
             
             Divider().cascadeDivider()
             
-            ScientificCard {
-                VStack(alignment: .leading, spacing: 14) {
-                    Label("The 25-Year Guideline", systemImage: "calendar.badge.clock")
-                        .font(.headline).foregroundStyle(.white)
-                    
-                    Text("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all satellites in Low Earth Orbit deorbit within 25 years of mission end. In the 2020s, the U.S. Federal Communications Commission adopted a stricter 5-year rule. However, compliance remains voluntary for many global operators.")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .lineSpacing(CascadeTheme.bodyLineSpacing)
-                }
+            VStack(alignment: .leading, spacing: 24) {
+                Text("The 25-Year Guideline")
+                    .font(.title2.weight(.bold)).foregroundStyle(.white)
+                
+                TextParagraph("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all satellites in Low Earth Orbit deorbit within 25 years of mission end. This means that if a satellite reaches its mission end in 2030, it should be deorbited at most by 2055. In the 2020s, the U.S. Federal Communications Commission adopted a stricter 5-year rule. However, compliance remains voluntary for many global operators outside of the U.S.")
             }
         }
     }
@@ -126,7 +123,6 @@ struct StrategyCard: View {
     let title: String
     let icon: String
     let description: String
-    let mechanism: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -145,27 +141,6 @@ struct StrategyCard: View {
                     .font(.subheadline)
                     .foregroundStyle(CascadeTheme.bodyText)
                     .lineSpacing(CascadeTheme.bodyLineSpacing)
-                
-                HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "gearshape.2.fill")
-                        .font(.caption)
-                        .foregroundStyle(.blue.opacity(0.8))
-                        .padding(.top, 4)
-                    
-                    Text(mechanism)
-                        .font(.subheadline)
-                        .foregroundStyle(CascadeTheme.bodyText)
-                        .lineSpacing(CascadeTheme.bodyLineSpacing)
-                }
-                .padding(CascadeTheme.compactPadding)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                .background(Color.blue.opacity(0.05))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.blue.opacity(0.15), lineWidth: 1)
-                )
             }
         }
         .padding(CascadeTheme.cardPadding)
