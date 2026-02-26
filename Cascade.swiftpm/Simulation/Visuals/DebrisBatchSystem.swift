@@ -51,16 +51,21 @@ class DebrisBatchSystem {
     }
 
     func update(activeCount: Int,
-                    posX: [Float], posY: [Float], posZ: [Float],
-                    rotAngle: [Float], rotAxisX: [Float], rotAxisY: [Float], rotAxisZ: [Float],
-                    scale: Float) {
-            
-        allPositions.withUnsafeMutableBufferPointer { vPtr in
-            for i in 0..<activeCount {
-                let pos = SIMD3<Float>(posX[i], posY[i], posZ[i])
-                let axis = SIMD3<Float>(rotAxisX[i], rotAxisY[i], rotAxisZ[i])
-                let q = simd_quatf(angle: rotAngle[i], axis: axis)
-                let base = i * 4
+                        posX: [Float], posY: [Float], posZ: [Float],
+                        rotAngle: [Float], rotAxisX: [Float], rotAxisY: [Float], rotAxisZ: [Float],
+                        scale: Float,
+                        spinEnabled: Bool) {
+                
+            allPositions.withUnsafeMutableBufferPointer { vPtr in
+                for i in 0..<activeCount {
+                    let pos = SIMD3<Float>(posX[i], posY[i], posZ[i])
+                    let axis = SIMD3<Float>(rotAxisX[i], rotAxisY[i], rotAxisZ[i])
+                    
+                    let angle = spinEnabled ? rotAngle[i] : 0.0
+                    let q = simd_quatf(angle: angle, axis: axis)
+                    
+                    let base = i * 4
+                    vPtr[base + 0] = pos + (q.act(localVerts[0]) * scale)
             
                 vPtr[base + 0] = pos + (q.act(localVerts[0]) * scale)
                 vPtr[base + 1] = pos + (q.act(localVerts[1]) * scale)

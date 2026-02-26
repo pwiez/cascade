@@ -1,14 +1,14 @@
 import SwiftUI
-import TipKit
 
 struct ContentView: View {
     @StateObject var simulation = Simulation()
     @State private var selectedTab: Int = 0
     @State private var showIntro: Bool = true
-    @State private var wasPlayingBeforeRotation: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
+            let isPortrait = geometry.size.height > geometry.size.width
+            
             ZStack {
                 TabView(selection: $selectedTab) {
                     SimulationScreen(simulation: simulation)
@@ -18,10 +18,6 @@ struct ContentView: View {
                     LearnMoreView()
                         .tabItem { Label("Learn More", systemImage: "book.closed.fill") }
                         .tag(1)
-                }
-                .onChange(of: selectedTab) { _, newTab in
-                    if newTab == 1 { simulation.pauseSimulation() }
-                    else if newTab == 0 && !showIntro { simulation.resumeSimulation() }
                 }
                 .blur(radius: showIntro ? 16 : 0)
                 .animation(.easeInOut(duration: 0.4), value: showIntro)
@@ -37,22 +33,20 @@ struct ContentView: View {
                         }
                     }
                     .transition(.opacity.combined(with: .scale(scale: 0.97)))
-                    .zIndex(2000)
+                }
+                
+                if isPortrait {
+                    PortraitWarningView()
+                        .transition(.opacity)
                 }
             }
+            .animation(.default, value: isPortrait)
             .onChange(of: geometry.size) { oldSize, newSize in
                 let currentPortrait = newSize.height > newSize.width
                 let wasPortrait = oldSize.height > oldSize.width
                 
                 if currentPortrait && !wasPortrait {
-                    wasPlayingBeforeRotation = !simulation.isPaused
                     simulation.pauseSimulation()
-                }
-                else if !currentPortrait && wasPortrait {
-                    
-                    if wasPlayingBeforeRotation && !showIntro {
-                        simulation.resumeSimulation()
-                    }
                 }
             }
         }
