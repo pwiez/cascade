@@ -15,7 +15,7 @@ enum CascadeTheme {
     
     static let accentBorderOpacity: Double = 0.12
     static let borderWidth: CGFloat = 1
-    static let dividerColor = Color.white.opacity(0.20)
+    static let dividerColor = Color.white.opacity(0.50)
     
     static let bodyText = Color(white: 0.82)
     static let dimText = Color(white: 0.55)

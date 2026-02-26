@@ -35,7 +35,7 @@ struct GuideRow: View {
     let text: LocalizedStringKey
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 14) {
             Text(number)
                 .font(.caption.weight(.bold).monospacedDigit())
                 .foregroundStyle(.blue)
