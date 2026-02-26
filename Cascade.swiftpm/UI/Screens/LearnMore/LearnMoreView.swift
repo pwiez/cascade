@@ -9,20 +9,24 @@ import SwiftUI
 
 enum AppSection: String, CaseIterable, Identifiable {
     case hero = "Intro"
-    case mechanics = "01. Mechanics"
-    case situation = "02. The Situation"
-    case remediation = "03. Remediation"
-    case about = "04. About"
-    case credits = "05. Credits"
+    case orbits = "01. How Orbits Work"
+    case mechanics = "02. The Cascade Effect"
+    case situation = "03. The Situation"
+    case remediation = "04. Remediation"
+    case glossary = "05. Glossary"
+    case about = "06. About"
+    case credits = "07. Credits"
     
     var id: String { rawValue }
     
     var title: String {
         switch self {
         case .hero: return "What is Kessler Syndrome?"
-        case .mechanics: return "Orbital Mechanics"
+        case .orbits: return "How Orbits Work"
+        case .mechanics: return "Chain Reaction"
         case .situation: return "Current Situation"
         case .remediation: return "Remediation"
+        case .glossary: return "Glossary"
         case .about: return "About Cascade"
         case .credits: return "Sources & Credits"
         }
@@ -30,11 +34,13 @@ enum AppSection: String, CaseIterable, Identifiable {
     
     var subtitle: String {
         switch self {
-        case .hero: return "A cascading threat to space exploration"
-        case .mechanics: return "Physics of orbital collisions"
+        case .hero: return "A developing threat"
+        case .orbits: return "Falling but missing the ground"
+        case .mechanics: return "The physics of crashes in space"
         case .situation: return "Where we stand today"
-        case .remediation: return "Strategies to mitigate the situation"
-        case .about: return "How this app approaches the subject"
+        case .remediation: return "Is it possible to clean up space?"
+        case .glossary: return ""
+        case .about: return ""
         case .credits: return ""
         }
     }
@@ -42,9 +48,11 @@ enum AppSection: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .hero: return "globe.americas.fill"
+        case .orbits: return "arrow.triangle.swap"
         case .mechanics: return "arrow.3.trianglepath"
         case .situation: return "clock.arrow.circlepath"
         case .remediation: return "wrench.and.screwdriver.fill"
+        case .glossary: return "text.book.closed.fill"
         case .about: return "info.circle.fill"
         case .credits: return "books.vertical.fill"
         }
@@ -57,21 +65,19 @@ struct LearnMoreView: View {
     var body: some View {
         NavigationSplitView() {
             List(selection: $activeSection) {
-                ForEach(AppSection.allCases) { section in
-                    NavigationLink(value: section) {
-                        Label {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(section.title)
-                                    .font(.subheadline.weight(.medium))
-                                if !section.subtitle.isEmpty {
-                                    Text(section.subtitle)
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        } icon: {
-                            Image(systemName: section.icon)
-                        }
+                Section {
+                    ForEach(AppSection.allCases.prefix(5)) { section in
+                        sidebarLink(for: section)
+                    }
+                }
+                
+                VStack{
+                    Divider()
+                }
+                
+                Section {
+                    ForEach(AppSection.allCases.dropFirst(5)) { section in
+                        sidebarLink(for: section)
                     }
                 }
             }
@@ -90,6 +96,25 @@ struct LearnMoreView: View {
         .toolbar(.hidden)
         .preferredColorScheme(.dark)
     }
+    
+    @ViewBuilder
+    private func sidebarLink(for section: AppSection) -> some View {
+        NavigationLink(value: section) {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(section.title)
+                        .font(.subheadline.weight(.medium))
+                    if !section.subtitle.isEmpty {
+                        Text(section.subtitle)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } icon: {
+                Image(systemName: section.icon)
+            }
+        }
+    }
 }
 
 struct ChapterContainerView: View {
@@ -98,7 +123,6 @@ struct ChapterContainerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 32) {
-                
                 VStack(alignment: .leading, spacing: 8) {
                     Text(activeSection.title)
                         .font(.largeTitle.weight(.bold))
@@ -117,13 +141,14 @@ struct ChapterContainerView: View {
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityElement(children: .combine)
                 
-                
                 Group {
                     switch activeSection {
                     case .hero:        OverviewChapter()
+                    case .orbits:      OrbitsChapter()
                     case .mechanics:   MechanicsChapter()
                     case .situation:   SituationChapter()
                     case .remediation: RemediationChapter()
+                    case .glossary:    GlossaryChapter()
                     case .about:       AboutChapter()
                     case .credits:     CreditsChapter()
                     }

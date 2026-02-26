@@ -2,16 +2,17 @@ import SwiftUI
 
 struct CreditsChapter: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 36) {
+        VStack(alignment: .leading, spacing: 40) {
             
             TextParagraph("Cascade's premise as well as the information and data shown here are all drawn from publicly available scientific publications, institutional reports, and official data repositories maintained by international space agencies and reputable non-profit organizations.")
             
             ScientificCard {
                 VStack(alignment: .leading, spacing: 18) {
                     CreditSection(role: "Papers and Publications", entries: [
-                        "Kessler, D. J., & Cour-Palais, B. G. (1978). Collision frequency of artificial satellites: the creation of a debris belt. *Journal of Geophysical Research*, *83*.",
+                        "Kessler, D. J., & Cour-Palais, B. G. (1978). Collision frequency of artificial satellites: The creation of a debris belt. *Journal of Geophysical Research*, *83*.",
                         "Liou, J.-C., & Johnson, N. L. (2006). Risks in space from orbiting debris. *Science*, *311*(5759), 340–341.",
-                        "Klinkrad, H. (2006). *Space debris: models and risk analysis*. Springer Science & Business Media."
+                        "Liou, J.-C., & Johnson, N. L. (2008). Instability of the present LEO satellite populations. *Advances in Space Research*, *41*.",
+                        "Klinkrad, H. (2006). *Space debris: Models and risk analysis*. Springer."
                     ])
                     
                     Divider().cascadeDivider()
@@ -32,16 +33,16 @@ struct CreditsChapter: View {
                     CreditSection(role: "Institutional Data Sources", entries: [
                         "NASA Orbital Debris Program Office. (n.d.). *Orbital debris quarterly news*.",
                         "European Space Agency Space Debris Office. (2024). *Annual space environment report*.",
-                        "U.S. Space Surveillance Network. (n.d.). *Public catalog data* [Data set]. Space-Track.org.",
-                        "World Economic Forum. (2026). *Clear orbit, secure future: a call to action on space debris*."
+                        "Inter-Agency Space Debris Coordination Committee. (2020). *IADC space debris mitigation guidelines* (Rev. 2).",
+                        "U.S. Space Surveillance Network. (n.d.). *Public catalog data* [Data set]. Space-Track.org."
                     ])
                     
                     Divider().cascadeDivider()
                     
                     CreditSection(role: "Remediation Technology References", entries: [
                         "Forshaw, J. L., et al. (2016). RemoveDEBRIS: An in-orbit active debris removal demonstration mission. *Acta Astronautica*, *127*.",
-                        "European Space Agency. (n.d.). *ClearSpace-1 mission overview*. esa.int/Space_Safety/ClearSpace-1",
-                        "Astroscale. (2024). *ADRAS-J mission overview: World's first rendezvous with large space debris*. astroscale.com/missions/adras-j"
+                        "European Space Agency. (n.d.). *ClearSpace-1 mission overview*. esa.int/clearspace",
+                        "Bombardelli, C., & Peláez, J. (2011). Ion beam shepherd for contactless space debris removal. *Journal of Guidance, Control, and Dynamics*, *34*."
                     ])
                 }
             }

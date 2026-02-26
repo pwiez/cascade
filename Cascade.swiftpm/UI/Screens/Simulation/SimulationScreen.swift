@@ -11,7 +11,6 @@ import TipKit
 struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
     @State private var showSettings = false
-    let learnMoreTip = LearnMoreTip()
     
     private let panelWidthRatio = 0.30
     

@@ -30,17 +30,6 @@ struct TextParagraph: View {
     }
 }
 
-struct SectionLabel: View {
-    let text: String
-    var body: some View {
-        Text(text.uppercased())
-            .font(.caption.weight(.bold))
-            .foregroundStyle(.blue)
-            .tracking(1.2)
-            .accessibilityAddTraits(.isHeader)
-    }
-}
-
 struct GuideRow: View {
     let number: String
     let text: LocalizedStringKey
@@ -70,7 +59,7 @@ struct DefinitionCallout: View {
         HStack(alignment: .top, spacing: 16) {
             RoundedRectangle(cornerRadius: 2)
                 .fill(.blue)
-                .frame(width: 3)
+                .frame(width: 4)
             
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 8) {
@@ -80,6 +69,7 @@ struct DefinitionCallout: View {
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.blue)
                         .textCase(.uppercase)
+                        .tracking(0.5)
                 }
                 
                 Text(term)
@@ -99,11 +89,11 @@ struct DefinitionCallout: View {
         }
         .padding(CascadeTheme.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.blue.opacity(0.2))
+        .background(CascadeTheme.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
         .overlay(
             RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
-                .stroke(Color.blue.opacity(CascadeTheme.accentBorderOpacity), lineWidth: CascadeTheme.borderWidth)
+                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
         )
         .accessibilityElement(children: .combine)
     }
@@ -120,7 +110,7 @@ struct KeyConceptBox: View {
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
-                    .font(.subheadline.weight(.bold))
+                    .font(.headline.weight(.semibold))
                     .foregroundStyle(.white)
                 Text(bodyText)
                     .font(.subheadline)
@@ -130,11 +120,11 @@ struct KeyConceptBox: View {
         }
         .padding(CascadeTheme.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.green.opacity(0.15))
+        .background(CascadeTheme.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
         .overlay(
             RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
-                .stroke(Color.orange.opacity(CascadeTheme.accentBorderOpacity), lineWidth: CascadeTheme.borderWidth)
+                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
         )
         .accessibilityElement(children: .combine)
     }
@@ -153,5 +143,31 @@ struct ThemedIcon: View {
             .frame(width: size, height: size)
             .background(color.opacity(CascadeTheme.iconBackgroundOpacity))
             .clipShape(isCircle ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: CascadeTheme.iconRadius)))
+    }
+}
+
+struct GlossaryItem: View {
+    let term: String
+    let definition: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 16) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(.blue.opacity(0.6))
+                .frame(width: 3)
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text(term)
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
+                
+                Text(definition)
+                    .font(.subheadline)
+                    .foregroundStyle(CascadeTheme.bodyText)
+                    .lineSpacing(CascadeTheme.bodyLineSpacing)
+            }
+            .padding(.vertical, 4)
+        }
+        .accessibilityElement(children: .combine)
     }
 }

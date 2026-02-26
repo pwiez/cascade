@@ -1,29 +1,22 @@
-//
-//  TimelineVertical.swift
-//  Cascade
-//
-//  Created by Pedro Wiezel on 18/02/26.
-//
-
 import SwiftUI
 
 struct TimelineVertical: View {
     let events = [
-            ("October 1957", "Sputnik 1", "The Soviet Union launches the first artificial satellite, marking the dawn of the Space Age. Alongside the 83 kg satellite, the massive 7.5-ton R-7 Semyorka core rocket stage is left in orbit. It eventually reentered the atmosphere and was destroyed, but remains iconic as one of humanity's very first pieces of space debris."),
+            ("October 1957", "Sputnik 1", "The Soviet Union launches the first artificial satellite. They also leave the massive 7.5-ton R-7 core stage in orbit. It eventually burned up, but it was humanity's first piece of space junk."),
             
-            ("June 1961", "Ablestar", "An Ablestar upper stage rocket, used to launch the U.S. Transit 4A satellite, suffers an anomalous explosion in orbit. This marks the first known fragmentation event in space history, instantly generating nearly 300 trackable pieces of debris and highlighting the dangers of leftover propellant."),
+            ("June 1961", "Ablestar", "An Ablestar upper stage rocket explodes in orbit. This is the first known fragmentation event in space history. The explosion generates a few hundred trackable pieces of debris."),
             
-            ("June 1978", "The Kessler Hypothesis", "NASA scientists Donald J. Kessler and Burton G. Cour-Palais publish a landmark paper modeling collision frequencies in Low Earth Orbit. That paper fundamentally changed how space pollution and orbit safety are seen. This very app exists thanks to this research!"),
+            ("June 1978", "The Kessler Hypothesis", "NASA scientists Donald J. Kessler and Burton G. Cour-Palais publish their landmark paper on orbital collision frequencies."),
             
-            ("July 1996", "Cerise Collision", "In the first confirmed accidental collision involving two cataloged objects, a briefcase-sized fragment from an Ariane 1 rocket stage (which had exploded in 1986) strikes the French Cerise military satellite at nearly 15 km/s, hitting its 6-meter stabilization boom."),
+            ("July 1996", "Cerise Collision", "The first confirmed accidental collision between two cataloged objects. A briefcase-sized fragment from an old Ariane 1 rocket strikes the French military Cerise satellite at 15 km/s, tearing off its stabilization boom."),
             
-            ("January 2007", "Fengyun-1C", "A Chinese kinetic anti-satellite weapon test intentionally destroys Fengyun-1C, a 750 kg defunct weather satellite, at an altitude of 865 km. The violent hypervelocity impact creates over 3,500 trackable fragments."),
+            ("January 2007", "Fengyun-1C", "A Chinese anti-satellite weapon test intentionally destroys a defunct weather satellite. The impact creates thousands of trackable fragments in a single day."),
             
-            ("February 2009", "Iridium-Kosmos Collision", "In the very first accidental collision between two intact satellites in space, the operational U.S. communications satellite Iridium 33 and the defunct Russian military satellite Kosmos-2251 collide at 11.7 km/s. The crash severely contaminated the heavily utilized ~800km orbital shell with over 1800 fragments over 10cm in size. Many of these have since deorbited, but some will remain for a very long time."),
+            ("February 2009", "Iridium-Kosmos Collision", "The first accidental collision between two intact satellites. An operational U.S. communications satellite and a defunct Russian military satellite collide at 11.7 km/s. The crash contaminates the 800km orbital shell with many trackable fragments."),
             
-            ("November 2021", "Kosmos 1408", "A Russian anti-satellite weapon test destroys Kosmos 1408, a defunct USSR intelligence satellite launched in 1982 that weighed 2 tons. The trajectory of the debris initially indicated a conjunction risk with the ISS, forcing its crew to standby for evacuation procedures."),
+            ("November 2021", "Kosmos 1408", "A Russian weapon test destroys a defunct 2-ton Soviet-era intelligence satellite. The resulting debris cloud forced the ISS crew to take shelter in their return capsules for a while."),
             
-            ("August 2024", "Long March 6A Breakup", "A Chinese Long March 6A upper stage rocket breaks apart at an altitude of 800 km shortly after deploying 18 broadband satellites. The fragmentation event creates hundreds of trackable pieces of debris in a highly congested region."),
+            ("August 2024", "Long March 6A Breakup", "A Chinese upper stage rocket suffers an anomaly and breaks apart at 800 km altitude shortly after deploying 18 satellites. The event scatters hundreds of trackable fragments across a highly congested orbit.")
         ]
     
     var body: some View {
@@ -33,6 +26,7 @@ struct TimelineVertical: View {
                     VStack(spacing: 0) {
                         
                         Image(systemName: "pyramid.fill")
+                            .foregroundStyle(.white)
                             .frame(width: 10, height: 10)
                         
                         if index != events.count - 1 {
@@ -58,6 +52,8 @@ struct TimelineVertical: View {
                             .padding(.bottom, 30)
                     }
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(event.0). \(event.1). \(event.2)")
             }
         }
     }
