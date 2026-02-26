@@ -2,13 +2,13 @@ import SwiftUI
 
 struct AboutChapter: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 44) {
+        VStack(alignment: .leading, spacing: 40) {
+            
             VStack(alignment: .leading, spacing: 24) {
-                
                 Text("Simulation Architecture")
-                    .font(.title2.bold()).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.white)
                 
-                TextParagraph("Cascade runs a custom deterministic physics engine written fully in Swift, and it utilizes Apple's RealityKit framework to render everything: light, the Earth, and the objects. To maintain the flow of calculations running smoothly while tracking hundreds to thousands of objects, the engine uses several math optimizations and makes some significant physics concessions.")
+                TextParagraph("Cascade runs a custom deterministic physics engine written in Swift. It uses Apple's RealityKit framework for rendering. Tracking thousands of objects at 60 frames per second requires heavy math optimizations and a few physics compromises.")
                 
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 18) {
@@ -17,29 +17,17 @@ struct AboutChapter: View {
                         
                         VStack(spacing: 12) {
                             ModelParam(name: "Integrator", value: "Semi-Implicit Euler", detail: "Symplectic integration for stable orbits")
-                            
                             Divider().cascadeDivider()
-                            
                             ModelParam(name: "Collision Detection", value: "Spatial Hashing", detail: "Uniform grid partitioning strategy to reduce lookup speeds")
-                            
                             Divider().cascadeDivider()
-                            
                             ModelParam(name: "Parallelization", value: "Dynamic Load Balancing", detail: "Physics calculations distributed across CPU cores progressively")
-                            
                             Divider().cascadeDivider()
-                            
                             ModelParam(name: "Accelerate", value: "vDSP Vectorization", detail: "Leverages hardware-accelerated SIMD instructions for massive parallel array math")
-                            
                             Divider().cascadeDivider()
-                            
                             ModelParam(name: "Data Layout", value: "Structure of Arrays (SoA)", detail: "Improves CPU cache utilization for fast, sequential memory access during gravity integration")
-                            
                             Divider().cascadeDivider()
-                            
                             ModelParam(name: "Debris Rendering", value: "Single-Mesh Batching", detail: "Combines thousands of fragments into one dynamic mesh to eliminate RealityKit entity overhead")
-                            
                             Divider().cascadeDivider()
-                            
                             ModelParam(name: "Concurrency", value: "Actor-Isolated Engine", detail: "Runs heavy physics calculations safely on background threads using Swift strict concurrency")
                         }
                     }
@@ -50,45 +38,45 @@ struct AboutChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Compromises & Constraints")
-                    .font(.title2.bold()).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.white)
                 
-                TextParagraph("A full-fidelity orbital simulation requires supercomputers. In order to run smoothly, Cascade makes a few major physics compromises:")
+                TextParagraph("A full-fidelity orbital simulation requires a supercomputer. To run smoothly on mobile hardware, Cascade makes several major physics compromises.")
                 
                 VStack(spacing: 20) {
                     SimplificationCard(
                         title: "Event Timescale",
                         icon: "timer",
-                        description: "A Kessler Syndrome event happens blazingly fast in Cascade - within seconds, or minutes at most. This is intentional, to make the event more easy to visualize. In real life, this takes years or decades, mostly due to how small spacecraft and satellites are and how insanely big space is."
+                        description: "A Kessler Syndrome event happens blazingly fast in Cascade. In reality, it takes decades. Space is incredibly vast, and satellites are very small."
                     )
                     
                     SimplificationCard(
                         title: "Scaling",
                         icon: "square.resize.up",
-                        description: "In Cascade, Earth's size is drastically reduced and object sizes are drastically increased, to make it possible for you to visualize the effect. In reality, if you were to view Earth from afar, you would see just Earth, really. Space looks incredibly peaceful because debris and satellites are incredibly small in the grand scale of things. Looks are deceiving!"
+                        description: "Cascade shrinks the Earth and enlarges the satellites so you can actually see them. If rendered to scale, space would look completely empty."
                     )
                     
                     SimplificationCard(
                         title: "No Debris-Debris Collisions",
                         icon: "bolt.slash.fill",
-                        description: "The simulation calculates sat-on-sat and sat-on-debris impacts. However, debris fragments do not collide with each other. Calculations for interactions between thousands of debris particles would grow exponentially, stalling the engine and freezing the app. Besides, they are not strictly necessary for visualization."
+                        description: "The engine calculates satellite-on-satellite and satellite-on-debris impacts. Debris fragments do not collide with each other. Calculating those interactions would stall the engine."
                     )
                     
                     SimplificationCard(
                         title: "Representative Density",
                         icon: "square.grid.3x3.middle.filled",
-                        description: "It is impossible to render 100+ million fragments in orbit. Instead, Cascade uses a simplified representation: one visible piece of debris in the simulation represents a cloud of hundreds or thousands of fragments."
+                        description: "Mobile hardware cannot render 140 million fragments. Cascade uses a simplified representation. One visible piece of debris represents a cloud of thousands of real fragments."
                     )
                     
                     SimplificationCard(
                         title: "Idealized Gravity",
                         icon: "circle.dashed",
-                        description: "In this simulation, Earth is a perfect sphere. In reality, it is full of surface imperfections and points which are higher or lower than others. This causes gravitational disturbances according to the point of Earth's surface you're directly above. Cascade omits these disturbances. Gravity behaves the exact same in every point of every orbit."
+                        description: "Cascade treats Earth as a perfect sphere. In reality, Earth's equatorial bulge and uneven mass distribution cause gravitational anomalies. Cascade ignores these perturbations."
                     )
                     
                     SimplificationCard(
                         title: "No Atmospheric Drag",
                         icon: "wind",
-                        description: "Cascade does not account for atmospheric drag at orbital altitudes - which, as you learned in previous chapters, is essential for deorbiting debris over the years. In the simulation, debris that achieves a stable orbital path remains in orbit forever. However, if debris does come into contact with Earth by any means, it is deleted from the simulation."
+                        description: "Cascade ignores atmospheric drag. Debris that achieves a stable orbit remains there forever unless it hits the Earth's surface."
                     )
                 }
             }

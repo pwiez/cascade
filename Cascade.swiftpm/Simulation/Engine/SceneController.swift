@@ -315,7 +315,7 @@ class SceneController: ObservableObject {
     }
 
     private func setupLighting() {
-        mainSun.light.intensity = 6200
+        mainSun.light.intensity = 6500
         mainSun.look(at: [0, 0, 0], from: [500, 0, -500], relativeTo: nil)
         rootAnchor.addChild(mainSun)
     }

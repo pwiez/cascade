@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TipKit
 
 struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
@@ -65,7 +66,6 @@ struct SimulationScreen: View {
                         .padding(.bottom, 8)
                 }
                 .zIndex(1)
-                
                 
                 if showSettings {
                     HStack {

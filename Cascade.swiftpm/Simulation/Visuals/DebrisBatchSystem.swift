@@ -6,15 +6,12 @@ import simd
 class DebrisBatchSystem {
     public let entity: ModelEntity
     public var meshResource: MeshResource
-    
-    
+
     private let maxDebris: Int
-    
-    
+
     private var allPositions: [SIMD3<Float>]
     private var allNormals: [SIMD3<Float>]
     private var allIndices: [UInt32]
-    
     
     private let localVerts: [SIMD3<Float>] = [
         SIMD3(0, 0.5, 0),        
@@ -52,8 +49,7 @@ class DebrisBatchSystem {
         self.meshResource = try! MeshResource.generate(from: [descriptor])
         self.entity = ModelEntity(mesh: meshResource, materials: [material])
     }
-    
-    
+
     func update(activeCount: Int,
                     posX: [Float], posY: [Float], posZ: [Float],
                     rotAngle: [Float], rotAxisX: [Float], rotAxisY: [Float], rotAxisZ: [Float],
@@ -62,23 +58,16 @@ class DebrisBatchSystem {
         allPositions.withUnsafeMutableBufferPointer { vPtr in
             for i in 0..<activeCount {
                 let pos = SIMD3<Float>(posX[i], posY[i], posZ[i])
-                
-                
                 let axis = SIMD3<Float>(rotAxisX[i], rotAxisY[i], rotAxisZ[i])
                 let q = simd_quatf(angle: rotAngle[i], axis: axis)
-                
                 let base = i * 4
-                
-                
+            
                 vPtr[base + 0] = pos + (q.act(localVerts[0]) * scale)
                 vPtr[base + 1] = pos + (q.act(localVerts[1]) * scale)
                 vPtr[base + 2] = pos + (q.act(localVerts[2]) * scale)
                 vPtr[base + 3] = pos + (q.act(localVerts[3]) * scale)
             }
-            
-            
-            
-            
+
             if activeCount < maxDebris {
                 let start = activeCount * 4
                 if start < vPtr.count {
@@ -86,9 +75,6 @@ class DebrisBatchSystem {
                 }
             }
         }
-        
-        
-        
         
         var descriptor = MeshDescriptor(name: "MegaDebrisMesh")
         descriptor.positions = MeshBuffer(allPositions)
@@ -100,10 +86,7 @@ class DebrisBatchSystem {
         }
     }
     
-    
     func updateMaterial(_ newMaterial: Material) {
-        
-        
         if var model = entity.model {
             model.materials = [newMaterial]
             entity.model = model
