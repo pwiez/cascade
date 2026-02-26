@@ -5,14 +5,11 @@ struct ContentView: View {
     @StateObject var simulation = Simulation()
     @State private var selectedTab: Int = 0
     @State private var showIntro: Bool = true
-    
     @State private var wasPlayingBeforeRotation: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
-    
             ZStack {
-                
                 TabView(selection: $selectedTab) {
                     SimulationScreen(simulation: simulation)
                         .tabItem { Label("Simulation", systemImage: "cube.transparent") }

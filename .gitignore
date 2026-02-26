@@ -1,1 +1,17 @@
-Cascade.swiftpm/.swiftpm/xcode/package.xcworkspace/xcuserdata/Wiezel.xcuserdatad/UserInterfaceState.xcuserstate
+# --- Swift Package Manager ---
+.build/
+Packages/
+Package.resolved
+
+# --- Xcode User Data (Personal Settings) ---
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/
+
+# --- Build Artifacts ---
+DerivedData/
+*.moved-aside
+
+# --- macOS ---
+.DS_Store

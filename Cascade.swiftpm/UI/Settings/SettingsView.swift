@@ -12,7 +12,6 @@ struct SettingsView: View {
     var onClose: () -> Void
     @State private var showRestartConfirmation = false
     
-    
     var hasPendingChanges: Bool {
         simulation.draft.orbitAltitude != simulation.activeOrbitAltitude ||
         simulation.draft.orbitVariance != simulation.activeOrbitVariance ||
@@ -44,7 +43,6 @@ struct SettingsView: View {
                             format: "%.1fx"
                         )
                         
-                        
                         if simulation.satelliteScale > (simulation.collisionRadius * 1.5) {
                             Label("Visual scale exceeds collision radius. Objects may overlap visually.", systemImage: "exclamationmark.triangle.fill")
                                 .font(.caption)
@@ -65,7 +63,6 @@ struct SettingsView: View {
                     Text("Adjust scaling to make small objects easier to see on smaller screens.")
                 }
                 
-                
                 Section {
                     VStack(spacing: 8) {
                         LabeledContent("Time Scale", value: String(format: "%.1fx", simulation.timeScale))
@@ -82,9 +79,7 @@ struct SettingsView: View {
                     Text("Simulation Speed")
                 }
                 
-                
                 Section {
-                    
                     sliderRow(
                         label: "Initial Satellites",
                         value: $simulation.draft.satelliteCount,
@@ -94,16 +89,14 @@ struct SettingsView: View {
                         requiresRestart: simulation.draft.satelliteCount != simulation.activeSatelliteCount
                     )
                     
-                    
                     sliderRow(
                         label: "Orbit Altitude",
                         value: $simulation.draft.orbitAltitude,
-                        range: 110...150,
+                        range: 130...160,
                         step: 5,
                         format: "%.0f Units",
                         requiresRestart: simulation.draft.orbitAltitude != simulation.activeOrbitAltitude
                     )
-                    
                     
                     sliderRow(
                         label: "Altitude Variance",
@@ -213,7 +206,7 @@ struct SettingsView: View {
                             simulation.resetSimulation()
                         }
                     } message: {
-                        Text(hasPendingChanges ? "Applying these changes will restart the simulation." : "This will reset all satellites and debris.")
+                        Text(hasPendingChanges ? "Applying these changes will restart the simulation." : "This will clear satellites and debris, and reset the simulation.")
                     }
                 }
             }
