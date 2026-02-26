@@ -74,9 +74,8 @@ struct MechanicsChapter: View {
                 TextParagraph("Space surveillance networks can reliably track objects larger than about 10 cm. However, fragments between 1 mm and 10 cm — too small to track but large enough to destroy — represent the most dangerous population. This is because, as you just saw, what determines the problem an impact will cause is not necessarily the size of the thing that hits, but its velocity.\n\nEvery bit of frozen coolant, bolts, small metal shards, and even paint flecks can become small missiles. This is why the number of untracked debris is estimated to be so high. They are simply too small for us to know where or how many they are!")
             
                 HStack (spacing: 14){
-                    
                     OperationalStatCard(
-                        value: "> 14000",
+                        value: "> 14,500",
                         unit: "satellites",
                         label: "active and operational as of 2026",
                         icon: "",
@@ -90,21 +89,18 @@ struct MechanicsChapter: View {
                         icon: "",
                         accent: .yellow
                     )
-                    
                 }
                 
                 HStack (spacing: 14){
-                    
                     OperationalStatCard(
-                        value: "1.2 million +",
+                        value: "1.2 million+",
                         unit: "non-tracked",
                         label: "objects estimated to be in orbit from 1 to 10cm",
                         icon: "",
                         accent: .orange
                     )
-                    
                     OperationalStatCard(
-                        value: "140 million +",
+                        value: "140 million+",
                         unit: "non-tracked",
                         label: "objects estimated to be in orbit from 1mm to 1cm",
                         icon: "",

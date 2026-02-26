@@ -23,7 +23,7 @@ struct OverviewChapter: View {
                         .font(.headline)
                         .foregroundStyle(.white)
                     
-                    Text("Global navigation, weather forecasting, climate observation, telecommunications, and disaster early-warning systems all depend on unimpeded access to many orbital ranges, including Low Earth Orbit, represented in this simulation. If collision rates cross a critical threshold, entire orbital shells could become unusable for generations — not because of a single collision, but because of a series of slow, compounding accumulation of debris.")
+                    Text("A lot of things in our lives depend on the satellites orbiting Earth: GPS, weather forecasting, climate observation, telecommunications, disaster early-warning systems, and more. All of these depend on unimpeded access to many orbital ranges, including Low Earth Orbit, the one represented in this simulation. If collision rates between satellites (and the debris produced from these collisions) cross a critical threshold, entire orbital altitude ranges could become unusable. As you see in Cascade, this does not happen because of a single collision, but because of a series of slow, compounding accumulation of debris.")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .lineSpacing(CascadeTheme.bodyLineSpacing)
@@ -36,12 +36,12 @@ struct OverviewChapter: View {
                 
                 VStack(alignment: .leading, spacing: 12) {
                     LearningObjective(text: "Understand why collision cascades are self-reinforcing above a critical density threshold")
-                    LearningObjective(text: "Appreciate the role of orbital velocity in making even small debris lethal to other satellites")
-                    LearningObjective(text: "Visualize how debris spreads from a single point of impact into a planetary ring over time")
-                    LearningObjective(text: "Recognize that orbital space is a finite resource requiring active stewardship")
+                    LearningObjective(text: "Appreciate the role of orbital velocity in making even small debris extremely lethal to other satellites")
+                    LearningObjective(text: "Visualize how debris spreads around Earth over time")
+                    LearningObjective(text: "Recognize that the pollution of space is a real environmental issue, that space is a finite resource just as our Earth is, and that it requires active stewardship and care")
                 }
             }
-            .padding(.horizontal, 8)
+            .padding(.bottom)
         }
     }
 }
