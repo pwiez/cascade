@@ -12,9 +12,9 @@ struct SimulationMetrics: View {
     let initialSatellites: Int
     let satelliteColor: Color
     let debrisColor: Color
-
+    
     private var stats: SimStats { telemetry.stats }
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 0) {
@@ -23,14 +23,14 @@ struct SimulationMetrics: View {
                     value: stats.satellites,
                     color: satelliteColor
                 )
-
+                
                 Spacer()
-
+                
                 Divider().cascadeDivider()
                     .frame(height: 32)
-
+                
                 Spacer()
-
+                
                 metricColumn(
                     title: "Debris",
                     value: stats.debris,
@@ -40,9 +40,9 @@ struct SimulationMetrics: View {
         }
         .padding()
         .frame(width: 240)
-        .glassEffect(in: .rect(cornerRadius: 12))
+        .glassEffect(.regular, in: .rect(cornerRadius: 12))
     }
-
+    
     @ViewBuilder
     private func metricColumn(title: String, value: Int, color: Color) -> some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -51,7 +51,7 @@ struct SimulationMetrics: View {
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
                 .tracking(0.5)
-
+            
             Text(value.formatted())
                 .font(.system(.title3, design: .rounded).weight(.bold))
                 .monospacedDigit()
@@ -59,6 +59,6 @@ struct SimulationMetrics: View {
                 .contentTransition(.numericText())
                 .animation(.snappy, value: value)
         }
-        .frame(minWidth: 80, alignment: .leading) 
+        .frame(minWidth: 80, alignment: .leading)
     }
 }

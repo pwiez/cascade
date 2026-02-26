@@ -13,13 +13,13 @@ struct TimelineVertical: View {
             
             ("June 1961", "Ablestar", "An Ablestar upper stage rocket, used to launch the U.S. Transit 4A satellite, suffers an anomalous explosion in orbit. This marks the first known fragmentation event in space history, instantly generating nearly 300 trackable pieces of debris and highlighting the dangers of leftover propellant."),
             
-            ("June 1978", "The Kessler Hypothesis", "NASA scientists Donald J. Kessler and Burton G. Cour-Palais publish a landmark paper modeling collision frequencies in Low Earth Orbit. They predict that as satellite density increases, random collisions could trigger a self-sustaining cascade of debris, creating a barrier to future launches and craft survivability. This fundamentally changed views on orbit safety and the pollution of space."),
+            ("June 1978", "The Kessler Hypothesis", "NASA scientists Donald J. Kessler and Burton G. Cour-Palais publish a landmark paper modeling collision frequencies in Low Earth Orbit. That paper fundamentally changed how space pollution and orbit safety are seen. This very app exists thanks to this research!"),
             
             ("July 1996", "Cerise Collision", "In the first confirmed accidental collision involving two cataloged objects, a briefcase-sized fragment from an Ariane 1 rocket stage (which had exploded in 1986) strikes the French Cerise military satellite at nearly 15 km/s, hitting its 6-meter stabilization boom."),
             
             ("January 2007", "Fengyun-1C", "A Chinese kinetic anti-satellite weapon test intentionally destroys Fengyun-1C, a 750 kg defunct weather satellite, at an altitude of 865 km. The violent hypervelocity impact creates over 3,500 trackable fragments."),
             
-            ("February 2009", "Iridium-Kosmos Collision", "In the very first accidental hypervelocity collision between two intact satellites, the operational U.S. communications satellite Iridium 33 and the defunct 900 kg Russian military satellite Kosmos-2251 collide at 11.7 km/s. The disaster severely contaminates the heavily utilized 780 km orbital shell with over 2,000 trackable fragments."),
+            ("February 2009", "Iridium-Kosmos Collision", "In the very first accidental collision between two intact satellites in space, the operational U.S. communications satellite Iridium 33 and the defunct Russian military satellite Kosmos-2251 collide at 11.7 km/s. The crash severely contaminated the heavily utilized ~800km orbital shell with over 1800 fragments over 10cm in size. Many of these have since deorbited, but some will remain for a very long time."),
             
             ("November 2021", "Kosmos 1408", "A Russian anti-satellite weapon test destroys Kosmos 1408, a defunct USSR intelligence satellite launched in 1982 that weighed 2 tons. The trajectory of the debris initially indicated a conjunction risk with the ISS, forcing its crew to standby for evacuation procedures."),
             

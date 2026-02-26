@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import TipKit
 
 struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
     @State private var showSettings = false
+    let learnMoreTip = LearnMoreTip()
     
     private let panelWidthRatio = 0.30
     
@@ -65,7 +67,6 @@ struct SimulationScreen: View {
                         .padding(.bottom, 8)
                 }
                 .zIndex(1)
-                
                 
                 if showSettings {
                     HStack {

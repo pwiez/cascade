@@ -116,7 +116,7 @@ struct KeyConceptBox: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            ThemedIcon(systemName: icon, color: .orange, isCircle: false)
+            ThemedIcon(systemName: icon, color: .green, isCircle: false)
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
@@ -130,7 +130,7 @@ struct KeyConceptBox: View {
         }
         .padding(CascadeTheme.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.orange.opacity(0.1))
+        .background(Color.green.opacity(0.15))
         .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
         .overlay(
             RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)

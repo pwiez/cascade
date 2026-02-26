@@ -22,7 +22,7 @@ struct OnboardingOverlay: View {
                                 .fill(.blue)
                                 .frame(width: 4)
                             
-                            Text("Cascade is an educational physics simulator that lets you create and observe a Kessler Syndrome scenario in real time. The satellites orbiting our planet, represented by green cubes \(Text(Image(systemName: "cube.fill")).foregroundStyle(.green)) can collide with each other. When they do, clouds of debris represented by small pyramids \(Text(Image(systemName: "pyramid.fill")).foregroundStyle(.white)) will spawn, and they can collide with other satellites. Eventually, this produces a runaway collision chain reaction. Keep in mind that the simulation is not-to-scale, though.\n\nYou can learn more about Kessler Syndrome and Cascade itself in the Learn More tab, and the simulation will be paused when you switch to it.\n\nYou can also tweak the settings to change the aspects of collision and debris generation physics, and there are Accessibility settings to ensure you have an awesome experience.\n\nThe simulation will begin paused - tap the play button to get it going. Have fun, and I hope you learn a lot about this fascinating (albeit worrying) topic!")
+                            Text("Cascade is an educational physics simulator that lets you create and observe a Kessler Syndrome scenario in real time. The satellites orbiting our planet, represented by green cubes \(Text(Image(systemName: "cube.fill")).foregroundStyle(.green)), can collide with each other. When they do, clouds of debris represented by small tetrahedrons \(Text(Image(systemName: "pyramid.fill")).foregroundStyle(.white)) will appear and spread. They can collide with other satellites. Eventually, this produces a runaway collision chain reaction.\n\nYou can tweak the settings to change the parameters of collisions and debris generation physics, and there are Accessibility settings, such as changing the color and size of satellites and debris, to ensure you have an awesome experience.\n\nIf you want to learn more about Kessler Syndrome and Cascade itself, you can do so by tapping the Learn More tab. The simulation will be paused for you when you switch tabs.\n\nThe simulation will begin paused - simply tap the play button to get it going. Have fun, and I hope you learn a lot about this fascinating (and worrying) topic!")
                                 .font(.body)
                                 .foregroundStyle(CascadeTheme.bodyText)
                                 .lineSpacing(CascadeTheme.bodyLineSpacing)
@@ -33,9 +33,7 @@ struct OnboardingOverlay: View {
                             .fill(CascadeTheme.dividerColor)
                             .frame(height: CascadeTheme.borderWidth)
                         
-                        
                         VStack(alignment: .leading, spacing: 20) {
-                            
                             HStack{
                                 Text("Simulation Controls")
                                     .font(.title2.weight(.semibold))
@@ -47,6 +45,7 @@ struct OnboardingOverlay: View {
                                 
                                 Spacer()
                             }
+                            .padding(.bottom)
                             
                             HStack {
                                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 24) {
@@ -57,7 +56,7 @@ struct OnboardingOverlay: View {
                                             .imageScale(.large)
                                         Text("Detonate")
                                             .font(.body.weight(.medium))
-                                        Text("Explode a random satellite to make the Cascade happen faster!")
+                                        Text("Explode a random satellite to hasten the chaos")
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                     }
@@ -69,7 +68,7 @@ struct OnboardingOverlay: View {
                                             .imageScale(.large)
                                         Text("Restart")
                                             .font(.body.weight(.medium))
-                                        Text("Restarts the simulation, spawning the number of satellites you select in the settings and clearing debris.")
+                                        Text("Clear debris and restart the simulation")
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                     }
@@ -81,19 +80,19 @@ struct OnboardingOverlay: View {
                                             .imageScale(.large)
                                         Text("Play / Pause")
                                             .font(.body.weight(.medium))
-                                        Text("Pause and resume the simulation.")
+                                        Text("Pause or resume the simulation.")
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                     }
                                     
                                     GridRow(alignment: .firstTextBaseline) {
-                                        Image(systemName: "camera.metering.center.weighted")
+                                         Image(systemName: "camera.metering.center.weighted")
                                             .foregroundStyle(.white)
                                             .font(.body)
                                             .imageScale(.large)
                                         Text("Reset Camera")
                                             .font(.body.weight(.medium))
-                                        Text("Move the camera back to its default position.")
+                                        Text("Move the camera back to its default position and zoom level")
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                     }
@@ -105,7 +104,7 @@ struct OnboardingOverlay: View {
                                             .imageScale(.large)
                                         Text("Settings")
                                             .font(.body.weight(.medium))
-                                        Text("Change simulation parameters, accessibility settings, and more!")
+                                        Text("Change physics parameters, accessibility settings, and more")
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                     }
@@ -116,13 +115,24 @@ struct OnboardingOverlay: View {
                                 
                                 Grid(alignment: .leading, verticalSpacing: 24) {
                                     GridRow(alignment: .firstTextBaseline) {
-                                        Image(systemName: "burst.fill")
-                                            .foregroundStyle(.red)
+                                        Image(systemName: "hand.draw.fill")
+                                            .foregroundStyle(.white)
                                             .font(.body)
                                             .imageScale(.large)
-                                        Text("Detonate")
+                                        Text("Drag")
                                             .font(.body.weight(.medium))
-                                        Text("Explode a random satellite to make the Cascade happen faster!")
+                                        Text("Drag your finger on the screen to move the camera around Earth")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    GridRow(alignment: .firstTextBaseline) {
+                                        Image(systemName: "hand.pinch.fill")
+                                            .foregroundStyle(.white)
+                                            .font(.body)
+                                            .imageScale(.large)
+                                        Text("Pinch")
+                                            .font(.body.weight(.medium))
+                                        Text("Pinch the screen with two fingers to zoom the camera in or out")
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                     }

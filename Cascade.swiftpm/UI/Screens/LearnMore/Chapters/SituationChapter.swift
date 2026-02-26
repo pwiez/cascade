@@ -52,9 +52,9 @@ struct SituationChapter: View {
 
                 HStack(spacing: 14) {
                     OperationalStatCard(
-                        value: "1.2 million +",
+                        value: "1.2 million+",
                         unit: "non-tracked debris",
-                        label: "which are potentially extremely dangerous (1cm - 10cm)",
+                        label: "that are very dangerous (1cm - 10cm)",
                         icon: "",
                         accent: .yellow
                     )
@@ -69,8 +69,8 @@ struct SituationChapter: View {
                 }
                 
                 KeyConceptBox(
-                    title: "Conjunction Assessment",
-                    bodyText: "Every tracked object's trajectory is projected forward and compared against all others. When the predicted miss distance falls below a threshold (typically a few hundred meters), operators must decide whether to execute an avoidance maneuver — consuming irreplaceable fuel and interrupting mission operations. This is common with companies and organizations that inject a great number of satellites into similar orbital altitudes.",
+                    title: "On conjunctions and avoidance maneuvers",
+                    bodyText: "Conjunction is the name for the event of an object passing dangerously close to another in orbit. Every tracked object's trajectory is projected forward and compared against all others. When the predicted miss distance falls below a threshold (typically a few hundred meters), operators have to decide whether to execute an avoidance maneuver, which consumes irreplaceable fuel and disrupts mission operations. Avoidance maneuvers are common with companies and organizations that inject a great number of satellites into similar orbital altitudes. Thanks to the debris problem, it's becoming common even for the ISS, which is a bigger target. It currently performs about 4 of them every year.",
                     icon: "point.topleft.down.to.point.bottomright.curvepath"
                 )
             }

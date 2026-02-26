@@ -39,35 +39,35 @@ struct RemediationChapter: View {
                 Text("Active Removal Technologies")
                     .font(.title2.bold()).foregroundStyle(.white)
                 
-                TextParagraph("As you may have guessed, atmospheric drag alone is powerful, but largely insufficient. Therefore, engineered interventions are required. Several approaches are under development, each targeting different aspects of the debris problem. There have been a lot of advancements in proposed technologies, some tests have already been successful, and more are planned in coming years.\n\nHere are the coolest ones:")
+                TextParagraph("Based on what you learned from this and the previous chapters, you know that atmospheric drag alone is powerful, but largely insufficient. Therefore, engineered interventions are required for objects in higher orbits. Several approaches are under development, each targeting different aspects of the debris problem. Even though the ideas look like they're coming straight out of science fiction, they're actually very real and are being seriously studied and considered. There have been a lot of advancements in proposed technologies, some tests have already been successful, and more are planned in coming years!")
                 
                 VStack(spacing: 20) {
                     StrategyCard(
                         title: "Drag Augmentation",
                         icon: "wind",
-                        description: "Deployable drag sails or inflatable structures dramatically increase a satellite or spacecraft's cross-sectional area, which increases its susceptibility to drag forces. At the end of the operational life of the object, these devices can be deployed, accelerating orbital decay through atmospheric drag. Drag sails are lightweight and can be integrated into satellite and craft design fairly easily from the outset, which makes this is a very cost-effective solution.",
-                        mechanism: "By increasing the area-to-mass ratio, atmospheric drag forces multiply, reducing deorbit time from centuries to years, or even months, even at high altitudes."
+                        description: "Deployable drag sails or inflatable structures dramatically increase a satellite or spacecraft's cross-sectional area, which increases its susceptibility to drag forces. At the end of the operational life of the craft, these devices can be deployed, accelerating orbital decay through atmospheric drag. Drag sails are lightweight and can be integrated into satellite and craft design fairly easily in the design stage. This makes them a very cost-effective solution, because it's a way to tackle the problem without requiring costly manual intervention later on.",
+                        mechanism: "By increasing the area-to-mass ratio, atmospheric drag forces multiply, reducing deorbit time considerably even at higher altitudes."
                     )
                     
                     StrategyCard(
                         title: "Harpoons & Nets",
                         icon: "lasso",
-                        description: "A specialized chaser spacecraft approaches a large defunct satellite or rocket body, or another type of large debris, and secures it using a tethered harpoon or deployable net. Once it's captured, the spacecraft performs a controlled burn that deorbits the debris.",
-                        mechanism: "The RemoveDEBRIS mission (2018) successfully demonstrated both net capture and harpoon penetration in orbit. It was also supposed to demonstrate the use of drag sails, but they failed to deploy. ESA's ClearSpace-1, planned for launching in 2029, aims to be the first full-scale removal mission. The goal is to deorbit the ESA's own PROBA-1 satellite, which weighs 95kg and was launched all the way back in 2001."
+                        description: "A specialized chaser spacecraft approaches a large defunct satellite or rocket body, or another type of large debris, and secures it using a tethered harpoon or deployable net. Once it's captured, the spacecraft performs a controlled burn that deorbits the captured object.",
+                        mechanism: "The RemoveDEBRIS mission (2018) successfully demonstrated both net capture and harpoon penetration in orbit. It was also supposed to demonstrate the use of drag sails, but they failed to deploy. ESA's ClearSpace-1 mission, planned to launch in 2029, aims to be the first full-scale removal operation. The goal of ClearSpace-1 is to deorbit the ESA's own PROBA-1 satellite, which weighs 95kg and was launched all the way back in 2001."
                     )
                     
                     StrategyCard(
                         title: "Laser Ablation",
                         icon: "dot.radiowaves.left.and.right",
-                        description: "High-powered ground-based or orbital lasers target a debris object's surface. The laser's focused energy vaporizes a small amount of material. This creates a gas jet that acts as a miniature thruster, applying a small but very precise impulse to the object.",
-                        mechanism: "Repeated laser passes over days or weeks can gradually lower the object's orbit until atmospheric drag finishes the job. No physical contact is required, and resource-wise this is fairly efficient."
+                        description: "Ground-based or orbital lasers target a debris object's surface. The laser's focused energy is so powerful that it vaporizes a small amount of material. The vaporized material has so much energy that it is ejected, creating a small gas jet that acts as a miniature thruster. Thanks to Newton's third law (for every action, there's an equal reaction), a small but very precise impulse is applied to the debris itself.",
+                        mechanism: "Repeated laser passes over days or weeks can gradually slow down the object until atmospheric drag can finish the job faster. No craft launches are required, and resource-wise this is a fairly efficient solution."
                     )
                     
                     StrategyCard(
                         title: "Magnetic Stabilization & Braking",
                         icon: "gyroscope",
-                        description: "Tumbling debris objects are very dangerous to approach and impossible to dock with. Magnetic tugs generate rotating magnetic fields that induce eddy currents in the target's conductive body, producing forces and torques at a safe distance.",
-                        mechanism: "This can either stabilize the target for subsequent capture, or directly lower the orbit over time using magnetic braking. No mechanical attachment is needed, mitigating risk to equipment. This strategy is still highly experimental and under research."
+                        description: "Tumbling debris objects are very dangerous to approach and impossible to dock a spacecraft with. Magnetic tugs in space can generate rotating magnetic fields that induce eddy currents in the target's conductive parts, producing forces and torques at a safe distance.",
+                        mechanism: "The created forces can either stabilize the target for subsequent capture, or directly lower the speed of the debris over time through magnetic braking. No mechanical attachment is needed, mitigating risk to equipment. This strategy is still highly experimental and under research."
                     )
                 }
             }
