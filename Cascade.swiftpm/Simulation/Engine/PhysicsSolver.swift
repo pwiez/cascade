@@ -194,10 +194,10 @@ actor PhysicsSolver {
                             isDebris = true
                         }
 
-                        guard abs(posA.x - posB.x) <= radius &&
-                              abs(posA.y - posB.y) <= radius &&
-                              abs(posA.z - posB.z) <= radius else { continue }
-
+                        let effectiveRadius = isDebris ? radius : (radius * 2)
+                        guard abs(posA.x - posB.x) <= effectiveRadius &&
+                              abs(posA.y - posB.y) <= effectiveRadius &&
+                              abs(posA.z - posB.z) <= effectiveRadius else { continue }
                         let effectiveRSq = isDebris ? radiusSq : (radius * 2) * (radius * 2)
                         guard length_squared(posA - posB) < effectiveRSq else { continue }
 
