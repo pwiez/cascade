@@ -279,13 +279,16 @@ class SceneController: ObservableObject {
     private func updateMaterials() {
         self.satelliteMaterial.baseColor = .init(tint: UIColor(settings.satelliteColor))
         self.debrisMaterial = UnlitMaterial(color: UIColor(settings.debrisColor))
-        
+
+        let sharedSatelliteMaterials: [Material] = [self.satelliteMaterial]
+
         for sat in satellites {
-            if var model = sat.model {
-                model.materials = [satelliteMaterial]
-                sat.model = model
-            }
+            guard var comp = sat.components[ModelComponent.self] else { continue }
+            
+            comp.materials = sharedSatelliteMaterials
+            sat.components.set(comp)
         }
+        
         debrisBatchSystem.updateMaterial(debrisMaterial)
     }
     
