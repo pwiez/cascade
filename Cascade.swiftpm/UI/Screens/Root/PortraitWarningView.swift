@@ -23,7 +23,7 @@ struct PortraitWarningView: View {
                 
                 Text("Please Rotate Your Device")
                     .font(.title.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                 
                 Text("Cascade is designed to be experienced in landscape mode.")
                     .font(.body)

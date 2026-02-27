@@ -31,7 +31,7 @@ struct TimelineVertical: View {
                         
                         if index != events.count - 1 {
                             Rectangle()
-                                .fill(Color.white.opacity(0.5))
+                                .fill(CascadeTheme.dividerColor)
                                 .frame(width: 1)
                                 .frame(maxHeight: .infinity)
                                 .padding(.vertical, 8)
@@ -45,7 +45,7 @@ struct TimelineVertical: View {
                             .foregroundStyle(CascadeTheme.mutedText)
                         Text(event.1)
                             .font(.headline.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.primary)
                         Text(event.2)
                             .font(.subheadline)
                             .foregroundStyle(CascadeTheme.bodyText)

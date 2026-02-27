@@ -7,7 +7,7 @@ struct RemediationChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Atmospheric Drag")
-                    .font(.title2.weight(.bold)).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
                 TextParagraph("This is our main ally in this. Did you know Earth's atmosphere does not just end when you get to space? Instead, it tapers off gradually. Gas molecules at very high altitudes are few and far between, but they exert a persistent drag force on orbiting objects. Over time, this drag lowers an object's altitude until it burns up in the thicker atmosphere.")
                 
@@ -35,7 +35,7 @@ struct RemediationChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Active Removal Technologies")
-                    .font(.title2.weight(.bold)).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
                 TextParagraph("Atmospheric drag is powerful, but it is insufficient. We need engineered interventions to clear higher orbits or at least make them safer. Several approaches are currently under development. Some of them may seem like they came out of science fiction, but they are very real ideas being researched and tested currently.")
                 
@@ -76,9 +76,9 @@ struct RemediationChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("The 25-Year Guideline")
-                    .font(.title2.weight(.bold)).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
-                TextParagraph("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all satellites in Low Earth Orbit deorbit within 25 years of mission end. This means that if a satellite reaches its mission end in 2030, it should be deorbited at most by 2055. In the 2020s, the U.S. Federal Communications Commission adopted a stricter 5-year rule. However, compliance remains voluntary for many global operators outside of the U.S.")
+                TextParagraph("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all satellites in Low Earth Orbit deorbit within 25 years after a mission ends. So, if a satellite reaches its mission end in 2030 it should be deorbited at most by 2055. In the 2020s, the U.S. Federal Communications Commission adopted a stricter 5-year rule. However, compliance remains voluntary for many global operators outside of the U.S.")
             }
         }
     }
@@ -94,7 +94,7 @@ struct DragLifetimeRow: View {
         HStack(spacing: 12) {
             Text(altitude)
                 .font(.caption.weight(.semibold).monospacedDigit())
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .frame(width: 70, alignment: .leading)
             
             GeometryReader { geo in
@@ -130,11 +130,11 @@ struct StrategyCard: View {
                 ThemedIcon(systemName: icon, color: .blue, isCircle: true)
                 Text(title)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                 Spacer()
             }
             
-            Divider().overlay(Color.white.opacity(0.1))
+            Divider().overlay(Color.primary.opacity(0.1))
             
             VStack(alignment: .leading, spacing: 16) {
                 Text(description)

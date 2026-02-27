@@ -23,12 +23,16 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    Toggle("Show Earth", isOn: $simulation.showEarth)
-                    Toggle("Show Satellites", isOn: $simulation.showSatellites)
-                    Toggle("Show Simulation Stats", isOn: $simulation.showStats)
                     Toggle("Camera Control", isOn: $simulation.isCameraEnabled)
                     Toggle("Debris Rotation", isOn: $simulation.debrisRotation)
                     Toggle("Full Lighting", isOn: $simulation.useOmniLight)
+                    
+                    DisclosureGroup("Visibility") {
+                        Toggle("Show Earth", isOn: $simulation.showEarth)
+                        Toggle("Show Satellites", isOn: $simulation.showSatellites)
+                        Toggle("Show Debris", isOn: $simulation.showDebris)
+                        Toggle("Show Simulation Stats", isOn: $simulation.showStats)
+                    }
                     
                     DisclosureGroup("Colors & Scaling") {
                         ColorPicker("Satellite Color", selection: $simulation.satelliteColor, supportsOpacity: false)
@@ -59,8 +63,6 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text("Accessibility & Visuals")
-                } footer: {
-                    Text("Adjust scaling to make small objects easier to see on smaller screens.")
                 }
                 
                 Section {
@@ -83,7 +85,7 @@ struct SettingsView: View {
                     sliderRow(
                         label: "Initial Satellites",
                         value: $simulation.draft.satelliteCount,
-                        range: 100...250,
+                        range: 150...300,
                         step: 10,
                         format: "%.0f",
                         requiresRestart: simulation.draft.satelliteCount != simulation.activeSatelliteCount
@@ -124,7 +126,7 @@ struct SettingsView: View {
                             Spacer()
                             Text("Restart Pending")
                                 .foregroundStyle(.orange)
-                                .font(.default)
+                                .font(.default.weight(.regular))
                         }
                     }
                 } footer: {
@@ -136,15 +138,13 @@ struct SettingsView: View {
                 
                 Section {
                     sliderRow(label: "Debris Ejection Force", value: $simulation.explosionForce, range: 0.5...3.0, step: nil, format: "%.1fx")
-                    sliderRow(label: "Collision Radius", value: $simulation.collisionRadius, range: 1.0...3.0, step: 0.1, format: "%.1f")
+                    sliderRow(label: "Satellite Collision Radius", value: $simulation.collisionRadius, range: 1.0...3.0, step: 0.1, format: "%.1f")
                     
-                    sliderRow(label: "Debris per Collision", value: $simulation.debrisPerCollision, range: 2...6, step: 1, format: "%.0f")
-                    sliderRow(label: "Max Debris Count", value: $simulation.maxDebris, range: 1000...3000, step: 100, format: "%.0f")
+                    sliderRow(label: "Debris per Collision", value: $simulation.debrisPerCollision, range: 5...10, step: 1, format: "%.0f")
+                    sliderRow(label: "Max Debris Count", value: $simulation.maxDebris, range: 1000...5000, step: 200, format: "%.0f")
                     
                 } header: {
                     Text("Collision Physics")
-                } footer: {
-                    Text("Higher ejection forces will create larger clouds, and larger hitboxes will make satellites easier to hit.")
                 }
                 
                 Section {
@@ -175,7 +175,7 @@ struct SettingsView: View {
                         
                     }
                 } footer: {
-                    Text("Controls the shape of the debris cloud immediately after an explosion.")
+                    Text("Controls the shape of the debris cloud immediately after satellite destruction.")
                 }
                 
                 Section {

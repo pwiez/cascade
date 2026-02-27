@@ -27,7 +27,7 @@ struct OrbitsChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Orbital Regimes")
-                    .font(.title2.bold()).foregroundStyle(.white)
+                    .font(.title2.bold()).foregroundStyle(.primary)
                 
                 TextParagraph("Different altitudes are useful for different purposes. Satellite population varies according to altitude ranges, and it is highest in Low Earth Orbit, precisely the one represented in the simulation.")
                 

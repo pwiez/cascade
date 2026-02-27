@@ -37,7 +37,7 @@ struct DebrisChart: View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Evolution of cataloged objects in Earth orbit")
-                    .font(.headline).foregroundStyle(.white)
+                    .font(.headline).foregroundStyle(.primary)
                 Text("Objects larger than 10 cm tracked by space surveillance networks, 1960–2026.")
                     .font(.caption).foregroundStyle(CascadeTheme.mutedText)
                     .lineSpacing(3)

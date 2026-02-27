@@ -74,7 +74,7 @@ struct DefinitionCallout: View {
                 
                 Text(term)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                 
                 Text(definition)
                     .font(.subheadline)
@@ -111,7 +111,7 @@ struct KeyConceptBox: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.headline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                 Text(bodyText)
                     .font(.subheadline)
                     .foregroundStyle(CascadeTheme.bodyText)
@@ -159,7 +159,7 @@ struct GlossaryItem: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(term)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                 
                 Text(definition)
                     .font(.subheadline)
