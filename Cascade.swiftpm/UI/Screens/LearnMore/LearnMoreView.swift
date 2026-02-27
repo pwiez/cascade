@@ -34,11 +34,11 @@ enum AppSection: String, CaseIterable, Identifiable {
     
     var subtitle: String {
         switch self {
-        case .hero: return "A developing threat"
-        case .orbits: return "Falling but missing the ground"
+        case .hero: return ""
+        case .orbits: return "The art of falling and missing the ground"
         case .mechanics: return "The physics of crashes in space"
-        case .situation: return "Where we stand today"
-        case .remediation: return "Is it possible to clean up space?"
+        case .situation: return "Where we are today"
+        case .remediation: return "Is it possible to clean up an orbit?"
         case .glossary: return ""
         case .about: return ""
         case .credits: return ""
@@ -90,7 +90,6 @@ struct LearnMoreView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .toolbar(.hidden)
-        .preferredColorScheme(.dark)
     }
     
     @ViewBuilder
@@ -122,7 +121,7 @@ struct ChapterContainerView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(activeSection.title)
                         .font(.largeTitle.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                     
                     if !activeSection.subtitle.isEmpty {
                         Text(activeSection.subtitle)
@@ -130,7 +129,7 @@ struct ChapterContainerView: View {
                             .foregroundStyle(CascadeTheme.dimText)
                     }
                     
-                    Divider().overlay(.white)
+                    Divider().overlay(CascadeTheme.dividerColor)
                         .padding(.top, 24)
                         .padding(.bottom, 8)
                 }

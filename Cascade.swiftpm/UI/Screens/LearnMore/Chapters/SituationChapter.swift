@@ -14,7 +14,7 @@ struct SituationChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Current Orbital Population")
-                    .font(.title2.weight(.bold)).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
                 TextParagraph("The sharp spikes in this chart map directly to weapon tests, accidental collisions, and the recent boom in mega-constellations that you just learned about in the timeline.")
                 
@@ -25,7 +25,7 @@ struct SituationChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Operational Impacts")
-                    .font(.title2.weight(.bold)).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
                 TextParagraph("This growing danger causes immediate consequences for active missions. Collision avoidance maneuvers are now routine, and every one of those burns irreplaceable fuel, may shorten a craft's lifespan, and sometimes can put human crews at risk.")
                 
@@ -73,7 +73,7 @@ struct OperationalStatCard: View {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(value)
                     .font(.title.weight(.bold).monospacedDigit())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                 Text(unit)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(CascadeTheme.mutedText)

@@ -15,12 +15,12 @@ actor PhysicsSolver {
         self.killRadiusSq = pow(earthRadius + 2.0, 2)
         self.maxRadiusSq = 300 * 300
 
-        self.debrisPool = DebrisPool(capacity: 3100)
+        self.debrisPool = DebrisPool(capacity: 5500)
 
         let minGridWidth: Float = 350.0
         let requiredCellSize = minGridWidth / 128.0
         let safeCellSize = max(Float(settings.collisionRadius * 2.1), requiredCellSize)
-        self.grid = SpatialGrid(maxObjects: 5000, cellSize: safeCellSize)
+        self.grid = SpatialGrid(maxObjects: 6000, cellSize: safeCellSize)
     }
 
     func step(dt: Float,

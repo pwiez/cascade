@@ -27,23 +27,24 @@ struct SimSettings {
     var orbitVariance: Double
     var useOmniLight: Bool
     var showEarth: Bool
+    var showDebris: Bool
     var debrisRotation: Bool
 }
 
 extension SimSettings {
     static let defaults = SimSettings(
-        debrisPerCollision: 4,
+        debrisPerCollision: 6,
         explosionForce: 1.0,
         collisionRadius: 1.5,
-        spreadTangential: 0.0,
-        spreadVertical: 0.7,
-        spreadRadial: 0.0,
+        spreadTangential: 0.1,
+        spreadVertical: 0.6,
+        spreadRadial: 0.1,
         timeScale: 1.0,
         showSatellites: true,
-        satelliteColor: Color(red: 0.108, green: 0.750, blue: 0.229),
+        satelliteColor: Color(red: 0.108, green: 0.725, blue: 0.229),
         debrisColor: .red,
         backgroundColor: .black,
-        maxDebris: 2000,
+        maxDebris: 3000,
         useRandomInclination: true,
         satelliteScale: 2.0,
         debrisScale: 2.0,
@@ -52,7 +53,9 @@ extension SimSettings {
         orbitVariance: 2.0,
         useOmniLight: false,
         showEarth: true,
-        debrisRotation: true
+        debrisRotation: true,
+        showDebris: true,
+       
     )
 }
 
@@ -74,7 +77,7 @@ struct PopulationDraft {
     var useRandomInclination: Bool
 
     static let defaults = PopulationDraft(
-        satelliteCount: 150,
+        satelliteCount: 200,
         orbitAltitude: SimSettings.defaults.orbitAltitude,
         orbitVariance: SimSettings.defaults.orbitVariance,
         useRandomInclination: SimSettings.defaults.useRandomInclination
@@ -117,6 +120,7 @@ class Simulation: ObservableObject {
     @Published var debrisRotation: Bool = SimSettings.defaults.debrisRotation { didSet { syncSettings() } }
     @Published var useOmniLight: Bool = SimSettings.defaults.useOmniLight { didSet { syncSettings() } }
     @Published var showEarth: Bool = SimSettings.defaults.showEarth { didSet { syncSettings() } }
+    @Published var showDebris: Bool = SimSettings.defaults.showDebris { didSet { syncSettings() } }
 
     @Published var showStats: Bool = true
     @Published var isPaused: Bool = true { didSet { controller.isPaused = isPaused } }
@@ -174,6 +178,7 @@ class Simulation: ObservableObject {
             orbitVariance: activeOrbitVariance,
             useOmniLight: useOmniLight,
             showEarth: showEarth,
+            showDebris: showDebris,
             debrisRotation: debrisRotation
         )
         controller.queueCommand(.updateSettings(settings))
@@ -196,6 +201,7 @@ class Simulation: ObservableObject {
         backgroundColor = .black
         useOmniLight = d.useOmniLight
         showEarth = d.showEarth
+        showDebris = d.showDebris
         draft = PopulationDraft.defaults
     }
 

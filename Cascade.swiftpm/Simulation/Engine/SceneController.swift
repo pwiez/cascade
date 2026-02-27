@@ -260,6 +260,7 @@ class SceneController: ObservableObject {
         
         arView?.environment.background = .color(UIColor(settings.backgroundColor))
         earthEntity?.isEnabled = newSettings.showEarth
+        debrisBatchSystem.entity.isEnabled = newSettings.showDebris
         
         Task { await system.updateSettings(newSettings) }
     }

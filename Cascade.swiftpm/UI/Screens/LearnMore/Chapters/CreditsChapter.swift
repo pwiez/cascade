@@ -4,72 +4,66 @@ struct CreditsChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 40) {
             
-            TextParagraph("Cascade's premise as well as the information and data shown here are all drawn from publicly available scientific publications, institutional reports, and official data repositories maintained by international space agencies and reputable non-profit organizations.")
+            TextParagraph("Cascade's premise and the data shown here are drawn from publicly available research, scientific publications, institutional reports, and official repositories maintained by space agencies and reputable organizations.")
             
-            ScientificCard {
-                VStack(alignment: .leading, spacing: 18) {
-                    CreditSection(role: "Papers and Publications", entries: [
-                        "Kessler, D. J., & Cour-Palais, B. G. (1978). Collision frequency of artificial satellites: The creation of a debris belt. *Journal of Geophysical Research*, *83*.",
-                        "Liou, J.-C., & Johnson, N. L. (2006). Risks in space from orbiting debris. *Science*, *311*(5759), 340–341.",
-                        "Liou, J.-C., & Johnson, N. L. (2008). Instability of the present LEO satellite populations. *Advances in Space Research*, *41*.",
-                        "Klinkrad, H. (2006). *Space debris: Models and risk analysis*. Springer."
-                    ])
+            VStack(alignment: .leading, spacing: 40) {
+                
+                VStack(alignment: .leading, spacing: 24) {
+                    Text("Assets")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.primary)
                     
-                    Divider().cascadeDivider()
+                    TextParagraph("• Earth's texture map with clouds is in the public domain, and was created by Tom Patterson based on NASA imaging curated by Reto Stöckli. They are available on the website shadedrelief.com.")
+                }
+                
+                VStack(alignment: .leading, spacing: 24) {
+                    Text("Papers, Publications and Reports")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.primary)
                     
-                    CreditSection(role: "Assets", entries: [
-                        "Earth texture and cloud map by Tom Patterson (www.shadedrelief.com), based on NASA Earth Observatory images by Reto Stöckli.",
-                    ])
+                    TextParagraph("• Kessler, D. J., & Cour-Palais, B. G. (1978). Collision frequency of artificial satellites: The creation of a debris belt. *Journal of Geophysical Research*, *83*.\n• Liou, J., & Johnson, N. L. (2006b). Risks in Space from Orbiting Debris. Science, 311(5759), 340–341.\n• Portree, D. S. (1999). Orbital debris: A chronology (Vol. 208856). NASA.")
+                }
+                
+                VStack(alignment: .leading, spacing: 24) {
+                    Text("Institutional Data Sources")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.primary)
                     
-                    Divider().cascadeDivider()
+                    TextParagraph("• NASA Orbital Debris Program Office. *Orbital debris quarterly news*.\n• European Space Agency Space Debris Office. (2024). *Annual space environment report*.\n• Inter-Agency Space Debris Coordination Committee. (2020). *IADC space debris mitigation guidelines*.\n• U.S. Federal Communications Commission. (2022). *Space Innovation; Mitigation of Orbital Debris in the New Space Age*.\n• U.S. Space Surveillance Network. *Public catalog data*. Space-Track.org.")
+                }
+                
+                VStack(alignment: .leading, spacing: 24) {
+                    Text("Remediation References")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(.primary)
                     
-                    
-                    CreditSection(role: "Orbital Data", entries: [
-                        "CelesTrak (T.S. Kelso) — TLE catalog and orbital element data"
-                    ])
-                    
-                    Divider().cascadeDivider()
-                    
-                    CreditSection(role: "Institutional Data Sources", entries: [
-                        "NASA Orbital Debris Program Office. (n.d.). *Orbital debris quarterly news*.",
-                        "European Space Agency Space Debris Office. (2024). *Annual space environment report*.",
-                        "Inter-Agency Space Debris Coordination Committee. (2020). *IADC space debris mitigation guidelines* (Rev. 2).",
-                        "U.S. Space Surveillance Network. (n.d.). *Public catalog data* [Data set]. Space-Track.org."
-                    ])
-                    
-                    Divider().cascadeDivider()
-                    
-                    CreditSection(role: "Remediation Technology References", entries: [
-                        "Forshaw, J. L., et al. (2016). RemoveDEBRIS: An in-orbit active debris removal demonstration mission. *Acta Astronautica*, *127*.",
-                        "European Space Agency. (n.d.). *ClearSpace-1 mission overview*. esa.int/clearspace",
-                        "Bombardelli, C., & Peláez, J. (2011). Ion beam shepherd for contactless space debris removal. *Journal of Guidance, Control, and Dynamics*, *34*."
-                    ])
+                    TextParagraph("• Locke, J., Colvin, T. J., Ratliff, L., Abdul-Hamid, A., & Samples, C. (2024). Cost and benefit analysis of mitigating, tracking, and remediating orbital debris. *Cost and Benefit Analysis of Mitigating, Tracking, and Remediating Orbital Debris.*\n• Forshaw, J. L., et al. (2016). RemoveDEBRIS: An in-orbit active debris removal demonstration mission. *Acta Astronautica*, *127*.\n• European Space Agency. *ClearSpace-1 mission overview*. esa.int/Space_Safety/ClearSpace-1")
                 }
             }
         }
     }
     
     func CreditSection(role: String, entries: [String]) -> some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(role)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.blue)
-                    .textCase(.uppercase)
-                    .tracking(0.8)
-                
-                ForEach(entries, id: \.self) { entry in
-                    HStack(alignment: .top, spacing: 10) {
-                        Circle()
-                            .fill(.white.opacity(0.3))
-                            .frame(width: 4, height: 4)
-                            .padding(.top, 7)
-                        
-                        Text(LocalizedStringKey(entry))
-                            .font(.subheadline)
-                            .foregroundStyle(CascadeTheme.bodyText)
-                            .lineSpacing(3)
-                    }
+        VStack(alignment: .leading, spacing: 8) {
+            Text(role)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.blue)
+                .textCase(.uppercase)
+                .tracking(0.8)
+            
+            ForEach(entries, id: \.self) { entry in
+                HStack(alignment: .top, spacing: 10) {
+                    Circle()
+                        .fill(.primary.opacity(0.3))
+                        .frame(width: 4, height: 4)
+                        .padding(.top, 7)
+                    
+                    Text(LocalizedStringKey(entry))
+                        .font(.subheadline)
+                        .foregroundStyle(CascadeTheme.bodyText)
+                        .lineSpacing(3)
                 }
             }
         }
+    }
 }

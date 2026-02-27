@@ -54,12 +54,12 @@ struct OnboardingOverlay: View {
                                         Text("Control the flow of time").font(.subheadline).foregroundStyle(.secondary)
                                     }
                                     GridRow(alignment: .firstTextBaseline) {
-                                        Image(systemName: "camera.metering.center.weighted").foregroundStyle(.white).font(.body).imageScale(.large)
+                                        Image(systemName: "camera.metering.center.weighted").foregroundStyle(.primary).font(.body).imageScale(.large)
                                         Text("Reset Camera").font(.body.weight(.medium))
                                         Text("Reset the camera's position and zoom").font(.subheadline).foregroundStyle(.secondary)
                                     }
                                     GridRow(alignment: .firstTextBaseline) {
-                                        Image(systemName: "gearshape.fill").foregroundStyle(.white).font(.body).imageScale(.large)
+                                        Image(systemName: "gearshape.fill").foregroundStyle(.primary).font(.body).imageScale(.large)
                                         Text("Settings").font(.body.weight(.medium))
                                         Text("Control visuals and other parameters").font(.subheadline).foregroundStyle(.secondary)
                                     }
@@ -76,12 +76,12 @@ struct OnboardingOverlay: View {
                                 
                                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 24) {
                                     GridRow(alignment: .firstTextBaseline) {
-                                        Image(systemName: "hand.draw.fill").foregroundStyle(.white).font(.body).imageScale(.large)
+                                        Image(systemName: "hand.draw.fill").foregroundStyle(.primary).font(.body).imageScale(.large)
                                         Text("Drag").font(.body.weight(.medium))
                                         Text("Drag your finger to move the camera around Earth").font(.subheadline).foregroundStyle(.secondary)
                                     }
                                     GridRow(alignment: .firstTextBaseline) {
-                                        Image(systemName: "hand.pinch.fill").foregroundStyle(.white).font(.body).imageScale(.large)
+                                        Image(systemName: "hand.pinch.fill").foregroundStyle(.primary).font(.body).imageScale(.large)
                                         Text("Pinch").font(.body.weight(.medium))
                                         Text("Pinch with two fingers to zoom in or out").font(.subheadline).foregroundStyle(.secondary)
                                     }

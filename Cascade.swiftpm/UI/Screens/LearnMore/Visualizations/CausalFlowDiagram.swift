@@ -36,7 +36,7 @@ struct CausalFlowDiagram: View {
         VStack {
             Image(systemName: "chevron.right")
                 .font(.caption2.bold())
-                .foregroundStyle(.white.opacity(0.25))
+                .foregroundStyle(.primary.opacity(0.7))
         }
         .frame(width: 24)
     }
@@ -47,17 +47,17 @@ struct CausalFlowDiagram: View {
             
             Text(title)
                 .font(.caption.weight(.medium))
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(.primary.opacity(0.9))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .background(Color(white: 0.10))
+        .background(Color.primary.opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(CascadeTheme.cardBorder, lineWidth: 1)
+        )
     }
-}
-
-#Preview(traits: .landscapeLeft) {
-    CausalFlowDiagram()
 }

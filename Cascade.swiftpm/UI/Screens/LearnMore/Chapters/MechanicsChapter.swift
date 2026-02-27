@@ -12,7 +12,7 @@ struct MechanicsChapter: View {
                 
                 TryThisBox(
                     title: "Try This!",
-                    instruction: "Go to the Settings panel and increase the Debris Ejection Force parameter, then blow up some satellites. Notice how the higher knietic force causes the debris cloud to spread much faster across different orbital planes, escape orbit, or even crash on Earth!"
+                    instruction: "Go to the Settings panel and increase the Debris Ejection Force parameter, then blow up some satellites. Notice how the higher kinetic force causes the debris cloud to spread much faster across different orbital planes, escape orbit, or even crash on Earth!"
                 )
             }
             
@@ -20,7 +20,7 @@ struct MechanicsChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Orbital Energy")
-                    .font(.title2.weight(.bold)).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
                 TextParagraph("Orbital collisions are catastrophic mostly because of speed. Objects in Low Earth Orbit travel at about 8.3 kilometers every second. At those speeds, everything becomes extremely dangerous: very small metal shards, loose bolts, frozen liquids, and even paint flecks gain massive amounts of kinetic energy.")
                 
@@ -36,10 +36,10 @@ struct MechanicsChapter: View {
                                 .foregroundStyle(.green)
                             Text("=")
                                 .font(.title2)
-                                .foregroundStyle(.white.opacity(0.6))
+                                .foregroundStyle(.primary.opacity(0.6))
                             Text("½")
                                 .font(.title)
-                                .foregroundStyle(.white.opacity(0.8))
+                                .foregroundStyle(.primary.opacity(0.8))
                             Text("m")
                                 .font(.title.weight(.semibold))
                                 .foregroundStyle(.blue)
@@ -64,7 +64,7 @@ struct MechanicsChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Invisible Missiles")
-                    .font(.title2.weight(.bold)).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
                 TextParagraph("Space surveillance networks reliably track objects larger than 10 cm. However, fragments between 1 mm and 10 cm represent the most dangerous population. They are too small to track reliably, but large enough to destroy a satellite.\n\nIt is estimated there are millions upon millions of the smaller ones in orbit right now.")
                 

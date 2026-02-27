@@ -11,7 +11,7 @@ struct AboutChapter: View {
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 18) {
                         Label("Specifications", systemImage: "cpu.fill")
-                            .font(.headline).foregroundStyle(.white)
+                            .font(.headline).foregroundStyle(.primary)
                         
                         VStack(spacing: 12) {
                             ModelParam(name: "Integrator", value: "Semi-Implicit Euler", detail: "Symplectic integration for stable orbits")
@@ -36,7 +36,7 @@ struct AboutChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 Text("Compromises & Constraints")
-                    .font(.title2.weight(.bold)).foregroundStyle(.white)
+                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
                 TextParagraph("A full-fidelity orbital simulation with all variables and proper scales requires an extremely expensive supercomputer, in particular to simulate such a complex event. So, in order to run smoothly and as accurately as possible, Cascade makes a few major physics compromises:")
                 
@@ -94,7 +94,7 @@ struct SimplificationCard: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                 
                 Text(description)
                     .font(.subheadline)
@@ -123,7 +123,7 @@ struct ModelParam: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(name)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(CascadeTheme.mutedText)
