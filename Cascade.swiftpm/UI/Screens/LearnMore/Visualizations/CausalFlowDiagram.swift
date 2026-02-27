@@ -20,7 +20,7 @@ struct CausalFlowDiagram: View {
                     .foregroundStyle(.green.opacity(0.6))
                 Text("Each of these events feeds every other event!")
                     .font(.caption)
-                    .foregroundStyle(CascadeTheme.mutedText)
+                    .foregroundStyle(DesignTokens.mutedText)
                 Image(systemName: "arrow.turn.up.right")
                     .font(.caption)
                     .foregroundStyle(.green.opacity(0.6))
@@ -57,7 +57,7 @@ struct CausalFlowDiagram: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(CascadeTheme.cardBorder, lineWidth: 1)
+                .stroke(DesignTokens.cardBorder, lineWidth: 1)
         )
     }
 }

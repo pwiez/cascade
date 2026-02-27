@@ -42,20 +42,19 @@ extension SimSettings {
         timeScale: 1.0,
         showSatellites: true,
         satelliteColor: Color(red: 0.108, green: 0.725, blue: 0.229),
-        debrisColor: .red,
+        debrisColor: .white,
         backgroundColor: .black,
         maxDebris: 3000,
         useRandomInclination: true,
-        satelliteScale: 2.0,
-        debrisScale: 2.0,
+        satelliteScale: 1.5,
+        debrisScale: 1.0,
         gravityMultiplier: 1.0,
         orbitAltitude: 120,
         orbitVariance: 2.0,
         useOmniLight: false,
         showEarth: true,
-        debrisRotation: true,
         showDebris: true,
-       
+        debrisRotation: true,
     )
 }
 
@@ -197,7 +196,7 @@ class Simulation: ObservableObject {
         spreadVertical = d.spreadVertical
         spreadRadial = d.spreadRadial
         satelliteColor = Color(red: 0.108, green: 0.750, blue: 0.229)
-        debrisColor = .red
+        debrisColor = .white
         backgroundColor = .black
         useOmniLight = d.useOmniLight
         showEarth = d.showEarth

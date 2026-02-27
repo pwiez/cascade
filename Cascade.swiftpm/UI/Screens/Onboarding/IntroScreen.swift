@@ -20,16 +20,16 @@ struct OnboardingOverlay: View {
                                 .fill(.blue)
                                 .frame(width: 4)
                             
-                            Text("Cascade is an educational physics simulator that lets you create and observe a Kessler Syndrome scenario in real time. The satellites orbiting our planet, represented by green cubes \(Text(Image(systemName: "cube.fill")).foregroundStyle(.green)), can collide with each other. When they do, clouds of debris represented by red tetrahedrons \(Text(Image(systemName: "pyramid.fill")).foregroundStyle(.red)) will appear and spread. They can collide with other satellites. Eventually, this produces a runaway collision chain reaction!")
+                            Text("Cascade is a physics simulator created to spread awareness and education about Kessler Syndrome. It lets you create and observe a collision cascade scenario in real time. The satellites orbiting our planet, represented by green cubes \(Text(Image(systemName: "cube.fill")).foregroundStyle(.green)), can collide with each other. When they do, clouds of debris represented by white tetrahedrons \(Text(Image(systemName: "pyramid.fill")).foregroundStyle(.white)) will appear and spread. They can collide with other satellites. Eventually, this produces a runaway collision chain reaction!")
                                 .font(.body)
-                                .foregroundStyle(CascadeTheme.bodyText)
-                                .lineSpacing(CascadeTheme.bodyLineSpacing)
+                                .foregroundStyle(DesignTokens.bodyText)
+                                .lineSpacing(DesignTokens.bodyLineSpacing)
                         }
                         .fixedSize(horizontal: false, vertical: true)
                         
                         Rectangle()
-                            .fill(CascadeTheme.dividerColor)
-                            .frame(height: CascadeTheme.borderWidth)
+                            .fill(DesignTokens.dividerColor)
+                            .frame(height: DesignTokens.borderWidth)
                         
                         HStack(alignment: .top, spacing: 0) {
                             
@@ -92,8 +92,8 @@ struct OnboardingOverlay: View {
                         .frame(maxWidth: .infinity)
                         
                         Rectangle()
-                            .fill(CascadeTheme.dividerColor)
-                            .frame(height: CascadeTheme.borderWidth)
+                            .fill(DesignTokens.dividerColor)
+                            .frame(height: DesignTokens.borderWidth)
                         
                         HStack(alignment: .top, spacing: 16) {
                             RoundedRectangle(cornerRadius: 1.5)
@@ -102,8 +102,8 @@ struct OnboardingOverlay: View {
                             
                             Text("Cascade has a range of visual settings to make sure you have the best possible experience. If you want to learn more about Kessler Syndrome and Cascade itself, you can do so by tapping the Learn More tab. The simulation will be paused for you when you switch tabs.\n\nThe simulation will begin paused - simply tap the play button to get it going. Have fun, and I hope you learn a lot about this fascinating (and worrying) topic!")
                                 .font(.body)
-                                .foregroundStyle(CascadeTheme.bodyText)
-                                .lineSpacing(CascadeTheme.bodyLineSpacing)
+                                .foregroundStyle(DesignTokens.bodyText)
+                                .lineSpacing(DesignTokens.bodyLineSpacing)
                         }
                         .fixedSize(horizontal: false, vertical: true)
                         
@@ -121,7 +121,7 @@ struct OnboardingOverlay: View {
                     .padding(40)
                 }
                 .frame(maxWidth: .infinity)
-                .background(CascadeTheme.cardBackground)
+                .background(DesignTokens.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
                 .padding(.horizontal, 128)
                 .padding(.vertical, 64)

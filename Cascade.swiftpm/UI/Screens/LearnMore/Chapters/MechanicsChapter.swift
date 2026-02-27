@@ -28,7 +28,7 @@ struct MechanicsChapter: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Label("THE KINETIC ENERGY EQUATION", systemImage: "function")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(CascadeTheme.dimText)
+                            .foregroundStyle(DesignTokens.dimText)
                         
                         HStack(spacing: 4) {
                             Text("E")
@@ -55,7 +55,7 @@ struct MechanicsChapter: View {
                         Text("\(Text("Energy").foregroundStyle(.green)) scales with the **square** of \(Text("velocity").foregroundStyle(.orange)). This means that doubling the speed of impact quadruples the \(Text("destructive power").foregroundStyle(.green)). It's important to note that the \(Text("mass").foregroundStyle(.blue)) of the object is relevant too, but speed is what matters most for kinetic energy. If a 10-ton piece of metal touches a craft very, very slowly, perhaps not much will happen. However, if a hand-sized piece of metal hits it at 9 kilometers per second, things will get serious.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                            .lineSpacing(CascadeTheme.bodyLineSpacing)
+                            .lineSpacing(DesignTokens.bodyLineSpacing)
                     }
                 }
             }

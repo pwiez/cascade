@@ -6,24 +6,24 @@ import simd
 class DebrisBatchSystem {
     public let entity: ModelEntity
     public var meshResource: MeshResource
-
+    
     private let maxDebris: Int
-
+    
     private var allPositions: [SIMD3<Float>]
     private var allNormals: [SIMD3<Float>]
     private var allIndices: [UInt32]
     
     private let localVerts: [SIMD3<Float>] = [
-        SIMD3(0, 0.5, 0),        
-        SIMD3(0.5, -0.5, 0.289),   
-        SIMD3(-0.5, -0.5, 0.289),  
-        SIMD3(0, -0.5, -0.577)     
+        SIMD3(0, 0.5, 0),
+        SIMD3(0.5, -0.5, 0.289),
+        SIMD3(-0.5, -0.5, 0.289),
+        SIMD3(0, -0.5, -0.577)
     ]
     
     init(maxDebris: Int, material: Material) {
         self.maxDebris = maxDebris
         let totalVerts = maxDebris * 4
-        let totalIndices = maxDebris * 12 
+        let totalIndices = maxDebris * 12
         
         self.allPositions = Array(repeating: .zero, count: totalVerts)
         self.allNormals = Array(repeating: [0, 1, 0], count: totalVerts)
@@ -49,28 +49,42 @@ class DebrisBatchSystem {
         self.meshResource = try! MeshResource.generate(from: [descriptor])
         self.entity = ModelEntity(mesh: meshResource, materials: [material])
     }
-
+    
     func update(activeCount: Int,
-                        posX: [Float], posY: [Float], posZ: [Float],
-                        rotAngle: [Float], rotAxisX: [Float], rotAxisY: [Float], rotAxisZ: [Float],
-                        scale: Float,
-                        spinEnabled: Bool) {
-                
-            allPositions.withUnsafeMutableBufferPointer { vPtr in
+                posX: [Float], posY: [Float], posZ: [Float],
+                rotAngle: [Float], rotAxisX: [Float], rotAxisY: [Float], rotAxisZ: [Float],
+                scale: Float,
+                spinEnabled: Bool) {
+        
+        let sv0 = localVerts[0] * scale
+        let sv1 = localVerts[1] * scale
+        let sv2 = localVerts[2] * scale
+        let sv3 = localVerts[3] * scale
+        
+        allPositions.withUnsafeMutableBufferPointer { vPtr in
+            
+            if spinEnabled {
                 for i in 0..<activeCount {
                     let pos = SIMD3<Float>(posX[i], posY[i], posZ[i])
                     let axis = SIMD3<Float>(rotAxisX[i], rotAxisY[i], rotAxisZ[i])
-                    
-                    let angle = spinEnabled ? rotAngle[i] : 0.0
-                    let q = simd_quatf(angle: angle, axis: axis)
+                    let q = simd_quatf(angle: rotAngle[i], axis: axis)
                     
                     let base = i * 4
-                    vPtr[base + 0] = pos + (q.act(localVerts[0]) * scale)
-            
-                vPtr[base + 0] = pos + (q.act(localVerts[0]) * scale)
-                vPtr[base + 1] = pos + (q.act(localVerts[1]) * scale)
-                vPtr[base + 2] = pos + (q.act(localVerts[2]) * scale)
-                vPtr[base + 3] = pos + (q.act(localVerts[3]) * scale)
+                    vPtr[base + 0] = pos + q.act(sv0)
+                    vPtr[base + 1] = pos + q.act(sv1)
+                    vPtr[base + 2] = pos + q.act(sv2)
+                    vPtr[base + 3] = pos + q.act(sv3)
+                }
+            } else {
+                for i in 0..<activeCount {
+                    let pos = SIMD3<Float>(posX[i], posY[i], posZ[i])
+                    
+                    let base = i * 4
+                    vPtr[base + 0] = pos + sv0
+                    vPtr[base + 1] = pos + sv1
+                    vPtr[base + 2] = pos + sv2
+                    vPtr[base + 3] = pos + sv3
+                }
             }
 
             if activeCount < maxDebris {

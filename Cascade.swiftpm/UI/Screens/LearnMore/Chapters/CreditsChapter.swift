@@ -13,7 +13,7 @@ struct CreditsChapter: View {
                         .font(.title2.weight(.bold))
                         .foregroundStyle(.primary)
                     
-                    TextParagraph("• Earth's texture map with clouds is in the public domain, and was created by Tom Patterson based on NASA imaging curated by Reto Stöckli. They are available on the website shadedrelief.com.")
+                    TextParagraph("• Earth's texture map with clouds was created by Tom Patterson, based on NASA imaging.")
                 }
                 
                 VStack(alignment: .leading, spacing: 24) {
@@ -21,7 +21,7 @@ struct CreditsChapter: View {
                         .font(.title2.weight(.bold))
                         .foregroundStyle(.primary)
                     
-                    TextParagraph("• Kessler, D. J., & Cour-Palais, B. G. (1978). Collision frequency of artificial satellites: The creation of a debris belt. *Journal of Geophysical Research*, *83*.\n• Liou, J., & Johnson, N. L. (2006b). Risks in Space from Orbiting Debris. Science, 311(5759), 340–341.\n• Portree, D. S. (1999). Orbital debris: A chronology (Vol. 208856). NASA.")
+                    TextParagraph("• Kessler, D. J., & Cour-Palais, B. G. (1978). Collision frequency of artificial satellites: the creation of a debris belt. *Journal of Geophysical Research*, *83*.\n• Kessler, D. J., Johnson, N. L., Liou, J. C., & Matney, M. (2010). The kessler syndrome: implications to future space operations. Advances in the Astronautical Sciences, 137(8), 2010.\n• Liou, J., & Johnson, N. L. (2006b). Risks in space from orbiting debris. *Science*, *311(5759)*, *340–341*.\n• Portree, D. S. (1999). Orbital debris: a chronology (Vol. 208856). NASA.")
                 }
                 
                 VStack(alignment: .leading, spacing: 24) {
@@ -29,15 +29,15 @@ struct CreditsChapter: View {
                         .font(.title2.weight(.bold))
                         .foregroundStyle(.primary)
                     
-                    TextParagraph("• NASA Orbital Debris Program Office. *Orbital debris quarterly news*.\n• European Space Agency Space Debris Office. (2024). *Annual space environment report*.\n• Inter-Agency Space Debris Coordination Committee. (2020). *IADC space debris mitigation guidelines*.\n• U.S. Federal Communications Commission. (2022). *Space Innovation; Mitigation of Orbital Debris in the New Space Age*.\n• U.S. Space Surveillance Network. *Public catalog data*. Space-Track.org.")
+                    TextParagraph("• Orbital Debris Quarterly News, by the NASA Orbital Debris Program Office.\n• The 2024 Annual Space Environment Report by the European Space Agency's Space Debris Office.\n• 2020 IADC Debris Mitigation Guidelines, by the Inter-Agency Space Debris Coordination Committee.\n• Mitigation of Orbital Debris in the New Space Age, by the U.S. Federal Communications Commission, 2022.\n• Catalog data by the U.S. Space Surveillance Network, available on Space-Track.org.")
                 }
                 
                 VStack(alignment: .leading, spacing: 24) {
-                    Text("Remediation References")
+                    Text("Remediation Technology References")
                         .font(.title2.weight(.bold))
                         .foregroundStyle(.primary)
                     
-                    TextParagraph("• Locke, J., Colvin, T. J., Ratliff, L., Abdul-Hamid, A., & Samples, C. (2024). Cost and benefit analysis of mitigating, tracking, and remediating orbital debris. *Cost and Benefit Analysis of Mitigating, Tracking, and Remediating Orbital Debris.*\n• Forshaw, J. L., et al. (2016). RemoveDEBRIS: An in-orbit active debris removal demonstration mission. *Acta Astronautica*, *127*.\n• European Space Agency. *ClearSpace-1 mission overview*. esa.int/Space_Safety/ClearSpace-1")
+                    TextParagraph("• Locke, J., Colvin, T. J., Ratliff, L., Abdul-Hamid, A., & Samples, C. (2024). Cost and benefit analysis of mitigating, tracking, and remediating orbital debris.\n• Forshaw, J. L., et al. (2016). RemoveDEBRIS: An in-orbit active debris removal demonstration mission. *Acta Astronautica*, *127*.\n• European Space Agency's ClearSpace-1 mission overview, available on esa.int/Space_Safety/ClearSpace-1")
                 }
             }
         }
@@ -60,7 +60,7 @@ struct CreditsChapter: View {
                     
                     Text(LocalizedStringKey(entry))
                         .font(.subheadline)
-                        .foregroundStyle(CascadeTheme.bodyText)
+                        .foregroundStyle(DesignTokens.bodyText)
                         .lineSpacing(3)
                 }
             }

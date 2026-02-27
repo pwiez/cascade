@@ -6,7 +6,7 @@ struct OverviewChapter: View {
         
             DefinitionCallout(
                 term: "Kessler Syndrome",
-                definition: "A scenario where the density of objects, such as satellites, space debris and other types of objects in different ranges of Earth's orbit becomes so high that it triggers a self-sustaining cascade of collisions. Each impact produces thousands of fragments, which then destroy other objects in an exponential chain reaction.",
+                definition: "A scenario where the density of objects such as satellites and debris in different ranges of Earth's orbit becomes so high that it triggers a self-sustaining cascade of collisions. Each successive collision produces hundreds to thousands of fragments, which then destroy other objects in an expanding chain reaction. This effect can end up rendering entire orbits much harder to safely use for a very long time.",
                 source: "Kessler & Cour-Palais, 1978"
             )
             

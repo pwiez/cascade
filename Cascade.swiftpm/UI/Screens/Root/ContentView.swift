@@ -10,34 +10,38 @@ struct ContentView: View {
             let isPortrait = geometry.size.height > geometry.size.width
             
             ZStack {
-                TabView(selection: $selectedTab) {
-                    SimulationScreen(simulation: simulation)
-                        .tabItem { Label("Simulation", systemImage: "cube.transparent") }
-                        .tag(0)
-                    
-                    LearnMoreView()
-                        .tabItem { Label("Learn More", systemImage: "book.closed.fill") }
-                        .tag(1)
-                }
-                .blur(radius: showIntro ? 16 : 0)
-                .animation(.easeInOut(duration: 0.4), value: showIntro)
-                
-                if showIntro {
-                    OnboardingOverlay {
-                        withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
-                            showIntro = false
-                        }
+                ZStack {
+                    TabView(selection: $selectedTab) {
+                        SimulationScreen(simulation: simulation)
+                            .tabItem { Label("Simulation", systemImage: "cube.transparent") }
+                            .tag(0)
                         
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                            simulation.startSimulation()
-                        }
+                        LearnMoreView()
+                            .tabItem { Label("Learn More", systemImage: "book.closed.fill") }
+                            .tag(1)
                     }
-                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
+                    .blur(radius: showIntro ? 16 : 0)
+                    .animation(.easeInOut(duration: 0.4), value: showIntro)
+                    
+                    if showIntro {
+                        OnboardingOverlay {
+                            withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+                                showIntro = false
+                            } completion: {
+                                simulation.startSimulation()
+                            }
+                        }
+                        .transition(.opacity.combined(with: .scale(scale: 0.97)))
+                        .zIndex(1)
+                    }
                 }
+                .blur(radius: isPortrait ? 20 : 0)
+                .disabled(isPortrait)
                 
                 if isPortrait {
                     PortraitWarningView()
                         .transition(.opacity)
+                        .zIndex(2)
                 }
             }
             .animation(.default, value: isPortrait)

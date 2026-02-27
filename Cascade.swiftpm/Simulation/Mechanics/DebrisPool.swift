@@ -96,40 +96,51 @@ class DebrisPool {
         guard activeCount > 0 else { return }
         let count = activeCount
 
-        withSixBuffers(&posX, &posY, &posZ, &velX, &velY, &velZ) { pX, pY, pZ, vX, vY, vZ in
-            if count < 1000 {
-                for i in 0..<count {
-                    DebrisPool.applyGravity(
-                        i: i,
-                        ptrX: pX, ptrY: pY, ptrZ: pZ,
-                        vPtrX: vX, vPtrY: vY, vPtrZ: vZ,
-                        earthMass: earthMass, dt: dt,
-                        killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq
-                    )
-                }
-            } else {
-                struct Ptrs: @unchecked Sendable {
-                    let px, py, pz, vx, vy, vz: UnsafeMutableBufferPointer<Float>
-                }
-                let p = Ptrs(px: pX, py: pY, pz: pZ, vx: vX, vy: vY, vz: vZ)
-                DispatchQueue.concurrentPerform(iterations: count) { i in
-                    DebrisPool.applyGravity(
-                        i: i,
-                        ptrX: p.px, ptrY: p.py, ptrZ: p.pz,
-                        vPtrX: p.vx, vPtrY: p.vy, vPtrZ: p.vz,
-                        earthMass: earthMass, dt: dt,
-                        killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq
-                    )
+        spinRate.withUnsafeMutableBufferPointer { pSpin in
+            rotAngle.withUnsafeMutableBufferPointer { pAngle in
+                withSixBuffers(&posX, &posY, &posZ, &velX, &velY, &velZ) { pX, pY, pZ, vX, vY, vZ in
+                    
+                    struct Ptrs: @unchecked Sendable {
+                        let px, py, pz, vx, vy, vz, spin, angle: UnsafeMutableBufferPointer<Float>
+                    }
+                    let p = Ptrs(px: pX, py: pY, pz: pZ, vx: vX, vy: vY, vz: vZ, spin: pSpin, angle: pAngle)
+                    
+                    if count < 1000 {
+                        for i in 0..<count {
+                            DebrisPool.integrateParticle(
+                                i: i,
+                                ptrX: p.px, ptrY: p.py, ptrZ: p.pz,
+                                vPtrX: p.vx, vPtrY: p.vy, vPtrZ: p.vz,
+                                spinRate: p.spin, rotAngle: p.angle,
+                                earthMass: earthMass, dt: dt,
+                                killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq
+                            )
+                        }
+                    } else {
+                        let cores = ProcessInfo.processInfo.activeProcessorCount
+                        let chunkSize = (count + cores - 1) / cores
+                        
+                        DispatchQueue.concurrentPerform(iterations: cores) { coreIndex in
+                            let start = coreIndex * chunkSize
+                            let end = min(start + chunkSize, count)
+                            
+                            for i in start..<end {
+                                DebrisPool.integrateParticle(
+                                    i: i,
+                                    ptrX: p.px, ptrY: p.py, ptrZ: p.pz,
+                                    vPtrX: p.vx, vPtrY: p.vy, vPtrZ: p.vz,
+                                    spinRate: p.spin, rotAngle: p.angle,
+                                    earthMass: earthMass, dt: dt,
+                                    killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        var delta = dt
-        vDSP_vma(velX, 1, &delta, 0, posX, 1, &posX, 1, vDSP_Length(count))
-        vDSP_vma(velY, 1, &delta, 0, posY, 1, &posY, 1, vDSP_Length(count))
-        vDSP_vma(velZ, 1, &delta, 0, posZ, 1, &posZ, 1, vDSP_Length(count))
-        vDSP_vma(spinRate, 1, &delta, 0, rotAngle, 1, &rotAngle, 1, vDSP_Length(count))
-
+        
         var i = 0
         while i < activeCount {
             let d = posX[i] * posX[i] + posY[i] * posY[i] + posZ[i] * posZ[i]
@@ -138,24 +149,34 @@ class DebrisPool {
     }
 
     @inline(__always)
-    static func applyGravity(i: Int,
-                             ptrX: UnsafeMutableBufferPointer<Float>,
-                             ptrY: UnsafeMutableBufferPointer<Float>,
-                             ptrZ: UnsafeMutableBufferPointer<Float>,
-                             vPtrX: UnsafeMutableBufferPointer<Float>,
-                             vPtrY: UnsafeMutableBufferPointer<Float>,
-                             vPtrZ: UnsafeMutableBufferPointer<Float>,
-                             earthMass: Float, dt: Float,
-                             killRadiusSq: Float, maxRadiusSq: Float) {
+    static func integrateParticle(i: Int,
+                                  ptrX: UnsafeMutableBufferPointer<Float>,
+                                  ptrY: UnsafeMutableBufferPointer<Float>,
+                                  ptrZ: UnsafeMutableBufferPointer<Float>,
+                                  vPtrX: UnsafeMutableBufferPointer<Float>,
+                                  vPtrY: UnsafeMutableBufferPointer<Float>,
+                                  vPtrZ: UnsafeMutableBufferPointer<Float>,
+                                  spinRate: UnsafeMutableBufferPointer<Float>,
+                                  rotAngle: UnsafeMutableBufferPointer<Float>,
+                                  earthMass: Float, dt: Float,
+                                  killRadiusSq: Float, maxRadiusSq: Float) {
+        
         let px = ptrX[i], py = ptrY[i], pz = ptrZ[i]
         let distSq = px*px + py*py + pz*pz
-        guard distSq >= killRadiusSq && distSq <= maxRadiusSq else { return }
-
-        let invDist = simd_rsqrt(distSq)
-        let factor = -earthMass * invDist * invDist * invDist * dt
-        vPtrX[i] += px * factor
-        vPtrY[i] += py * factor
-        vPtrZ[i] += pz * factor
+        
+        if distSq >= killRadiusSq && distSq <= maxRadiusSq {
+            let invDist = simd_rsqrt(distSq)
+            let factor = -earthMass * invDist * invDist * invDist * dt
+            vPtrX[i] += px * factor
+            vPtrY[i] += py * factor
+            vPtrZ[i] += pz * factor
+        }
+        
+        ptrX[i] += vPtrX[i] * dt
+        ptrY[i] += vPtrY[i] * dt
+        ptrZ[i] += vPtrZ[i] * dt
+        
+        rotAngle[i] += spinRate[i] * dt
     }
 
     @inline(__always)

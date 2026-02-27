@@ -76,21 +76,21 @@ struct OperationalStatCard: View {
                     .foregroundStyle(.primary)
                 Text(unit)
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(CascadeTheme.mutedText)
+                    .foregroundStyle(DesignTokens.mutedText)
             }
             
             Text(label)
                 .font(.caption)
-                .foregroundStyle(CascadeTheme.mutedText)
+                .foregroundStyle(DesignTokens.mutedText)
                 .lineLimit(2, reservesSpace: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(CascadeTheme.compactPadding)
-        .background(CascadeTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .padding(DesignTokens.compactPadding)
+        .background(DesignTokens.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
-                .stroke(accent.opacity(0.12), lineWidth: CascadeTheme.borderWidth)
+            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
+                .stroke(accent.opacity(0.12), lineWidth: DesignTokens.borderWidth)
         )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(value) \(unit): \(label)")

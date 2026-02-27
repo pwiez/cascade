@@ -5,14 +5,14 @@ struct ScientificCard<Content: View>: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            content.padding(CascadeTheme.cardPadding)
+            content.padding(DesignTokens.cardPadding)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CascadeTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .background(DesignTokens.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
-                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
+            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
+                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
         )
     }
 }
@@ -24,8 +24,8 @@ struct TextParagraph: View {
     var body: some View {
         Text(text)
             .font(.body)
-            .lineSpacing(CascadeTheme.bodyLineSpacing)
-            .foregroundStyle(CascadeTheme.bodyText)
+            .lineSpacing(DesignTokens.bodyLineSpacing)
+            .foregroundStyle(DesignTokens.bodyText)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
@@ -40,7 +40,7 @@ struct GuideRow: View {
                 .font(.caption.weight(.bold).monospacedDigit())
                 .foregroundStyle(.blue)
                 .frame(width: 22, height: 22)
-                .background(Color.blue.opacity(CascadeTheme.iconBackgroundOpacity))
+                .background(Color.blue.opacity(DesignTokens.iconBackgroundOpacity))
                 .clipShape(Circle())
             
             Text(text)
@@ -78,22 +78,22 @@ struct DefinitionCallout: View {
                 
                 Text(definition)
                     .font(.subheadline)
-                    .foregroundStyle(CascadeTheme.bodyText)
-                    .lineSpacing(CascadeTheme.bodyLineSpacing)
+                    .foregroundStyle(DesignTokens.bodyText)
+                    .lineSpacing(DesignTokens.bodyLineSpacing)
                 
                 Text("— \(source)")
                     .font(.caption.italic())
-                    .foregroundStyle(CascadeTheme.mutedText)
+                    .foregroundStyle(DesignTokens.mutedText)
             }
             .padding(.vertical, 4)
         }
-        .padding(CascadeTheme.cardPadding)
+        .padding(DesignTokens.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CascadeTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .background(DesignTokens.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
-                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
+            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
+                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
         )
         .accessibilityElement(children: .combine)
     }
@@ -114,17 +114,17 @@ struct KeyConceptBox: View {
                     .foregroundStyle(.primary)
                 Text(bodyText)
                     .font(.subheadline)
-                    .foregroundStyle(CascadeTheme.bodyText)
-                    .lineSpacing(CascadeTheme.bodyLineSpacing)
+                    .foregroundStyle(DesignTokens.bodyText)
+                    .lineSpacing(DesignTokens.bodyLineSpacing)
             }
         }
-        .padding(CascadeTheme.cardPadding)
+        .padding(DesignTokens.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CascadeTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .background(DesignTokens.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
-                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
+            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
+                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
         )
         .accessibilityElement(children: .combine)
     }
@@ -133,7 +133,7 @@ struct KeyConceptBox: View {
 struct ThemedIcon: View {
     let systemName: String
     let color: Color
-    var size: CGFloat = CascadeTheme.iconSize
+    var size: CGFloat = DesignTokens.iconSize
     var isCircle: Bool = false
     
     var body: some View {
@@ -141,8 +141,8 @@ struct ThemedIcon: View {
             .font(.title3)
             .foregroundStyle(color)
             .frame(width: size, height: size)
-            .background(color.opacity(CascadeTheme.iconBackgroundOpacity))
-            .clipShape(isCircle ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: CascadeTheme.iconRadius)))
+            .background(color.opacity(DesignTokens.iconBackgroundOpacity))
+            .clipShape(isCircle ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: DesignTokens.iconRadius)))
     }
 }
 
@@ -163,8 +163,8 @@ struct GlossaryItem: View {
                 
                 Text(definition)
                     .font(.subheadline)
-                    .foregroundStyle(CascadeTheme.bodyText)
-                    .lineSpacing(CascadeTheme.bodyLineSpacing)
+                    .foregroundStyle(DesignTokens.bodyText)
+                    .lineSpacing(DesignTokens.bodyLineSpacing)
             }
             .padding(.vertical, 4)
         }
