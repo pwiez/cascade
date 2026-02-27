@@ -114,10 +114,10 @@ struct SettingsView: View {
                             Text("Randomize Orbital Planes")
                             Text(simulation.draft.useRandomInclination ? "Satellites will form a shell around Earth." : "Satellites will form a flat ring around Earth.")
                                 .font(.caption)
-                                .foregroundStyle(simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ? .orange : .secondary)
+                                .foregroundStyle(simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ? .yellow : .secondary)
                         }
                     }
-                    .foregroundStyle(simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ? .orange : .primary)
+                    .foregroundStyle(simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ? .yellow : .primary)
                     
                 } header: {
                     HStack {
@@ -125,14 +125,14 @@ struct SettingsView: View {
                         if hasPendingChanges {
                             Spacer()
                             Text("Restart Pending")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(.yellow)
                                 .font(.default.weight(.regular))
                         }
                     }
                 } footer: {
                     if hasPendingChanges {
                         Text("Applying these changes will restart the simulation.")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(.yellow)
                     }
                 }
                 
@@ -191,7 +191,7 @@ struct SettingsView: View {
                             LabeledContent("Apply Changes & Restart") {
                                 Image(systemName: "arrow.triangle.2.circlepath")
                             }
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(.yellow)
                             .fontWeight(.semibold)
                         } else {
                             Text("Restart Simulation")
@@ -236,7 +236,7 @@ struct SettingsView: View {
                     Text(String(format: format, value.wrappedValue))
                         .monospacedDigit()
                 }
-                .foregroundStyle(requiresRestart ? .orange : .secondary)
+                .foregroundStyle(requiresRestart ? .yellow : .secondary)
                 .animation(.snappy, value: requiresRestart)
             }
             

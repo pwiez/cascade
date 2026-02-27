@@ -27,13 +27,14 @@ struct ContentView: View {
                         OnboardingOverlay {
                             withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
                                 showIntro = false
-                            } completion: {
-                                simulation.startSimulation()
                             }
                         }
                         .transition(.opacity.combined(with: .scale(scale: 0.97)))
                         .zIndex(1)
                     }
+                }
+                .onAppear {
+                    simulation.startSimulation()
                 }
                 .blur(radius: isPortrait ? 20 : 0)
                 .disabled(isPortrait)

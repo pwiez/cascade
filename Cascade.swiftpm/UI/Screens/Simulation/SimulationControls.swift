@@ -24,8 +24,8 @@ struct SimulationControls: View {
             SimulationButton(
                 icon: "arrow.triangle.2.circlepath",
                 action: { showRestartConfirmation = true },
-                isProminent: true,
-                tint: .orange
+                isProminent: false,
+                tint: .clear
             )
             .confirmationDialog("Restart?", isPresented: $showRestartConfirmation) {
                 Button("Restart", role: .destructive) {
@@ -41,7 +41,7 @@ struct SimulationControls: View {
                 icon: isPaused ? "play.fill" : "pause.fill",
                 action: { isPaused.toggle() },
                 isProminent: false,
-                tint: Color(red: 0.1, green: 0.1, blue: 0.1)
+                tint: .clear
             )
             .accessibilityLabel(isPaused ? "Resume Simulation" : "Pause Simulation")
             .accessibilityHint(isPaused ? "Resumes the orbital simulation" : "Pauses the orbital simulation")
@@ -50,7 +50,7 @@ struct SimulationControls: View {
                 icon: "camera.metering.center.weighted",
                 action: onResetCamera,
                 isProminent: false,
-                tint: Color(red: 0.1, green: 0.1, blue: 0.1)
+                tint: .clear
             )
             .accessibilityLabel("Reset Camera")
             .accessibilityHint("Returns the camera to its default position")
@@ -59,7 +59,7 @@ struct SimulationControls: View {
                 icon: "gearshape.fill",
                 action: { showSettings.toggle() },
                 isProminent: false,
-                tint: Color(red: 0.1, green: 0.1, blue: 0.1)
+                tint: .clear
             )
             .accessibilityLabel("Settings")
             .accessibilityHint("Opens the simulation parameters panel")
