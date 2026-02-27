@@ -143,7 +143,11 @@ class SceneController: ObservableObject {
             guard var data = entity.components[OrbitalData.self] else { continue }
             let pos = entity.position
             let distSq = length_squared(pos)
-            data.velocity   += pos * (-earthMass / (distSq * sqrt(distSq))) * dt
+            
+            let invDist = simd_rsqrt(distSq)
+            let factor = -earthMass * invDist * invDist * invDist * dt
+            
+            data.velocity   += pos * factor
             entity.position += data.velocity * dt
             entity.components[OrbitalData.self] = data
         }
