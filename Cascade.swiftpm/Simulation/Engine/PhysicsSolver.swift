@@ -2,7 +2,15 @@ import Foundation
 import simd
 
 actor PhysicsSolver {
+    
+    final class ThreadResult: @unchecked Sendable {
+            var explosions: [CollisionEvent] = []
+            var deaths: [Int] = []
+            var debrisKills: [Int] = []
+        }
 
+    private var threadBuckets: [ThreadResult] = []
+    
     private var debrisPool: DebrisPool
     private var grid: SpatialGrid
 
@@ -21,6 +29,15 @@ actor PhysicsSolver {
         let requiredCellSize = minGridWidth / 128.0
         let safeCellSize = max(Float(settings.collisionRadius * 2.1), requiredCellSize)
         self.grid = SpatialGrid(maxObjects: 6000, cellSize: safeCellSize)
+        
+        let coreCount = ProcessInfo.processInfo.activeProcessorCount
+        self.threadBuckets = (0..<coreCount).map { _ in
+            let bucket = ThreadResult()
+            bucket.explosions.reserveCapacity(100)
+            bucket.deaths.reserveCapacity(50)
+            bucket.debrisKills.reserveCapacity(100)
+            return bucket
+        }
     }
 
     func step(dt: Float,
@@ -151,17 +168,17 @@ actor PhysicsSolver {
         let dVelZ = debrisPool.velZ
         let dActive = debrisPool.activeCount
 
-        final class ThreadResult: @unchecked Sendable {
-            var explosions: [CollisionEvent] = []
-            var deaths: [Int] = []
-            var debrisKills: [Int] = []
-        }
-
         let totalObjects = satCount + debrisPool.activeCount
         let objectsPerCore = 250
         let desiredCores = max(1, totalObjects / objectsPerCore)
-        let coreCount = min(desiredCores, ProcessInfo.processInfo.activeProcessorCount)
-        let buckets = (0..<coreCount).map { _ in ThreadResult() }
+        let coreCount = min(desiredCores, threadBuckets.count)
+        let buckets = threadBuckets
+
+        for i in 0..<coreCount {
+            buckets[i].explosions.removeAll(keepingCapacity: true)
+            buckets[i].deaths.removeAll(keepingCapacity: true)
+            buckets[i].debrisKills.removeAll(keepingCapacity: true)
+        }
 
         DispatchQueue.concurrentPerform(iterations: coreCount) { coreIndex in
             let bucket = buckets[coreIndex]
