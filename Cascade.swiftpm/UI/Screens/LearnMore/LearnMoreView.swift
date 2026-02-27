@@ -116,44 +116,50 @@ struct ChapterContainerView: View {
     let activeSection: AppSection
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 32) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(activeSection.title)
-                        .font(.largeTitle.weight(.bold))
-                        .foregroundStyle(.primary)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 32) {
+                    Color.clear.frame(height: 0).id("top")
                     
-                    if !activeSection.subtitle.isEmpty {
-                        Text(activeSection.subtitle)
-                            .font(.title2)
-                            .foregroundStyle(CascadeTheme.dimText)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(activeSection.title)
+                            .font(.largeTitle.weight(.bold))
+                            .foregroundStyle(.primary)
+                        
+                        if !activeSection.subtitle.isEmpty {
+                            Text(activeSection.subtitle)
+                                .font(.title2)
+                                .foregroundStyle(DesignTokens.dimText)
+                        }
+                        
+                        Divider().overlay(DesignTokens.dividerColor)
+                            .padding(.top, 24)
+                            .padding(.bottom, 8)
                     }
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityElement(children: .combine)
                     
-                    Divider().overlay(CascadeTheme.dividerColor)
-                        .padding(.top, 24)
-                        .padding(.bottom, 8)
-                }
-                .accessibilityAddTraits(.isHeader)
-                .accessibilityElement(children: .combine)
-                
-                Group {
-                    switch activeSection {
-                    case .hero:        OverviewChapter()
-                    case .orbits:      OrbitsChapter()
-                    case .mechanics:   MechanicsChapter()
-                    case .situation:   SituationChapter()
-                    case .remediation: RemediationChapter()
-                    case .glossary:    GlossaryChapter()
-                    case .about:       AboutChapter()
-                    case .credits:     CreditsChapter()
+                    Group {
+                        switch activeSection {
+                        case .hero:        OverviewChapter()
+                        case .orbits:      OrbitsChapter()
+                        case .mechanics:   MechanicsChapter()
+                        case .situation:   SituationChapter()
+                        case .remediation: RemediationChapter()
+                        case .glossary:    GlossaryChapter()
+                        case .about:       AboutChapter()
+                        case .credits:     CreditsChapter()
+                        }
                     }
                 }
+                .padding(.horizontal, 28)
+                .frame(maxWidth: 800, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
-            .padding(.horizontal, 28)
-            .frame(maxWidth: 800, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .center)
+            .onChange(of: activeSection) { _, _ in
+                proxy.scrollTo("top", anchor: .top)
+            }
         }
-        .id(activeSection.id)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

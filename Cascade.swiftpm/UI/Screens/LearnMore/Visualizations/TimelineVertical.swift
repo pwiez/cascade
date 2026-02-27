@@ -26,12 +26,12 @@ struct TimelineVertical: View {
                     VStack(spacing: 0) {
                         
                         Image(systemName: "pyramid.fill")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(.primary)
                             .frame(width: 10, height: 10)
                         
                         if index != events.count - 1 {
                             Rectangle()
-                                .fill(CascadeTheme.dividerColor)
+                                .fill(DesignTokens.dividerColor)
                                 .frame(width: 1)
                                 .frame(maxHeight: .infinity)
                                 .padding(.vertical, 8)
@@ -42,13 +42,13 @@ struct TimelineVertical: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(event.0)
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(CascadeTheme.mutedText)
+                            .foregroundStyle(DesignTokens.mutedText)
                         Text(event.1)
                             .font(.headline.weight(.semibold))
                             .foregroundStyle(.primary)
                         Text(event.2)
                             .font(.subheadline)
-                            .foregroundStyle(CascadeTheme.bodyText)
+                            .foregroundStyle(DesignTokens.bodyText)
                             .padding(.bottom, 30)
                     }
                 }

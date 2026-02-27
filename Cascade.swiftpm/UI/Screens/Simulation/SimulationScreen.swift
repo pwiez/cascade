@@ -48,25 +48,23 @@ struct SimulationScreen: View {
                 .ignoresSafeArea()
                 .zIndex(2)
                 
-                if showSettings {
-                    HStack {
-                        Spacer()
-                        SettingsView(
-                            simulation: simulation,
-                            onClose: {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    showSettings = false
-                                }
+                HStack {
+                    Spacer()
+                    SettingsView(
+                        simulation: simulation,
+                        onClose: {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                showSettings = false
                             }
-                        )
-                        .frame(width: geometry.size.width * panelWidthRatio)
-                        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
-                        .padding(.vertical)
-                        .padding(.trailing)
-                        .transition(.move(edge: .trailing))
-                    }
-                    .zIndex(3)
+                        }
+                    )
+                    .frame(width: geometry.size.width * panelWidthRatio)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
+                    .padding(.vertical)
+                    .padding(.trailing)
+                    .offset(x: showSettings ? 0 : (geometry.size.width * panelWidthRatio) + 100)
                 }
+                .zIndex(3)
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSettings)
             .onChange(of: showSettings) { _, isOpen in
@@ -103,7 +101,7 @@ struct SimulationContainer: View {
         SimulationView(simulation: simulation)
             .gesture(
                 SimultaneousGesture(
-                    DragGesture()
+                    DragGesture(minimumDistance: 0)
                         .onChanged { value in
                             guard simulation.isCameraEnabled else { return }
                             
@@ -116,7 +114,7 @@ struct SimulationContainer: View {
                         }
                         .onEnded { _ in previousDrag = .zero },
                     
-                    MagnificationGesture()
+                    MagnificationGesture(minimumScaleDelta: 0)
                         .onChanged { value in
                             guard simulation.isCameraEnabled else { return }
                             

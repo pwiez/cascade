@@ -39,7 +39,7 @@ struct DebrisChart: View {
                 Text("Evolution of cataloged objects in Earth orbit")
                     .font(.headline).foregroundStyle(.primary)
                 Text("Objects larger than 10 cm tracked by space surveillance networks, 1960–2026.")
-                    .font(.caption).foregroundStyle(CascadeTheme.mutedText)
+                    .font(.caption).foregroundStyle(DesignTokens.mutedText)
                     .lineSpacing(3)
             }
             .padding(.bottom, 32)
@@ -78,7 +78,7 @@ struct DebrisChart: View {
                             .foregroundStyle(.orange)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(.orange.opacity(CascadeTheme.iconBackgroundOpacity))
+                            .background(.orange.opacity(DesignTokens.iconBackgroundOpacity))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
                 
@@ -91,7 +91,7 @@ struct DebrisChart: View {
                             .foregroundStyle(.red)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(.red.opacity(CascadeTheme.iconBackgroundOpacity))
+                            .background(.red.opacity(DesignTokens.iconBackgroundOpacity))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
             }
@@ -99,24 +99,24 @@ struct DebrisChart: View {
             .chartYScale(domain: 0...36000)
             .chartXAxis {
                 AxisMarks(values: stride(from: 1960, through: 2026, by: 10).map { $0 }) { value in
-                    AxisGridLine().foregroundStyle(CascadeTheme.cardBorder)
+                    AxisGridLine().foregroundStyle(DesignTokens.cardBorder)
                     AxisValueLabel {
                         if let intVal = value.as(Int.self) {
                             Text("'\(intVal % 100, specifier: "%02d")")
                                 .font(.caption2.monospacedDigit())
-                                .foregroundStyle(CascadeTheme.dimText)
+                                .foregroundStyle(DesignTokens.dimText)
                         }
                     }
                 }
             }
             .chartYAxis {
                 AxisMarks(values: stride(from: 0, through: 46000, by: 5000).map { $0 }) { value in
-                    AxisGridLine().foregroundStyle(CascadeTheme.cardBorder)
+                    AxisGridLine().foregroundStyle(DesignTokens.cardBorder)
                     AxisValueLabel {
                         if let intValue = value.as(Int.self) {
                             Text(intValue >= 1000 ? "\(intValue / 1000)k" : "\(intValue)")
                                 .font(.caption2.monospacedDigit())
-                                .foregroundStyle(CascadeTheme.dimText)
+                                .foregroundStyle(DesignTokens.dimText)
                         }
                     }
                 }

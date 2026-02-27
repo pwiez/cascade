@@ -15,7 +15,7 @@ struct RemediationChapter: View {
                     VStack(alignment: .leading, spacing: 24) {
                         Text("How long does it take for an object to deorbit through drag forces?")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(CascadeTheme.dimText)
+                            .foregroundStyle(DesignTokens.dimText)
                         
                         VStack(spacing: 12) {
                             DragLifetimeRow(altitude: "300 km", lifetime: "Weeks to months", intensity: 1.0, color: .green)
@@ -75,10 +75,10 @@ struct RemediationChapter: View {
             Divider().cascadeDivider()
             
             VStack(alignment: .leading, spacing: 24) {
-                Text("The 25-Year Guideline")
+                Text("Guidelines and Policies")
                     .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
-                TextParagraph("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all satellites in Low Earth Orbit deorbit within 25 years after a mission ends. So, if a satellite reaches its mission end in 2030 it should be deorbited at most by 2055. In the 2020s, the U.S. Federal Communications Commission adopted a stricter 5-year rule. However, compliance remains voluntary for many global operators outside of the U.S.")
+                TextParagraph("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all satellites in Low Earth Orbit deorbit within 25 years after a mission ends. So, if a satellite reaches its mission end in 2030 it should be deorbited at most by 2055. Compliance to these guidelines, however, is voluntary. In 2022, the U.S. Federal Communications Commission adopted a stricter mandatory 5-year rule, and there have already been fines because of it!")
             }
         }
     }
@@ -100,18 +100,18 @@ struct DragLifetimeRow: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(CascadeTheme.trackColor)
+                        .fill(DesignTokens.trackColor)
                     Capsule()
                         .fill(color.opacity(0.6))
-                        .frame(width: max(geo.size.width * intensity, CascadeTheme.trackHeight))
+                        .frame(width: max(geo.size.width * intensity, DesignTokens.trackHeight))
                 }
             }
-            .frame(height: CascadeTheme.trackHeight + 1)
+            .frame(height: DesignTokens.trackHeight + 1)
             .clipShape(Capsule())
             
             Text(lifetime)
                 .font(.caption.monospacedDigit())
-                .foregroundStyle(CascadeTheme.mutedText)
+                .foregroundStyle(DesignTokens.mutedText)
                 .frame(width: 120, alignment: .trailing)
         }
         .accessibilityElement(children: .combine)
@@ -139,16 +139,16 @@ struct StrategyCard: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text(description)
                     .font(.subheadline)
-                    .foregroundStyle(CascadeTheme.bodyText)
-                    .lineSpacing(CascadeTheme.bodyLineSpacing)
+                    .foregroundStyle(DesignTokens.bodyText)
+                    .lineSpacing(DesignTokens.bodyLineSpacing)
             }
         }
-        .padding(CascadeTheme.cardPadding)
-        .background(CascadeTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .padding(DesignTokens.cardPadding)
+        .background(DesignTokens.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
-                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
+            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
+                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
         )
         .accessibilityElement(children: .contain)
     }

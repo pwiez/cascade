@@ -76,7 +76,35 @@ struct AboutChapter: View {
                         icon: "wind",
                         description: "To help with the visualization of collision events, Cascade ignores atmospheric drag to avoid debris deorbiting. Fragments that achieve a stable orbit remain there forever. However, if any of them hit the Earth's surface for any reason, such as excessive ejection force or low velocity, they are deleted from the simulation."
                     )
+                    
                 }
+            }
+            
+            Divider().cascadeDivider()
+            
+            VStack(alignment: .leading, spacing: 24) {
+                HStack(spacing: 16) {
+                    ThemedIcon(systemName: "macbook.and.ipad", color: .blue, isCircle: false)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Cascade was designed and developed by")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        Text("Pedro Wiezel")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        
+                        Link("pedrowiezel.com", destination: URL(string: "https://pedrowiezel.com")!)
+                            .font(.subheadline)
+                            .foregroundStyle(.cyan)
+                            .padding(.top, -2)
+                    }
+                }
+                
+                Text("Made with ❤️ in SwiftUI and RealityKit")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -98,17 +126,17 @@ struct SimplificationCard: View {
                 
                 Text(description)
                     .font(.subheadline)
-                    .foregroundStyle(CascadeTheme.bodyText)
-                    .lineSpacing(CascadeTheme.bodyLineSpacing)
+                    .foregroundStyle(DesignTokens.bodyText)
+                    .lineSpacing(DesignTokens.bodyLineSpacing)
             }
         }
-        .padding(CascadeTheme.compactPadding)
+        .padding(DesignTokens.compactPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CascadeTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .background(DesignTokens.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
-                .stroke(CascadeTheme.cardBorder, lineWidth: CascadeTheme.borderWidth)
+            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
+                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
         )
     }
 }
@@ -126,7 +154,7 @@ struct ModelParam: View {
                     .foregroundStyle(.primary)
                 Text(detail)
                     .font(.caption)
-                    .foregroundStyle(CascadeTheme.mutedText)
+                    .foregroundStyle(DesignTokens.mutedText)
             }
             Spacer()
             Text(value)
@@ -149,7 +177,7 @@ struct LearningObjective: View {
             
             Text(text)
                 .font(.subheadline)
-                .foregroundStyle(CascadeTheme.bodyText)
+                .foregroundStyle(DesignTokens.bodyText)
                 .lineSpacing(3)
         }
         .accessibilityElement(children: .combine)

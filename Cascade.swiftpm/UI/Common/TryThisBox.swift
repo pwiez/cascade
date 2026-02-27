@@ -22,17 +22,17 @@ struct TryThisBox: View {
                 
                 Text(instruction)
                     .font(.subheadline)
-                    .foregroundStyle(CascadeTheme.bodyText)
-                    .lineSpacing(CascadeTheme.bodyLineSpacing)
+                    .foregroundStyle(DesignTokens.bodyText)
+                    .lineSpacing(DesignTokens.bodyLineSpacing)
             }
         }
-        .padding(CascadeTheme.cardPadding)
+        .padding(DesignTokens.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CascadeTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: CascadeTheme.cardRadius))
+        .background(DesignTokens.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: CascadeTheme.cardRadius)
-                .stroke(Color.purple.opacity(0.6), lineWidth: CascadeTheme.borderWidth)
+            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
+                .stroke(Color.purple.opacity(0.6), lineWidth: DesignTokens.borderWidth)
         )
         .accessibilityElement(children: .combine)
     }

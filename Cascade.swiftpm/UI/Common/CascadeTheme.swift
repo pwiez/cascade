@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum CascadeTheme {
+enum DesignTokens {
     
     static let cardRadius: CGFloat = 16
     static let iconRadius: CGFloat = 10
@@ -28,6 +28,6 @@ enum CascadeTheme {
 
 extension View {
     func cascadeDivider() -> some View {
-        self.overlay(CascadeTheme.dividerColor)
+        self.overlay(DesignTokens.dividerColor)
     }
 }

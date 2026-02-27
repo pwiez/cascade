@@ -18,10 +18,12 @@ class SceneController: ObservableObject {
     private var fillLights: [Entity] = []
     
     private var satellites: [ModelEntity] = []
-    private var satelliteMaterial: UnlitMaterial
+    private var satelliteMaterial: PhysicallyBasedMaterial
     private var debrisMaterial: UnlitMaterial
     private let satelliteMesh: MeshResource
     private var debrisBatchSystem: DebrisBatchSystem
+    private var atmEntity: ModelEntity?
+    private var aoTexture: TextureResource?
     
     private var system: PhysicsSolver
     private var physicsTask: Task<Void, Never>? = nil
@@ -40,7 +42,12 @@ class SceneController: ObservableObject {
     init() {
         OrbitalData.registerComponent()
         
-        self.satelliteMaterial = UnlitMaterial(color: UIColor(settings.satelliteColor))
+        var satMat = PhysicallyBasedMaterial()
+        satMat.baseColor = .init(tint: UIColor(settings.satelliteColor))
+        satMat.metallic = 0.7
+        satMat.roughness = 0.3
+        self.satelliteMaterial = satMat
+        
         self.debrisMaterial = UnlitMaterial(color: UIColor(settings.debrisColor))
         self.satelliteMesh = .generateBox(size: 1.2)
         
@@ -266,7 +273,7 @@ class SceneController: ObservableObject {
     }
     
     private func updateMaterials() {
-        self.satelliteMaterial = UnlitMaterial(color: UIColor(settings.satelliteColor))
+        self.satelliteMaterial.baseColor = .init(tint: UIColor(settings.satelliteColor))
         self.debrisMaterial = UnlitMaterial(color: UIColor(settings.debrisColor))
         
         for sat in satellites {
@@ -296,21 +303,33 @@ class SceneController: ObservableObject {
     }
     
     private func updateLightingMode() {
+        if settings.useOmniLight {
+            mainSun.removeFromParent()
+            cameraRig?.camera.addChild(mainSun)
+            mainSun.transform = .identity
+        } else {
+            mainSun.removeFromParent()
+            rootAnchor.addChild(mainSun)
+            mainSun.look(at: [0, 0, 0], from: [500, 0, -500], relativeTo: nil)
+        }
+        
+        fillLights.forEach { $0.removeFromParent() }
+        fillLights.removeAll()
+        
+        if let earthModelEntity = earthEntity as? ModelEntity,
+           var earthModel = earthModelEntity.model,
+           var earthMat = earthModel.materials.first as? PhysicallyBasedMaterial {
+            
             if settings.useOmniLight {
-                mainSun.removeFromParent()
-                cameraRig?.camera.addChild(mainSun)
-                
-                mainSun.transform = .identity
-            } else {
-                mainSun.removeFromParent()
-                rootAnchor.addChild(mainSun)
-                
-                mainSun.look(at: [0, 0, 0], from: [500, 0, -500], relativeTo: nil)
+                earthMat.ambientOcclusion = PhysicallyBasedMaterial.AmbientOcclusion()
+            } else if let tex = aoTexture {
+                earthMat.ambientOcclusion = PhysicallyBasedMaterial.AmbientOcclusion(texture: MaterialParameters.Texture(tex))
             }
             
-            fillLights.forEach { $0.removeFromParent() }
-            fillLights.removeAll()
+            earthModel.materials = [earthMat]
+            earthModelEntity.model = earthModel
         }
+    }
     
     private func setupLighting() {
         mainSun.light.intensity = 6500
@@ -319,23 +338,12 @@ class SceneController: ObservableObject {
     }
     
     private func setupEarth() {
-        let blackTex = createBlackTexture()
-        
         let earthMesh = MeshResource.generateSphere(radius: earthRadius)
         var earthMaterial = PhysicallyBasedMaterial()
         earthMaterial.roughness = 1.0
         earthMaterial.metallic = 0.0
         earthMaterial.specular = 0.5
-        
-        if let tex = blackTex {
-            earthMaterial.ambientOcclusion = .init(texture: .init(tex))
-        }
-        
-        if let texture = try? TextureResource.load(named: "earthmap") {
-            earthMaterial.baseColor = .init(tint: .white, texture: .init(texture))
-        } else {
-            earthMaterial.baseColor = .init(tint: .systemBlue)
-        }
+        earthMaterial.baseColor = .init(tint: .systemBlue)
         
         let earth = ModelEntity(mesh: earthMesh, materials: [earthMaterial])
         earth.orientation = simd_quatf(angle: 23.5 * .pi / 180, axis: [0, 0, 1])
@@ -349,19 +357,35 @@ class SceneController: ObservableObject {
         atmMat.metallic = 0.0
         atmMat.specular = 0.5
         atmMat.blending = .transparent(opacity: 0.15)
-        if let tex = blackTex { atmMat.ambientOcclusion = .init(texture: .init(tex)) }
         
-        earth.addChild(ModelEntity(mesh: atmMesh, materials: [atmMat]))
-    }
-    
-    private func createBlackTexture() -> TextureResource? {
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1))
-        let image = renderer.image { ctx in
-            UIColor(white: 0.25, alpha: 1.0).setFill()
-            ctx.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        let atmEntity = ModelEntity(mesh: atmMesh, materials: [atmMat])
+        self.atmEntity = atmEntity
+        earth.addChild(atmEntity)
+        
+        Task {
+            let renderer = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1))
+            let image = renderer.image { ctx in
+                UIColor(white: 0.225, alpha: 1.0).setFill()
+                ctx.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+            }
+            
+            guard let cgImage = image.cgImage else { return }
+            async let loadedAO = try? TextureResource(image: cgImage, options: .init(semantic: .raw))
+            async let loadedEarth = try? TextureResource(named: "earthmap")
+            self.aoTexture = await loadedAO
+            
+            if !self.settings.useOmniLight, let tex = self.aoTexture {
+                earthMaterial.ambientOcclusion = .init(texture: .init(tex))
+                atmMat.ambientOcclusion = .init(texture: .init(tex))
+            }
+            
+            if let tex = await loadedEarth {
+                earthMaterial.baseColor = .init(tint: .white, texture: .init(tex))
+            }
+            
+            earth.model?.materials = [earthMaterial]
+            atmEntity.model?.materials = [atmMat]
         }
-        guard let cgImage = image.cgImage else { return nil }
-        return try? TextureResource(image: cgImage, options: .init(semantic: .raw))
     }
     
     func setPaused(_ paused: Bool) { self.isPaused = paused }
