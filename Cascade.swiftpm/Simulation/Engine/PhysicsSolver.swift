@@ -63,6 +63,10 @@ actor PhysicsSolver {
     private let maxRadiusSq: Float
     private var settings: SimSettings
     
+    private var frameDeaths: [Int] = []
+    private var frameDebrisKills: [Int] = []
+    private var frameExplosions: [CollisionEvent] = []
+    
     init(settings: SimSettings, earthRadius: Float) {
         self.settings = settings
         self.killRadiusSq = pow(earthRadius + 2.0, 2)
@@ -83,6 +87,10 @@ actor PhysicsSolver {
             bucket.debrisKills.reserveCapacity(100)
             return bucket
         }
+        
+        frameDeaths.reserveCapacity(200)
+        frameDebrisKills.reserveCapacity(200)
+        frameExplosions.reserveCapacity(200)
     }
     
     func step(dt: Float,
@@ -203,17 +211,13 @@ actor PhysicsSolver {
         
         let radius = Float(settings.collisionRadius)
         let radiusSq = radius * radius
+        let satRadius = radius * 2.0
+        let satRadiusSq = satRadius * satRadius
         
         let localGrid = self.grid
-        let dPosX = debrisPool.posX
-        let dPosY = debrisPool.posY
-        let dPosZ = debrisPool.posZ
-        let dVelX = debrisPool.velX
-        let dVelY = debrisPool.velY
-        let dVelZ = debrisPool.velZ
         let dActive = debrisPool.activeCount
         
-        let totalObjects = satCount + debrisPool.activeCount
+        let totalObjects = satCount + dActive
         let objectsPerCore = 250
         let desiredCores = max(1, totalObjects / objectsPerCore)
         let coreCount = min(desiredCores, threadBuckets.count)
@@ -225,70 +229,116 @@ actor PhysicsSolver {
             buckets[i].debrisKills.removeAll(keepingCapacity: true)
         }
         
-        DispatchQueue.concurrentPerform(iterations: coreCount) { coreIndex in
-            let bucket = buckets[coreIndex]
-            
-            for i in stride(from: coreIndex, to: satCount, by: coreCount) {
-                let posA = satPos[i]
-                let cellID = localGrid.getCellIndex(for: posA)
-                guard cellID != -1 else { continue }
-                
-                for offset in localGrid.neighborOffsets {
-                    var neighborIdx = localGrid.firstObject(inCell: cellID + offset)
-                    
-                    while neighborIdx != -1 {
-                        defer { neighborIdx = localGrid.nextObject(after: neighborIdx) }
-                        guard neighborIdx > i else { continue }
-                        
-                        let posB: SIMD3<Float>
-                        let velB: SIMD3<Float>
-                        let isDebris: Bool
-                        
-                        if neighborIdx < satCount {
-                            posB = satPos[neighborIdx]
-                            velB = satVel[neighborIdx]
-                            isDebris = false
-                        } else {
-                            let dIdx = neighborIdx - satCount
-                            guard dIdx < dActive else { continue }
-                            posB = SIMD3(dPosX[dIdx], dPosY[dIdx], dPosZ[dIdx])
-                            velB = SIMD3(dVelX[dIdx], dVelY[dIdx], dVelZ[dIdx])
-                            isDebris = true
-                        }
-                        
-                        let effectiveRadius = isDebris ? radius : (radius * 2)
-                        guard abs(posA.x - posB.x) <= effectiveRadius &&
-                                abs(posA.y - posB.y) <= effectiveRadius &&
-                                abs(posA.z - posB.z) <= effectiveRadius else { continue }
-                        let effectiveRSq = isDebris ? radiusSq : (radius * 2) * (radius * 2)
-                        guard length_squared(posA - posB) < effectiveRSq else { continue }
-                        
-                        bucket.deaths.append(satIdx[i])
-                        bucket.explosions.append(CollisionEvent(position: posA, velocity: satVel[i]))
-                        
-                        if isDebris {
-                            bucket.debrisKills.append(neighborIdx - satCount)
-                            bucket.explosions.append(CollisionEvent(position: posB, velocity: velB))
-                        } else {
-                            bucket.deaths.append(satIdx[neighborIdx])
-                            bucket.explosions.append(CollisionEvent(position: posB, velocity: velB))
+        struct CollisionPtrs: @unchecked Sendable {
+            let satPos: UnsafeBufferPointer<SIMD3<Float>>
+            let satVel: UnsafeBufferPointer<SIMD3<Float>>
+            let satIdx: UnsafeBufferPointer<Int>
+            let dPosX: UnsafeBufferPointer<Float>
+            let dPosY: UnsafeBufferPointer<Float>
+            let dPosZ: UnsafeBufferPointer<Float>
+            let dVelX: UnsafeBufferPointer<Float>
+            let dVelY: UnsafeBufferPointer<Float>
+            let dVelZ: UnsafeBufferPointer<Float>
+        }
+        
+        satPos.withUnsafeBufferPointer { ptrSatPos in
+            satVel.withUnsafeBufferPointer { ptrSatVel in
+                satIdx.withUnsafeBufferPointer { ptrSatIdx in
+                    debrisPool.posX.withUnsafeBufferPointer { dPosX in
+                        debrisPool.posY.withUnsafeBufferPointer { dPosY in
+                            debrisPool.posZ.withUnsafeBufferPointer { dPosZ in
+                                debrisPool.velX.withUnsafeBufferPointer { dVelX in
+                                    debrisPool.velY.withUnsafeBufferPointer { dVelY in
+                                        debrisPool.velZ.withUnsafeBufferPointer { dVelZ in
+                                            
+                                            let ptrs = CollisionPtrs(
+                                                satPos: ptrSatPos, satVel: ptrSatVel, satIdx: ptrSatIdx,
+                                                dPosX: dPosX, dPosY: dPosY, dPosZ: dPosZ,
+                                                dVelX: dVelX, dVelY: dVelY, dVelZ: dVelZ
+                                            )
+                                            
+                                            DispatchQueue.concurrentPerform(iterations: coreCount) { coreIndex in
+                                                let bucket = buckets[coreIndex]
+                                                
+                                                for i in stride(from: coreIndex, to: satCount, by: coreCount) {
+                                                    let posA = ptrs.satPos[i]
+                                                    let cellID = localGrid.getCellIndex(for: posA)
+                                                    guard cellID != -1 else { continue }
+                                                    
+                                                    for offset in localGrid.neighborOffsets {
+                                                        var neighborIdx = localGrid.firstObject(inCell: cellID + offset)
+                                                        
+                                                        while neighborIdx != -1 {
+                                                            let currentNeighbor = neighborIdx
+                                                            neighborIdx = localGrid.nextObject(after: neighborIdx)
+                                                            
+                                                            guard currentNeighbor > i else { continue }
+                                                            
+                                                            let posB: SIMD3<Float>
+                                                            let velB: SIMD3<Float>
+                                                            let isDebris: Bool
+                                                            
+                                                            if currentNeighbor < satCount {
+                                                                posB = ptrs.satPos[currentNeighbor]
+                                                                velB = ptrs.satVel[currentNeighbor]
+                                                                isDebris = false
+                                                            } else {
+                                                                let dIdx = currentNeighbor - satCount
+                                                                guard dIdx < dActive else { continue }
+                                                                posB = SIMD3(ptrs.dPosX[dIdx], ptrs.dPosY[dIdx], ptrs.dPosZ[dIdx])
+                                                                velB = SIMD3(ptrs.dVelX[dIdx], ptrs.dVelY[dIdx], ptrs.dVelZ[dIdx])
+                                                                isDebris = true
+                                                            }
+                                                            
+                                                            let effectiveRadius = isDebris ? radius : satRadius
+                                                            guard abs(posA.x - posB.x) <= effectiveRadius &&
+                                                                    abs(posA.y - posB.y) <= effectiveRadius &&
+                                                                    abs(posA.z - posB.z) <= effectiveRadius else { continue }
+                                                            
+                                                            let effectiveRSq = isDebris ? radiusSq : satRadiusSq
+                                                            guard length_squared(posA - posB) < effectiveRSq else { continue }
+                                                            
+                                                            bucket.deaths.append(ptrs.satIdx[i])
+                                                            bucket.explosions.append(CollisionEvent(position: posA, velocity: ptrs.satVel[i]))
+                                                            
+                                                            if isDebris {
+                                                                bucket.debrisKills.append(currentNeighbor - satCount)
+                                                                bucket.explosions.append(CollisionEvent(position: posB, velocity: velB))
+                                                            } else {
+                                                                bucket.deaths.append(ptrs.satIdx[currentNeighbor])
+                                                                bucket.explosions.append(CollisionEvent(position: posB, velocity: velB))
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
         
-        let finalDeaths = buckets.flatMap { $0.deaths }
-        let finalDebrisKills = buckets.flatMap { $0.debrisKills }
-        let finalExplosions = buckets.flatMap { $0.explosions }
+        frameDeaths.removeAll(keepingCapacity: true)
+        frameDebrisKills.removeAll(keepingCapacity: true)
+        frameExplosions.removeAll(keepingCapacity: true)
         
-        for debrisIndex in Set(finalDebrisKills).sorted(by: >) {
+        for bucket in buckets {
+            frameDeaths.append(contentsOf: bucket.deaths)
+            frameDebrisKills.append(contentsOf: bucket.debrisKills)
+            frameExplosions.append(contentsOf: bucket.explosions)
+        }
+        
+        for debrisIndex in Set(frameDebrisKills).sorted(by: >) {
             debrisPool.kill(at: debrisIndex)
         }
-        for boom in finalExplosions {
+        for boom in frameExplosions {
             spawnExplosion(at: boom.position, velocity: boom.velocity)
         }
         
-        return (finalDeaths, finalExplosions)
+        return (frameDeaths, frameExplosions)
     }
 }
