@@ -22,7 +22,7 @@ struct IntroChapter: View {
                     .font(.title2.weight(.bold))
                     .foregroundStyle(.primary)
                 
-                TextParagraph("Nowadays, our life relies on satellites: GPS, weather forecasting, global internet, disaster warnings, and more. All of these require not only safe access to Low Earth Orbit, but long-lasting orbital safety. If collision rates cross a critical threshold, that entire region of space could become a lethal minefield for everything else in it, rendering it unusable for generations. Cascade shows that this isn't triggered by a single massive explosion, but instead a slow, compounding chain reaction.")
+                TextParagraph("Nowadays, our life relies on satellites: GPS, weather forecasting, global internet, disaster warnings, and more. All of these require not only safe access to Low Earth Orbit, but long-lasting orbital safety. If collision rates cross a critical threshold, that entire region of space could become a lethal minefield for everything else in it. Cascade shows that this isn't triggered by a single massive explosion, but instead a slow, compounding chain reaction.")
             }
             
             Divider().cascadeDivider()

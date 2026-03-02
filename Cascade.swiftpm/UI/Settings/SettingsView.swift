@@ -2,7 +2,7 @@
 //  SettingsView.swift
 //  Cascade
 //
-//  Created by Pedro Wiezel on 18/02/26.
+//  Created by Pedro Wiezel on 13/02/26.
 //
 
 import SwiftUI
