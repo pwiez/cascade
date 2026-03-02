@@ -1,3 +1,10 @@
+//
+//  IntroScreen.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 21/02/26.
+//
+
 import SwiftUI
 
 struct OnboardingOverlay: View {
@@ -14,13 +21,12 @@ struct OnboardingOverlay: View {
                 
                 ScrollView {
                     VStack(spacing: 32) {
-                        
                         HStack(alignment: .top, spacing: 16) {
                             RoundedRectangle(cornerRadius: 1.5)
                                 .fill(.blue)
                                 .frame(width: 4)
                             
-                            Text("Cascade is a physics simulator created to spread awareness and education about Kessler Syndrome. It lets you create and observe a collision cascade scenario in real time. The satellites orbiting our planet, represented by green cubes \(Text(Image(systemName: "cube.fill")).foregroundStyle(.green)), can collide with each other. When they do, clouds of debris represented by white tetrahedrons \(Text(Image(systemName: "pyramid.fill")).foregroundStyle(.white)) will appear and spread. They can collide with other satellites. Eventually, this produces a runaway collision chain reaction!")
+                            Text("Cascade is a physics simulator created to spread awareness and education about Kessler Syndrome, by allowing you to create and observe a collision cascade scenario in real time. The satellites orbiting our planet, represented by green cubes \(Text(Image(systemName: "cube.fill")).foregroundStyle(.green)), can collide with each other. When they do, clouds of debris represented by red tetrahedrons \(Text(Image(systemName: "pyramid.fill")).foregroundStyle(.red)) will appear and spread. They can collide with other satellites. Eventually, this produces a runaway collision chain reaction!")
                                 .font(.body)
                                 .foregroundStyle(DesignTokens.bodyText)
                                 .lineSpacing(DesignTokens.bodyLineSpacing)
@@ -32,7 +38,6 @@ struct OnboardingOverlay: View {
                             .frame(height: DesignTokens.borderWidth)
                         
                         HStack(alignment: .top, spacing: 0) {
-                            
                             VStack(alignment: .leading, spacing: 24) {
                                 Text("Simulation Controls")
                                     .font(.title2.weight(.semibold))
@@ -100,7 +105,7 @@ struct OnboardingOverlay: View {
                                 .fill(.blue)
                                 .frame(width: 4)
                             
-                            Text("Cascade has a range of visual settings to make sure you have the best possible experience. If you want to learn more about Kessler Syndrome and Cascade itself, you can do so by tapping the Learn More tab. The simulation will be paused for you when you switch tabs.\n\nThe simulation will begin paused - simply tap the play button to get it going. Have fun, and I hope you learn a lot about this fascinating (and worrying) topic!")
+                            Text("Cascade has a range of visual settings, including changing the color and scale of satellites and debris, to make sure you have the best possible experience. If you want to learn more about Kessler Syndrome and Cascade itself, you can do so by tapping the Learn More tab. The simulation will be paused for you when you switch tabs.\n\nThe simulation will begin paused - simply tap the play button to get it going. Have fun, and I hope you learn a lot about this fascinating (and worrying) topic!")
                                 .font(.body)
                                 .foregroundStyle(DesignTokens.bodyText)
                                 .lineSpacing(DesignTokens.bodyLineSpacing)

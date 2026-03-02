@@ -1,3 +1,10 @@
+//
+//  SituationChapter.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 17/02/26.
+//
+
 import SwiftUI
 
 struct SituationChapter: View {
@@ -31,7 +38,7 @@ struct SituationChapter: View {
                 
                 HStack(spacing: 14) {
                     OperationalStatCard(
-                        value: "55k +",
+                        value: "55k+",
                         unit: "tracked",
                         label: "objects in orbit",
                         icon: "",
@@ -90,7 +97,7 @@ struct OperationalStatCard: View {
         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
         .overlay(
             RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
-                .stroke(accent.opacity(0.12), lineWidth: DesignTokens.borderWidth)
+                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
         )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(value) \(unit): \(label)")

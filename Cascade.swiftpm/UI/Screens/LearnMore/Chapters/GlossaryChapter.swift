@@ -2,7 +2,7 @@
 //  GlossaryChapter.swift
 //  Cascade
 //
-//  Created by Pedro Wiezel on 25/02/26.
+//  Created by Pedro Wiezel on 16/02/26.
 //
 
 import SwiftUI

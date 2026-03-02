@@ -1,9 +1,18 @@
+//
+//  ContentView.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 09/02/26.
+//
+
 import SwiftUI
 
 struct ContentView: View {
     @StateObject var simulation = Simulation()
     @State private var selectedTab: Int = 0
     @State private var showIntro: Bool = true
+    
+    @State private var wasPlayingBeforeRotation: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -51,9 +60,43 @@ struct ContentView: View {
                 let wasPortrait = oldSize.height > oldSize.width
                 
                 if currentPortrait && !wasPortrait {
+                    wasPlayingBeforeRotation = !simulation.isPaused
                     simulation.pauseSimulation()
+                } else if !currentPortrait && wasPortrait {
+                    if wasPlayingBeforeRotation {
+                        simulation.resumeSimulation()
+                    }
                 }
             }
         }
     }
 }
+
+struct PortraitWarningView: View {
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 24) {
+                Image(systemName: "ipad.landscape")
+                    .font(.system(size: 80))
+                    .foregroundStyle(.orange)
+                    .symbolEffect(.pulse, options: .repeating)
+                
+                Text("Please Rotate Your Device")
+                    .font(.title.weight(.bold))
+                    .foregroundStyle(.primary)
+                
+                Text("Cascade is designed to be experienced in landscape mode.")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            }
+        }
+    }
+}
+

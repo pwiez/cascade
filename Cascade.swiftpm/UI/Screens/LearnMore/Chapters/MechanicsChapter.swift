@@ -1,3 +1,10 @@
+//
+//  MechanicsChapter.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 15/02/26.
+//
+
 import SwiftUI
 
 struct MechanicsChapter: View {

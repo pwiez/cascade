@@ -1,3 +1,10 @@
+//
+//  RemediationChapter.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 16/02/26.
+//
+
 import SwiftUI
 
 struct RemediationChapter: View {
@@ -78,7 +85,7 @@ struct RemediationChapter: View {
                 Text("Guidelines and Policies")
                     .font(.title2.weight(.bold)).foregroundStyle(.primary)
                 
-                TextParagraph("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all satellites in Low Earth Orbit deorbit within 25 years after a mission ends. So, if a satellite reaches its mission end in 2030 it should be deorbited at most by 2055. Compliance to these guidelines, however, is voluntary. In 2022, the U.S. Federal Communications Commission adopted a stricter mandatory 5-year rule, and there have already been fines because of it!")
+                TextParagraph("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all satellites in Low Earth Orbit deorbit within 25 years after a mission ends. So, if a satellite reaches its mission end in 2030 it should be deorbited at most by 2055. Compliance to these guidelines, however, is voluntary. In 2022, the U.S. Federal Communications Commission adopted a stricter mandatory 5-year rule.")
             }
         }
     }

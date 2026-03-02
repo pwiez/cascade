@@ -1,13 +1,13 @@
 //
-//  OrbitsChapter.swift
+//  OrbitPhysicsChapter.swift
 //  Cascade
 //
-//  Created by Pedro Wiezel on 25/02/26.
+//  Created by Pedro Wiezel on 18/02/26.
 //
 
 import SwiftUI
 
-struct OrbitsChapter: View {
+struct OrbitPhysicsChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 44) {
             

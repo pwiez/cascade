@@ -1,6 +1,13 @@
+//
+//  IntroChapter.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 16/02/26.
+//
+
 import SwiftUI
 
-struct OverviewChapter: View {
+struct IntroChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 40) {
         

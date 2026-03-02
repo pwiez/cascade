@@ -2,10 +2,11 @@
 //  SimulationScreen.swift
 //  Cascade
 //
-//  Created by Pedro Wiezel on 18/02/26.
+//  Created by Pedro Wiezel on 14/02/26.
 //
 
 import SwiftUI
+import RealityKit
 
 struct SimulationScreen: View {
     @ObservedObject var simulation: Simulation
@@ -127,3 +128,161 @@ struct SimulationContainer: View {
             )
     }
 }
+
+struct SimulationControls: View {
+    @Binding var isPaused: Bool
+    @Binding var showSettings: Bool
+    let onResetCamera: () -> Void
+    let onDetonate: () -> Void
+    let onRestart: () -> Void
+    
+    @State private var showRestartConfirmation = false
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            
+            SimulationButton(
+                icon: "burst.fill",
+                action: onDetonate,
+                isProminent: true,
+                tint: .red
+            )
+            .accessibilityLabel("Detonate Satellite")
+            .accessibilityHint("Destroys a satellite and scatters debris into orbit")
+            
+            SimulationButton(
+                icon: "arrow.triangle.2.circlepath",
+                action: { showRestartConfirmation = true },
+                isProminent: false,
+                tint: .clear
+            )
+            .confirmationDialog("Restart?", isPresented: $showRestartConfirmation) {
+                Button("Restart", role: .destructive) {
+                    onRestart()
+                }
+            } message: {
+                Text("This will clear satellites and debris, and reset the simulation.")
+            }
+            .accessibilityLabel("Restart Simulation")
+            .accessibilityHint("Restarts the simulation")
+            
+            SimulationButton(
+                icon: isPaused ? "play.fill" : "pause.fill",
+                action: { isPaused.toggle() },
+                isProminent: false,
+                tint: .clear
+            )
+            .accessibilityLabel(isPaused ? "Resume Simulation" : "Pause Simulation")
+            .accessibilityHint(isPaused ? "Resumes the orbital simulation" : "Pauses the orbital simulation")
+            
+            SimulationButton(
+                icon: "camera.metering.center.weighted",
+                action: onResetCamera,
+                isProminent: false,
+                tint: .clear
+            )
+            .accessibilityLabel("Reset Camera")
+            .accessibilityHint("Returns the camera to its default position")
+            
+            SimulationButton(
+                icon: "gearshape.fill",
+                action: { showSettings.toggle() },
+                isProminent: false,
+                tint: .clear
+            )
+            .accessibilityLabel("Settings")
+            .accessibilityHint("Opens the simulation parameters panel")
+        }
+    }
+}
+
+struct SimulationButton: View {
+    let icon: String
+    let action: () -> Void
+    let isProminent: Bool
+    var tint: Color?
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(.primary)
+                .frame(width: 36, height: 36)
+        }
+        .applyGlassStyle(isProminent: isProminent, tint: tint)
+    }
+}
+
+struct SimulationMetrics: View {
+    @ObservedObject var telemetry: Telemetry
+    let initialSatellites: Int
+    let satelliteColor: Color
+    let debrisColor: Color
+    
+    private var stats: SimStats { telemetry.stats }
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            metricItem(title: "SATELLITES", value: stats.satellites, color: satelliteColor)
+            
+            Divider()
+                .cascadeDivider()
+                .frame(height: 16)
+            
+            metricItem(title: "DEBRIS", value: stats.debris, color: debrisColor)
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 12)
+        .glassEffect()
+    }
+    
+    @ViewBuilder
+    private func metricItem(title: String, value: Int, color: Color) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.primary)
+            
+            Text(value.formatted())
+                .font(.system(.body).weight(.bold))
+                .monospacedDigit()
+                .foregroundStyle(color)
+                .contentTransition(.numericText())
+                .animation(.snappy, value: value)
+        }
+    }
+}
+
+class ARViewContainer: UIView {
+    var arView: ARView?
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        arView?.frame = self.bounds
+    }
+}
+
+struct SimulationView: UIViewRepresentable {
+    @ObservedObject var simulation: Simulation
+    
+    func makeUIView(context: Context) -> ARViewContainer {
+        let wrapper = ARViewContainer()
+        let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
+        
+        let spaceColor = UIColor(red: 0.05, green: 0.05, blue: 0.09, alpha: 1.0)
+        arView.environment.background = .color(spaceColor)
+        arView.environment.lighting.intensityExponent = -1.0
+        
+        arView.renderOptions = [
+            .disableMotionBlur, .disableCameraGrain, .disableFaceMesh, .disableGroundingShadows
+        ]
+          
+        simulation.attachToView(arView)
+        
+        wrapper.arView = arView
+        wrapper.addSubview(arView)
+        return wrapper
+    }
+    
+    func updateUIView(_ uiView: ARViewContainer, context: Context) { }
+}
+
