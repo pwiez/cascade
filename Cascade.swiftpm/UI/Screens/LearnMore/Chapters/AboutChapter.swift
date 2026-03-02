@@ -1,3 +1,10 @@
+//
+//  AboutChapter.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 14/02/26.
+//
+
 import SwiftUI
 
 struct AboutChapter: View {

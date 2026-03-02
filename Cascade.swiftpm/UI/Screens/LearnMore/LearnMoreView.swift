@@ -1,8 +1,8 @@
 //
-//  AppSection.swift
+//  LearnMoreView.swift
 //  Cascade
 //
-//  Created by Pedro Wiezel on 18/02/26.
+//  Created by Pedro Wiezel on 12/02/26.
 //
 
 import SwiftUI
@@ -63,7 +63,7 @@ struct LearnMoreView: View {
     @State private var activeSection: AppSection? = .hero
     
     var body: some View {
-        NavigationSplitView() {
+        NavigationSplitView(columnVisibility: .constant(.all)) {
             List(selection: $activeSection) {
                 Section {
                     ForEach(AppSection.allCases.prefix(5)) { section in
@@ -141,8 +141,8 @@ struct ChapterContainerView: View {
                     
                     Group {
                         switch activeSection {
-                        case .hero:        OverviewChapter()
-                        case .orbits:      OrbitsChapter()
+                        case .hero:        IntroChapter()
+                        case .orbits:      OrbitPhysicsChapter()
                         case .mechanics:   MechanicsChapter()
                         case .situation:   SituationChapter()
                         case .remediation: RemediationChapter()

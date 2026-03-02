@@ -1,3 +1,10 @@
+//
+//  SceneController.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 09/02/26.
+//
+
 import simd
 import Combine
 import UIKit
@@ -6,53 +13,47 @@ import RealityKit
 @MainActor
 class SceneController: ObservableObject {
     
-    @Published var simulationStats = SimStats()
     
+    @Published var simulationStats = SimStats()
+    private var settings = SimSettings.defaults
     var isPaused: Bool = true
     
+    private var system: PhysicsSolver
+    private var physicsTask: Task<Void, Never>? = nil
+    private var frameCounter = 0
+    private var lastFrameTime: TimeInterval = 0
+    private var commandQueue: [EngineCommand] = []
+
     private weak var arView: ARView?
-    private let rootAnchor = AnchorEntity(world: .zero)
+    private var sceneUpdateSubscription: Cancellable?
     private var cameraRig: CameraRig?
-    private var earthEntity: Entity?
+    private let rootAnchor = AnchorEntity(world: .zero)
+
     private let mainSun = DirectionalLight()
     private var fillLights: [Entity] = []
     
     private var satellites: [ModelEntity] = []
-    private var satelliteMaterial: PhysicallyBasedMaterial
-    private var debrisMaterial: UnlitMaterial
+    private var satelliteMaterial: UnlitMaterial
     private let satelliteMesh: MeshResource
     private var debrisBatchSystem: DebrisBatchSystem
+    private var debrisMaterial: UnlitMaterial
+
+    private var earthEntity: Entity?
+    private let earthRadius: Float = 100.0
+    private let earthMass: Float = 50000
+    private let gravitationalConstant: Float = 1.0
     private var atmEntity: ModelEntity?
     private var aoTexture: TextureResource?
     
-    private var system: PhysicsSolver
-    private var physicsTask: Task<Void, Never>? = nil
-    
-    private var settings = SimSettings.defaults
-    private let earthRadius: Float = 100.0
-    private let gravitationalConstant: Float = 1.0
-    private let earthMass: Float = 50000
-    
-    private var frameCounter = 0
-    private var lastFrameTime: TimeInterval = 0
-    
-    private var commandQueue: [EngineCommand] = []
-    private var sceneUpdateSubscription: Cancellable?
-    
     init() {
         OrbitalData.registerComponent()
+        self.system = PhysicsSolver(settings: settings, earthRadius: earthRadius)
         
-        var satMat = PhysicallyBasedMaterial()
-        satMat.baseColor = .init(tint: UIColor(settings.satelliteColor))
-        satMat.metallic = 0.7
-        satMat.roughness = 0.3
-        self.satelliteMaterial = satMat
-        
-        self.debrisMaterial = UnlitMaterial(color: UIColor(settings.debrisColor))
+        self.satelliteMaterial = UnlitMaterial(color: UIColor(settings.satelliteColor))
         self.satelliteMesh = .generateBox(size: 1.2)
         
+        self.debrisMaterial = UnlitMaterial(color: UIColor(settings.debrisColor))
         self.debrisBatchSystem = DebrisBatchSystem(maxDebris: 5000, material: debrisMaterial)
-        self.system = PhysicsSolver(settings: settings, earthRadius: earthRadius)
         
         setupLighting()
         setupEarth()
@@ -80,6 +81,7 @@ class SceneController: ObservableObject {
     private func runSimulationFrame() {
         let currentTime = CACurrentMediaTime()
         if lastFrameTime == 0 { lastFrameTime = currentTime }
+        
         if (currentTime - lastFrameTime) < 0.016 { return }
         lastFrameTime += 0.016
         
@@ -277,9 +279,9 @@ class SceneController: ObservableObject {
     }
     
     private func updateMaterials() {
-        self.satelliteMaterial.baseColor = .init(tint: UIColor(settings.satelliteColor))
+        self.satelliteMaterial = UnlitMaterial(color: UIColor(settings.satelliteColor))
         self.debrisMaterial = UnlitMaterial(color: UIColor(settings.debrisColor))
-
+        
         let sharedSatelliteMaterials: [Material] = [self.satelliteMaterial]
 
         for sat in satellites {
@@ -314,6 +316,7 @@ class SceneController: ObservableObject {
             mainSun.removeFromParent()
             cameraRig?.camera.addChild(mainSun)
             mainSun.transform = .identity
+            mainSun.light.intensity = 4250
         } else {
             mainSun.removeFromParent()
             rootAnchor.addChild(mainSun)
@@ -339,7 +342,7 @@ class SceneController: ObservableObject {
     }
     
     private func setupLighting() {
-        mainSun.light.intensity = 6500
+        mainSun.light.intensity = 5000
         mainSun.look(at: [0, 0, 0], from: [500, 0, -500], relativeTo: nil)
         rootAnchor.addChild(mainSun)
     }
@@ -347,10 +350,10 @@ class SceneController: ObservableObject {
     private func setupEarth() {
         let earthMesh = MeshResource.generateSphere(radius: earthRadius)
         var earthMaterial = PhysicallyBasedMaterial()
-        earthMaterial.roughness = 1.0
+        
+        earthMaterial.roughness = 0.675
         earthMaterial.metallic = 0.0
-        earthMaterial.specular = 0.5
-        earthMaterial.baseColor = .init(tint: .systemBlue)
+        earthMaterial.baseColor = .init(tint: .black)
         
         let earth = ModelEntity(mesh: earthMesh, materials: [earthMaterial])
         earth.orientation = simd_quatf(angle: 23.5 * .pi / 180, axis: [0, 0, 1])
@@ -363,7 +366,7 @@ class SceneController: ObservableObject {
         atmMat.roughness = 1.0
         atmMat.metallic = 0.0
         atmMat.specular = 0.5
-        atmMat.blending = .transparent(opacity: 0.15)
+        atmMat.blending = .transparent(opacity: 0.175)
         
         let atmEntity = ModelEntity(mesh: atmMesh, materials: [atmMat])
         self.atmEntity = atmEntity
@@ -379,6 +382,9 @@ class SceneController: ObservableObject {
             guard let cgImage = image.cgImage else { return }
             async let loadedAO = try? TextureResource(image: cgImage, options: .init(semantic: .raw))
             async let loadedEarth = try? TextureResource(named: "earthmap")
+            async let loadedSpecular = try? TextureResource(named: "earth_specular")
+            async let loadedNormal = try? TextureResource(named: "earth_normal")
+            
             self.aoTexture = await loadedAO
             
             if !self.settings.useOmniLight, let tex = self.aoTexture {
@@ -388,6 +394,14 @@ class SceneController: ObservableObject {
             
             if let tex = await loadedEarth {
                 earthMaterial.baseColor = .init(tint: .white, texture: .init(tex))
+            }
+            
+            if let tex = await loadedSpecular {
+                earthMaterial.specular = .init(texture: .init(tex))
+            }
+            
+            if let tex = await loadedNormal {
+                earthMaterial.normal = .init(texture: .init(tex))
             }
             
             earth.model?.materials = [earthMaterial]

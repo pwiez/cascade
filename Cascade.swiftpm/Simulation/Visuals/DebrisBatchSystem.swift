@@ -1,3 +1,10 @@
+//
+//  DebrisBatchSystem.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 18/02/26.
+//
+
 import RealityKit
 import Foundation
 import simd
@@ -8,7 +15,7 @@ class DebrisBatchSystem {
     public var meshResource: MeshResource
     
     private let maxDebris: Int
-    
+
     private var allPositions: [SIMD3<Float>]
     private var allNormals: [SIMD3<Float>]
     private var allIndices: [UInt32]
@@ -62,7 +69,7 @@ class DebrisBatchSystem {
         let sv3 = localVerts[3] * scale
         
         allPositions.withUnsafeMutableBufferPointer { vPtr in
-            
+
             if spinEnabled {
                 for i in 0..<activeCount {
                     let pos = SIMD3<Float>(posX[i], posY[i], posZ[i])

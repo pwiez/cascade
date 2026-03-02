@@ -1,7 +1,13 @@
+//
+//  DesignTokens.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 17/02/26.
+//
+
 import SwiftUI
 
 enum DesignTokens {
-    
     static let cardRadius: CGFloat = 16
     static let iconRadius: CGFloat = 10
     static let cardPadding: CGFloat = 20
@@ -29,5 +35,17 @@ enum DesignTokens {
 extension View {
     func cascadeDivider() -> some View {
         self.overlay(DesignTokens.dividerColor)
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func applyGlassStyle(isProminent: Bool, tint: Color?) -> some View {
+        if isProminent {
+            self.buttonStyle(.glassProminent)
+                .tint(tint)
+        } else {
+            self.buttonStyle(.glass)
+        }
     }
 }

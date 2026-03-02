@@ -1,8 +1,8 @@
 //
 //  MeshGeneration.swift
-//  Kessler
+//  Cascade
 //
-//  Created by Pedro Wiezel on 13/02/26.
+//  Created by Pedro Wiezel on 17/02/26.
 //
 
 import RealityKit

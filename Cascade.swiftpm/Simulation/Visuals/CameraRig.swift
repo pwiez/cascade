@@ -1,3 +1,10 @@
+//
+//  CameraRig.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 13/02/26.
+//
+
 import RealityKit
 import simd
 import Foundation
@@ -16,7 +23,6 @@ class CameraRig {
     private var currentAspectRatio: Float = 1.77 
     private var targetScreenOffset: Float = 0.0
     
-    
     private var savedTransform: Transform?
     private var savedZoom: Float?
     private var savedAngleX: Float?
@@ -27,6 +33,7 @@ class CameraRig {
     private let maxZoom: Float = 1200.0
     private let minAngleX: Float = -1.4
     private let maxAngleX: Float = 1.4
+    
     
     init(rootAnchor: Entity) {
         self.pivot = Entity()

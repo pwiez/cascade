@@ -1,3 +1,10 @@
+//
+//  CreditsChapter.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 15/02/26.
+//
+
 import SwiftUI
 
 struct CreditsChapter: View {
@@ -13,7 +20,7 @@ struct CreditsChapter: View {
                         .font(.title2.weight(.bold))
                         .foregroundStyle(.primary)
                     
-                    TextParagraph("• Earth's texture map with clouds was created by Tom Patterson, based on NASA imaging.")
+                    TextParagraph("• Earth's texture map with clouds was created by Tom Patterson, based on NASA imaging.\n• Earth normal and specular maps by Solar System Scope, based on NASA imaging.")
                 }
                 
                 VStack(alignment: .leading, spacing: 24) {
@@ -21,7 +28,7 @@ struct CreditsChapter: View {
                         .font(.title2.weight(.bold))
                         .foregroundStyle(.primary)
                     
-                    TextParagraph("• Kessler, D. J., & Cour-Palais, B. G. (1978). Collision frequency of artificial satellites: the creation of a debris belt. *Journal of Geophysical Research*, *83*.\n• Kessler, D. J., Johnson, N. L., Liou, J. C., & Matney, M. (2010). The kessler syndrome: implications to future space operations. Advances in the Astronautical Sciences, 137(8), 2010.\n• Liou, J., & Johnson, N. L. (2006b). Risks in space from orbiting debris. *Science*, *311(5759)*, *340–341*.\n• Portree, D. S. (1999). Orbital debris: a chronology (Vol. 208856). NASA.")
+                    TextParagraph("• Kessler, D. J., & Cour-Palais, B. G. (1978). Collision frequency of artificial satellites: The creation of a debris belt. *Journal of Geophysical Research*, *83*(A6), 2637–2646.\n• Kessler, D. J., Johnson, N. L., Liou, J.-C., & Matney, M. (2010). The Kessler syndrome: Implications to future space operations. *Advances in the Astronautical Sciences*, *137*.\n• Liou, J.-C., & Johnson, N. L. (2006). Risks in space from orbiting debris. *Science*, *311*(5759), 340–341.\n• Portree, D. S. (1999). *Orbital debris: A chronology* (NASA/TP-1999-208856). National Aeronautics and Space Administration.")
                 }
                 
                 VStack(alignment: .leading, spacing: 24) {
@@ -37,7 +44,7 @@ struct CreditsChapter: View {
                         .font(.title2.weight(.bold))
                         .foregroundStyle(.primary)
                     
-                    TextParagraph("• Locke, J., Colvin, T. J., Ratliff, L., Abdul-Hamid, A., & Samples, C. (2024). Cost and benefit analysis of mitigating, tracking, and remediating orbital debris.\n• Forshaw, J. L., et al. (2016). RemoveDEBRIS: An in-orbit active debris removal demonstration mission. *Acta Astronautica*, *127*.\n• European Space Agency's ClearSpace-1 mission overview, available on esa.int/Space_Safety/ClearSpace-1")
+                    TextParagraph("• Locke, J., Colvin, T. J., Ratliff, L., Abdul-Hamid, A., & Samples, C. (2024). *Cost and benefit analysis of mitigating, tracking, and remediating orbital debris*. National Aeronautics and Space Administration, Office of Technology, Policy, and Strategy.\n• Forshaw, J. L., et al. (2016). RemoveDEBRIS: An in-orbit active debris removal demonstration mission. *Acta Astronautica*, *127*.\n• European Space Agency's ClearSpace-1 mission overview, available on esa.int/Space_Safety/ClearSpace-1")
                 }
             }
         }

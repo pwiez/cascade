@@ -1,10 +1,17 @@
+//
+//  DebrisPool.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 15/02/26.
+//
+
 import Foundation
 import RealityKit
 import simd
 import Accelerate
 
 class DebrisPool {
-
+    
     var posX: [Float]
     var posY: [Float]
     var posZ: [Float]
@@ -56,14 +63,22 @@ class DebrisPool {
         velY[i] = velocity.y
         velZ[i] = velocity.z
 
-        let axis = normalize(SIMD3<Float>(
+        var axis = SIMD3<Float>(
             Float.random(in: -1...1),
             Float.random(in: -1...1),
             Float.random(in: -1...1)
-        ))
-        rotAxisX[i] = axis.x
-        rotAxisY[i] = axis.y
-        rotAxisZ[i] = axis.z
+        )
+
+        if length_squared(axis) == 0 {
+            axis = [0, 1, 0]
+        }
+
+        let finalAxis = normalize(axis)
+
+        rotAxisX[i] = finalAxis.x
+        rotAxisY[i] = finalAxis.y
+        rotAxisZ[i] = finalAxis.z
+        
         spinRate[i] = Float.random(in: 1.0...6.0)
         rotAngle[i] = Float.random(in: 0...6.28)
 
@@ -140,7 +155,6 @@ class DebrisPool {
             }
         }
 
-        
         var i = 0
         while i < activeCount {
             let d = posX[i] * posX[i] + posY[i] * posY[i] + posZ[i] * posZ[i]
@@ -171,11 +185,11 @@ class DebrisPool {
             vPtrY[i] += py * factor
             vPtrZ[i] += pz * factor
         }
-        
+
         ptrX[i] += vPtrX[i] * dt
         ptrY[i] += vPtrY[i] * dt
         ptrZ[i] += vPtrZ[i] * dt
-        
+
         rotAngle[i] += spinRate[i] * dt
     }
 

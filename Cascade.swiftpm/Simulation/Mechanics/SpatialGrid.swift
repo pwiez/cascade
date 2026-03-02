@@ -1,8 +1,8 @@
 //
 //  SpatialGrid.swift
-//  Kessler
+//  Cascade
 //
-//  Created by Pedro Wiezel on 13/02/26.
+//  Created by Pedro Wiezel on 14/02/26.
 //
 
 import Foundation
@@ -19,10 +19,10 @@ struct SpatialGrid {
     let shiftZ:   Int = 14
     let mask:     Int = 127
 
-    let offset:          Float
-    let cellSize:        Float
+    let offset: Float
+    let cellSize: Float
     let inverseCellSize: Float
-    let cellCount:       Int
+    let cellCount: Int
 
     let neighborOffsets: [Int]
 

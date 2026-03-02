@@ -1,13 +1,21 @@
+//
+//  DebrisChart.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 19/02/26.
+//
+
 import SwiftUI
 import Charts
+
+struct DebrisDataPoint: Identifiable {
+    let id = UUID()
+    let year: Int
+    let count: Int
+    let annotation: String?
+}
+
 struct DebrisChart: View {
-    struct DebrisDataPoint: Identifiable {
-        let id = UUID()
-        let year: Int
-        let count: Int
-        let annotation: String?
-    }
-    
     let data: [DebrisDataPoint] = [
         .init(year: 1960, count: 200, annotation: nil),
         .init(year: 1965, count: 1200, annotation: nil),

@@ -1,3 +1,10 @@
+//
+//  Simulation.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 11/02/26.
+//
+
 import SwiftUI
 import RealityKit
 import Combine
@@ -33,29 +40,33 @@ struct SimSettings {
 
 extension SimSettings {
     static let defaults = SimSettings(
-        debrisPerCollision: 6,
+        debrisPerCollision: 7,
         explosionForce: 1.0,
-        collisionRadius: 1.5,
+        collisionRadius: 1.0,
         spreadTangential: 0.1,
         spreadVertical: 0.6,
         spreadRadial: 0.1,
         timeScale: 1.0,
         showSatellites: true,
         satelliteColor: Color(red: 0.108, green: 0.725, blue: 0.229),
-        debrisColor: .white,
+        debrisColor: .red,
         backgroundColor: .black,
-        maxDebris: 3000,
+        maxDebris: 2500,
         useRandomInclination: true,
         satelliteScale: 1.5,
-        debrisScale: 1.0,
+        debrisScale: 1.5,
         gravityMultiplier: 1.0,
-        orbitAltitude: 120,
+        orbitAltitude: 140,
         orbitVariance: 2.0,
         useOmniLight: false,
         showEarth: true,
         showDebris: true,
         debrisRotation: true,
     )
+}
+
+class Telemetry: ObservableObject {
+    @Published var stats = SimStats()
 }
 
 struct SimStats {
@@ -76,7 +87,7 @@ struct PopulationDraft {
     var useRandomInclination: Bool
 
     static let defaults = PopulationDraft(
-        satelliteCount: 200,
+        satelliteCount: 150,
         orbitAltitude: SimSettings.defaults.orbitAltitude,
         orbitVariance: SimSettings.defaults.orbitVariance,
         useRandomInclination: SimSettings.defaults.useRandomInclination
@@ -130,7 +141,10 @@ class Simulation: ObservableObject {
     init() {
         controller.$simulationStats
             .receive(on: RunLoop.main)
-            .assign(to: &telemetry.$stats)
+            .sink { [weak self] stats in
+                self?.telemetry.stats = stats
+            }
+            .store(in: &cancellables)
 
         resetSettingsToDefaults()
     }
@@ -196,7 +210,7 @@ class Simulation: ObservableObject {
         spreadVertical = d.spreadVertical
         spreadRadial = d.spreadRadial
         satelliteColor = Color(red: 0.108, green: 0.750, blue: 0.229)
-        debrisColor = .white
+        debrisColor = .red
         backgroundColor = .black
         useOmniLight = d.useOmniLight
         showEarth = d.showEarth
