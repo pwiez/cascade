@@ -8,68 +8,77 @@
 import RealityKit
 import Foundation
 import simd
+import UIKit
 
 @MainActor
 class DebrisBatchSystem {
     public let entity: ModelEntity
     public var meshResource: MeshResource
+    private let lowLevelMesh: LowLevelMesh
+    private var material: UnlitMaterial
     
     private let maxDebris: Int
-
-    private var allPositions: [SIMD3<Float>]
-    private var allNormals: [SIMD3<Float>]
-    private var allIndices: [UInt32]
     
     private let localVerts: [SIMD3<Float>] = [
-        SIMD3(0, 0.5, 0),
-        SIMD3(0.5, -0.5, 0.289),
-        SIMD3(-0.5, -0.5, 0.289),
-        SIMD3(0, -0.5, -0.577)
+        SIMD3(0, 0.5, 0), SIMD3(0.5, -0.5, 0.289),
+        SIMD3(-0.5, -0.5, 0.289), SIMD3(0, -0.5, -0.577)
     ]
     
-    init(maxDebris: Int, material: Material) {
+    struct Vertex {
+        var position: SIMD3<Float>
+        var normal: SIMD3<Float>
+    }
+    
+    init(maxDebris: Int, color: UIColor) {
         self.maxDebris = maxDebris
         let totalVerts = maxDebris * 4
         let totalIndices = maxDebris * 12
         
-        self.allPositions = Array(repeating: .zero, count: totalVerts)
-        self.allNormals = Array(repeating: [0, 1, 0], count: totalVerts)
-        self.allIndices = Array(repeating: 0, count: totalIndices)
+        var desc = LowLevelMesh.Descriptor()
+        desc.vertexCapacity = totalVerts
+        desc.indexCapacity = totalIndices
+        desc.vertexAttributes = [
+            .init(semantic: .position, format: .float3, offset: 0),
+            .init(semantic: .normal, format: .float3, offset: 16)
+        ]
         
+        desc.vertexLayouts = [.init(bufferIndex: 0, bufferStride: 32)]
+        desc.indexType = .uint32
         
-        let baseIndices: [UInt32] = [0, 2, 1, 0, 3, 2, 0, 1, 3, 1, 2, 3]
+        self.lowLevelMesh = try! LowLevelMesh(descriptor: desc)
         
-        for i in 0..<maxDebris {
-            let vertOffset = UInt32(i * 4)
-            let indexOffset = i * 12
-            
-            for j in 0..<12 {
-                self.allIndices[indexOffset + j] = vertOffset + baseIndices[j]
+        lowLevelMesh.withUnsafeMutableIndices { buffer in
+            let indices = buffer.bindMemory(to: UInt32.self)
+            let baseIndices: [UInt32] = [0, 2, 1, 0, 3, 2, 0, 1, 3, 1, 2, 3]
+            for i in 0..<maxDebris {
+                let vOff = UInt32(i * 4)
+                let iOff = i * 12
+                for j in 0..<12 { indices[iOff + j] = vOff + baseIndices[j] }
             }
         }
         
-        var descriptor = MeshDescriptor(name: "MegaDebrisMesh")
-        descriptor.positions = MeshBuffer(allPositions)
-        descriptor.normals = MeshBuffer(allNormals)
-        descriptor.primitives = .triangles(allIndices)
+        let bounds = BoundingBox(min: [-1000, -1000, -1000], max: [1000, 1000, 1000])
+        lowLevelMesh.parts.replaceAll([LowLevelMesh.Part(indexCount: totalIndices, topology: .triangle, bounds: bounds)])
         
-        self.meshResource = try! MeshResource.generate(from: [descriptor])
-        self.entity = ModelEntity(mesh: meshResource, materials: [material])
+        self.meshResource = try! MeshResource(from: lowLevelMesh)
+        self.material = UnlitMaterial(color: color)
+        self.entity = ModelEntity(mesh: meshResource, materials: [self.material])
     }
     
     func update(activeCount: Int,
                 posX: [Float], posY: [Float], posZ: [Float],
                 rotAngle: [Float], rotAxisX: [Float], rotAxisY: [Float], rotAxisZ: [Float],
-                scale: Float,
-                spinEnabled: Bool) {
+                scale: Float, spinEnabled: Bool) {
         
         let sv0 = localVerts[0] * scale
         let sv1 = localVerts[1] * scale
         let sv2 = localVerts[2] * scale
         let sv3 = localVerts[3] * scale
+        let defaultNormal = SIMD3<Float>(0, 1, 0)
         
-        allPositions.withUnsafeMutableBufferPointer { vPtr in
-
+        lowLevelMesh.withUnsafeMutableBytes(bufferIndex: 0) { buffer in
+            let vertices = buffer.bindMemory(to: Vertex.self)
+            
             if spinEnabled {
                 for i in 0..<activeCount {
                     let pos = SIMD3<Float>(posX[i], posY[i], posZ[i])
@@ -77,44 +86,40 @@ class DebrisBatchSystem {
                     let q = simd_quatf(angle: rotAngle[i], axis: axis)
                     
                     let base = i * 4
-                    vPtr[base + 0] = pos + q.act(sv0)
-                    vPtr[base + 1] = pos + q.act(sv1)
-                    vPtr[base + 2] = pos + q.act(sv2)
-                    vPtr[base + 3] = pos + q.act(sv3)
+                    vertices[base + 0] = Vertex(position: pos + q.act(sv0), normal: defaultNormal)
+                    vertices[base + 1] = Vertex(position: pos + q.act(sv1), normal: defaultNormal)
+                    vertices[base + 2] = Vertex(position: pos + q.act(sv2), normal: defaultNormal)
+                    vertices[base + 3] = Vertex(position: pos + q.act(sv3), normal: defaultNormal)
                 }
             } else {
                 for i in 0..<activeCount {
                     let pos = SIMD3<Float>(posX[i], posY[i], posZ[i])
                     
                     let base = i * 4
-                    vPtr[base + 0] = pos + sv0
-                    vPtr[base + 1] = pos + sv1
-                    vPtr[base + 2] = pos + sv2
-                    vPtr[base + 3] = pos + sv3
+                    vertices[base + 0] = Vertex(position: pos + sv0, normal: defaultNormal)
+                    vertices[base + 1] = Vertex(position: pos + sv1, normal: defaultNormal)
+                    vertices[base + 2] = Vertex(position: pos + sv2, normal: defaultNormal)
+                    vertices[base + 3] = Vertex(position: pos + sv3, normal: defaultNormal)
                 }
             }
 
             if activeCount < maxDebris {
                 let start = activeCount * 4
-                if start < vPtr.count {
-                    for k in start..<vPtr.count { vPtr[k] = .zero }
+                let totalVerts = maxDebris * 4
+                if start < totalVerts {
+                    let zeroVert = Vertex(position: .zero, normal: defaultNormal)
+                    for k in start..<totalVerts {
+                        vertices[k] = zeroVert
+                    }
                 }
             }
         }
-        
-        var descriptor = MeshDescriptor(name: "MegaDebrisMesh")
-        descriptor.positions = MeshBuffer(allPositions)
-        descriptor.normals = MeshBuffer(allNormals)
-        descriptor.primitives = .triangles(allIndices)
-        
-        if let newMesh = try? MeshResource.generate(from: [descriptor]) {
-            try? self.meshResource.replace(with: newMesh.contents)
-        }
     }
     
-    func updateMaterial(_ newMaterial: Material) {
+    func updateColor(_ newColor: UIColor) {
+        self.material = UnlitMaterial(color: newColor)
         if var model = entity.model {
-            model.materials = [newMaterial]
+            model.materials = [self.material]
             entity.model = model
         }
     }

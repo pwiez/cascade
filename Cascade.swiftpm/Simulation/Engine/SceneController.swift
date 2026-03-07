@@ -22,7 +22,10 @@ class SceneController: ObservableObject {
     private var physicsTask: Task<Void, Never>? = nil
     private var frameCounter = 0
     private var lastFrameTime: TimeInterval = 0
-    private var commandQueue: [EngineCommand] = []
+    
+    private var pendingResetCount: Int? = nil
+    private var pendingDetonate: Bool = false
+    private var pendingSettings: SimSettings? = nil
 
     private weak var arView: ARView?
     private var sceneUpdateSubscription: Cancellable?
@@ -36,7 +39,6 @@ class SceneController: ObservableObject {
     private var satelliteMaterial: UnlitMaterial
     private let satelliteMesh: MeshResource
     private var debrisBatchSystem: DebrisBatchSystem
-    private var debrisMaterial: UnlitMaterial
 
     private var earthEntity: Entity?
     private let earthRadius: Float = 100.0
@@ -45,6 +47,10 @@ class SceneController: ObservableObject {
     private var atmEntity: ModelEntity?
     private var aoTexture: TextureResource?
     
+    private var satPosBuffer: [SIMD3<Float>] = []
+    private var satVelBuffer: [SIMD3<Float>] = []
+    private var satIdxBuffer: [Int] = []
+    
     init() {
         OrbitalData.registerComponent()
         self.system = PhysicsSolver(settings: settings, earthRadius: earthRadius)
@@ -52,8 +58,11 @@ class SceneController: ObservableObject {
         self.satelliteMaterial = UnlitMaterial(color: UIColor(settings.satelliteColor))
         self.satelliteMesh = .generateBox(size: 1.2)
         
-        self.debrisMaterial = UnlitMaterial(color: UIColor(settings.debrisColor))
-        self.debrisBatchSystem = DebrisBatchSystem(maxDebris: 5000, material: debrisMaterial)
+        self.debrisBatchSystem = DebrisBatchSystem(maxDebris: 5000, color: UIColor(settings.debrisColor))
+        
+        satPosBuffer.reserveCapacity(500)
+        satVelBuffer.reserveCapacity(500)
+        satIdxBuffer.reserveCapacity(500)
         
         setupLighting()
         setupEarth()
@@ -96,23 +105,23 @@ class SceneController: ObservableObject {
         
         guard physicsTask == nil else { return }
         
-        var satPos: [SIMD3<Float>] = []
-        var satVel: [SIMD3<Float>] = []
-        var satIdx: [Int] = []
+        satPosBuffer.removeAll(keepingCapacity: true)
+        satVelBuffer.removeAll(keepingCapacity: true)
+        satIdxBuffer.removeAll(keepingCapacity: true)
         
         for (i, sat) in satellites.enumerated() where sat.isEnabled {
-            satPos.append(sat.position)
-            satVel.append(sat.components[OrbitalData.self]?.velocity ?? .zero)
-            satIdx.append(i)
+            satPosBuffer.append(sat.position)
+            satVelBuffer.append(sat.components[OrbitalData.self]?.velocity ?? .zero)
+            satIdxBuffer.append(i)
         }
         
         physicsTask = Task {
             let frame = await system.step(
                 dt: deltaTime,
                 earthMass: effectiveEarthMass,
-                satellitePositions: satPos,
-                satelliteVelocities: satVel,
-                satelliteIndices: satIdx
+                satellitePositions: satPosBuffer,
+                satelliteVelocities: satVelBuffer,
+                satelliteIndices: satIdxBuffer
             )
             self.applySimulationFrame(frame)
             self.physicsTask = nil
@@ -161,18 +170,27 @@ class SceneController: ObservableObject {
     }
     
     func queueCommand(_ command: EngineCommand) {
-        commandQueue.append(command)
+        switch command {
+        case .reset(let count): pendingResetCount = count
+        case .detonate: pendingDetonate = true
+        case .updateSettings(let newS): pendingSettings = newS
+        }
     }
     
     private func processCommandQueue() {
-        let commands = commandQueue
-        commandQueue.removeAll()
-        for command in commands {
-            switch command {
-            case .reset(let count): resetUniverse(satelliteCount: count)
-            case .detonate: triggerRandomExplosion()
-            case .updateSettings(let newS): handleSettingsUpdate(newS)
-            }
+        if let newS = pendingSettings {
+            handleSettingsUpdate(newS)
+            pendingSettings = nil
+        }
+        
+        if let count = pendingResetCount {
+            resetUniverse(satelliteCount: count)
+            pendingResetCount = nil
+        }
+        
+        if pendingDetonate {
+            triggerRandomExplosion()
+            pendingDetonate = false
         }
     }
     
@@ -261,15 +279,16 @@ class SceneController: ObservableObject {
     
     private func handleSettingsUpdate(_ newSettings: SimSettings) {
         let colorChanged = settings.satelliteColor != newSettings.satelliteColor ||
-        settings.debrisColor != newSettings.debrisColor
+                           settings.debrisColor != newSettings.debrisColor
         let visualsChanged = settings.satelliteScale != newSettings.satelliteScale ||
-        settings.showSatellites != newSettings.showSatellites
+                             settings.showSatellites != newSettings.showSatellites
+        let lightingChanged = settings.useOmniLight != newSettings.useOmniLight
         
         self.settings = newSettings
         
-        updateLightingMode()
-        if colorChanged   { updateMaterials() }
-        if visualsChanged { updateSatelliteVisuals() }
+        if lightingChanged { updateLightingMode() }
+        if colorChanged    { updateMaterials() }
+        if visualsChanged  { updateSatelliteVisuals() }
         
         arView?.environment.background = .color(UIColor(settings.backgroundColor))
         earthEntity?.isEnabled = newSettings.showEarth
@@ -280,7 +299,6 @@ class SceneController: ObservableObject {
     
     private func updateMaterials() {
         self.satelliteMaterial = UnlitMaterial(color: UIColor(settings.satelliteColor))
-        self.debrisMaterial = UnlitMaterial(color: UIColor(settings.debrisColor))
         
         let sharedSatelliteMaterials: [Material] = [self.satelliteMaterial]
 
@@ -291,7 +309,7 @@ class SceneController: ObservableObject {
             sat.components.set(comp)
         }
         
-        debrisBatchSystem.updateMaterial(debrisMaterial)
+        debrisBatchSystem.updateColor(UIColor(settings.debrisColor))
     }
     
     private func updateSatelliteVisuals() {
