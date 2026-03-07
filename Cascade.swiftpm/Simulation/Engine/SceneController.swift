@@ -178,17 +178,19 @@ class SceneController: ObservableObject {
     }
     
     private func processCommandQueue() {
+        if let newS = pendingSettings {
+            handleSettingsUpdate(newS)
+            pendingSettings = nil
+        }
+        
         if let count = pendingResetCount {
             resetUniverse(satelliteCount: count)
             pendingResetCount = nil
         }
+        
         if pendingDetonate {
             triggerRandomExplosion()
             pendingDetonate = false
-        }
-        if let newS = pendingSettings {
-            handleSettingsUpdate(newS)
-            pendingSettings = nil
         }
     }
     
@@ -277,15 +279,16 @@ class SceneController: ObservableObject {
     
     private func handleSettingsUpdate(_ newSettings: SimSettings) {
         let colorChanged = settings.satelliteColor != newSettings.satelliteColor ||
-        settings.debrisColor != newSettings.debrisColor
+                           settings.debrisColor != newSettings.debrisColor
         let visualsChanged = settings.satelliteScale != newSettings.satelliteScale ||
-        settings.showSatellites != newSettings.showSatellites
+                             settings.showSatellites != newSettings.showSatellites
+        let lightingChanged = settings.useOmniLight != newSettings.useOmniLight
         
         self.settings = newSettings
         
-        updateLightingMode()
-        if colorChanged   { updateMaterials() }
-        if visualsChanged { updateSatelliteVisuals() }
+        if lightingChanged { updateLightingMode() }
+        if colorChanged    { updateMaterials() }
+        if visualsChanged  { updateSatelliteVisuals() }
         
         arView?.environment.background = .color(UIColor(settings.backgroundColor))
         earthEntity?.isEnabled = newSettings.showEarth

@@ -41,6 +41,7 @@ class DebrisBatchSystem {
             .init(semantic: .position, format: .float3, offset: 0),
             .init(semantic: .normal, format: .float3, offset: 16)
         ]
+        
         desc.vertexLayouts = [.init(bufferIndex: 0, bufferStride: 32)]
         desc.indexType = .uint32
         
@@ -101,7 +102,7 @@ class DebrisBatchSystem {
                     vertices[base + 3] = Vertex(position: pos + sv3, normal: defaultNormal)
                 }
             }
-            
+
             if activeCount < maxDebris {
                 let start = activeCount * 4
                 let totalVerts = maxDebris * 4
