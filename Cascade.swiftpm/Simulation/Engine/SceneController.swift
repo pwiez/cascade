@@ -47,6 +47,7 @@ class SceneController: ObservableObject {
     private var atmEntity: ModelEntity?
     private var aoTexture: TextureResource?
     
+    private var activeSatelliteCount: Int = 0
     private var satPosBuffer: [SIMD3<Float>] = []
     private var satVelBuffer: [SIMD3<Float>] = []
     private var satIdxBuffer: [Int] = []
@@ -93,6 +94,9 @@ class SceneController: ObservableObject {
         
         if (currentTime - lastFrameTime) < 0.016 { return }
         lastFrameTime += 0.016
+        if (currentTime - lastFrameTime) > 0.048 {
+            lastFrameTime = currentTime
+        }
         
         processCommandQueue()
         guard !isPaused else { return }
@@ -123,29 +127,28 @@ class SceneController: ObservableObject {
                 satelliteVelocities: satVelBuffer,
                 satelliteIndices: satIdxBuffer
             )
+            guard !Task.isCancelled else {
+                self.physicsTask = nil
+                return
+            }
             self.applySimulationFrame(frame)
             self.physicsTask = nil
         }
     }
     
     private func applySimulationFrame(_ frame: SimulationFrame) {
-        debrisBatchSystem.update(
-            activeCount: frame.count,
-            posX: frame.posX, posY: frame.posY, posZ: frame.posZ,
-            rotAngle: frame.rotAngle,
-            rotAxisX: frame.rotAxisX, rotAxisY: frame.rotAxisY, rotAxisZ: frame.rotAxisZ,
-            scale: Float(settings.debrisScale),
-            spinEnabled: settings.debrisRotation
-        )
-        
+        debrisBatchSystem.commitVertices(from: frame.vertexBuffer)
+
         for index in frame.killedSatelliteIndices where index < satellites.count {
-            satellites[index].isEnabled = false
+            if satellites[index].isEnabled {
+                satellites[index].isEnabled = false
+                activeSatelliteCount -= 1
+            }
         }
-        
+
         frameCounter += 1
         if frameCounter % 30 == 0 {
-            let activeSats = satellites.filter { $0.isEnabled }.count
-            simulationStats = SimStats(debris: frame.count, satellites: activeSats)
+            simulationStats = SimStats(debris: frame.count, satellites: activeSatelliteCount)
         }
     }
     
@@ -195,22 +198,21 @@ class SceneController: ObservableObject {
     }
     
     private func resetUniverse(satelliteCount: Int) {
+        physicsTask?.cancel()
+        physicsTask = nil
+
         satellites.forEach { $0.removeFromParent() }
         satellites.removeAll()
-        
+        activeSatelliteCount = 0
+
         Task { await system.reset() }
-        debrisBatchSystem.update(
-            activeCount: 0,
-            posX: [], posY: [], posZ: [],
-            rotAngle: [], rotAxisX: [], rotAxisY: [], rotAxisZ: [],
-            scale: 1.0,
-            spinEnabled: settings.debrisRotation
-        )
-        
+        debrisBatchSystem.clear()
+
         spawnSatellites(count: satelliteCount)
+        activeSatelliteCount = satellites.count
         cameraRig?.reset()
-        
-        simulationStats = SimStats(debris: 0, satellites: satellites.count)
+
+        simulationStats = SimStats(debris: 0, satellites: activeSatelliteCount)
     }
     
     private func spawnSatellites(count: Int) {
@@ -274,6 +276,7 @@ class SceneController: ObservableObject {
         guard let victim = satellites.filter({ $0.isEnabled }).randomElement(),
               let data = victim.components[OrbitalData.self] else { return }
         victim.isEnabled = false
+        activeSatelliteCount -= 1
         Task { await system.spawnExplosion(at: victim.position, velocity: data.velocity) }
     }
     

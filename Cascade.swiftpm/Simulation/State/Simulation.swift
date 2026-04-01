@@ -135,6 +135,8 @@ class Simulation: ObservableObject {
     @Published var showStats: Bool = true
     @Published var isPaused: Bool = true { didSet { controller.isPaused = isPaused } }
 
+    private var isBatchingUpdates = false
+
     @Published private(set) var hasStarted: Bool = false
     @Published private(set) var initialSatelliteCount: Int = 0
 
@@ -169,6 +171,7 @@ class Simulation: ObservableObject {
     }
 
     func syncSettings() {
+        guard !isBatchingUpdates else { return }
         let effectiveHitbox = collisionRadius + ((satelliteScale - 1.0) * 0.25)
         let settings = SimSettings(
             debrisPerCollision: debrisPerCollision,
@@ -198,6 +201,7 @@ class Simulation: ObservableObject {
     }
 
     func resetSettingsToDefaults() {
+        isBatchingUpdates = true
         let d = SimSettings.defaults
         isCameraEnabled = true
         timeScale = d.timeScale
@@ -209,13 +213,15 @@ class Simulation: ObservableObject {
         spreadTangential = d.spreadTangential
         spreadVertical = d.spreadVertical
         spreadRadial = d.spreadRadial
-        satelliteColor = Color(red: 0.108, green: 0.750, blue: 0.229)
-        debrisColor = .red
-        backgroundColor = .black
+        satelliteColor = d.satelliteColor
+        debrisColor = d.debrisColor
+        backgroundColor = d.backgroundColor
         useOmniLight = d.useOmniLight
         showEarth = d.showEarth
         showDebris = d.showDebris
         draft = PopulationDraft.defaults
+        isBatchingUpdates = false
+        syncSettings()
     }
 
     func attachToView(_ arView: ARView) { controller.attach(to: arView) }

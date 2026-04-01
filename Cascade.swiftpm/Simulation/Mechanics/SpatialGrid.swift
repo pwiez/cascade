@@ -24,7 +24,7 @@ struct SpatialGrid {
     let inverseCellSize: Float
     let cellCount: Int
 
-    let neighborOffsets: [Int]
+    let neighborOffsets: [(dx: Int, dy: Int, dz: Int)]
 
     init(maxObjects: Int, cellSize: Float = 10.0) {
         self.cellSize = cellSize
@@ -34,22 +34,29 @@ struct SpatialGrid {
 
         self.headCell = ContiguousArray(repeating: -1, count: cellCount)
         self.nextParticle = ContiguousArray(repeating: -1, count: maxObjects)
-        
+
         self.usedCells = ContiguousArray()
         self.usedCells.reserveCapacity(maxObjects)
 
-        var offsets: [Int] = []
+        var offsets: [(dx: Int, dy: Int, dz: Int)] = []
         offsets.reserveCapacity(27)
-        let gs = 128
-        let gs2 = 128 * 128
         for x in -1...1 {
             for y in -1...1 {
                 for z in -1...1 {
-                    offsets.append(x + y * gs + z * gs2)
+                    offsets.append((dx: x, dy: y, dz: z))
                 }
             }
         }
         self.neighborOffsets = offsets
+    }
+
+    @inline(__always)
+    func neighborCell(of cellID: Int, offset: (dx: Int, dy: Int, dz: Int)) -> Int {
+        let cx = (cellID & mask) + offset.dx
+        let cy = ((cellID >> shiftY) & mask) + offset.dy
+        let cz = ((cellID >> shiftZ) & mask) + offset.dz
+        guard cx >= 0 && cx < gridSize && cy >= 0 && cy < gridSize && cz >= 0 && cz < gridSize else { return -1 }
+        return cx | (cy << shiftY) | (cz << shiftZ)
     }
 
     mutating func clear() {
