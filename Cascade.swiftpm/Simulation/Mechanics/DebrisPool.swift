@@ -11,7 +11,7 @@ import simd
 import Accelerate
 
 class DebrisPool {
-    
+
     var posX: [Float]
     var posY: [Float]
     var posZ: [Float]
@@ -29,6 +29,10 @@ class DebrisPool {
     private(set) var activeCount: Int = 0
     let capacity: Int
 
+    private let scratchA: UnsafeMutablePointer<Float>
+    private let scratchB: UnsafeMutablePointer<Float>
+    private let scratchC: UnsafeMutablePointer<Float>
+
     init(capacity: Int) {
         self.capacity = capacity
 
@@ -45,10 +49,30 @@ class DebrisPool {
         rotAxisZ = Array(repeating: 0, count: capacity)
         spinRate = Array(repeating: 0, count: capacity)
         rotAngle = Array(repeating: 0, count: capacity)
+
+        scratchA = .allocate(capacity: capacity)
+        scratchA.initialize(repeating: 0, count: capacity)
+        scratchB = .allocate(capacity: capacity)
+        scratchB.initialize(repeating: 0, count: capacity)
+        scratchC = .allocate(capacity: capacity)
+        scratchC.initialize(repeating: 0, count: capacity)
+    }
+
+    deinit {
+        scratchA.deinitialize(count: capacity)
+        scratchA.deallocate()
+        scratchB.deinitialize(count: capacity)
+        scratchB.deallocate()
+        scratchC.deinitialize(count: capacity)
+        scratchC.deallocate()
     }
 
     func reset() {
         activeCount = 0
+    }
+
+    func trimTo(_ count: Int) {
+        activeCount = min(activeCount, count)
     }
 
     func spawn(at position: SIMD3<Float>, velocity: SIMD3<Float>) {
@@ -78,7 +102,7 @@ class DebrisPool {
         rotAxisX[i] = finalAxis.x
         rotAxisY[i] = finalAxis.y
         rotAxisZ[i] = finalAxis.z
-        
+
         spinRate[i] = Float.random(in: 1.0...6.0)
         rotAngle[i] = Float.random(in: 0...6.28)
 
@@ -110,48 +134,50 @@ class DebrisPool {
     func updatePhysics(dt: Float, earthMass: Float, killRadiusSq: Float, maxRadiusSq: Float) {
         guard activeCount > 0 else { return }
         let count = activeCount
+        let n = vDSP_Length(count)
 
-        spinRate.withUnsafeMutableBufferPointer { pSpin in
-            rotAngle.withUnsafeMutableBufferPointer { pAngle in
-                withSixBuffers(&posX, &posY, &posZ, &velX, &velY, &velZ) { pX, pY, pZ, vX, vY, vZ in
-                    
-                    struct Ptrs: @unchecked Sendable {
-                        let px, py, pz, vx, vy, vz, spin, angle: UnsafeMutableBufferPointer<Float>
-                    }
-                    let p = Ptrs(px: pX, py: pY, pz: pZ, vx: vX, vy: vY, vz: vZ, spin: pSpin, angle: pAngle)
-                    
-                    if count < 1000 {
-                        for i in 0..<count {
-                            DebrisPool.integrateParticle(
-                                i: i,
-                                ptrX: p.px, ptrY: p.py, ptrZ: p.pz,
-                                vPtrX: p.vx, vPtrY: p.vy, vPtrZ: p.vz,
-                                spinRate: p.spin, rotAngle: p.angle,
-                                earthMass: earthMass, dt: dt,
-                                killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq
-                            )
-                        }
-                    } else {
-                        let cores = ProcessInfo.processInfo.activeProcessorCount
-                        let chunkSize = (count + cores - 1) / cores
-                        
-                        DispatchQueue.concurrentPerform(iterations: cores) { coreIndex in
-                            let start = coreIndex * chunkSize
-                            let end = min(start + chunkSize, count)
-                            
-                            for i in start..<end {
-                                DebrisPool.integrateParticle(
-                                    i: i,
-                                    ptrX: p.px, ptrY: p.py, ptrZ: p.pz,
-                                    vPtrX: p.vx, vPtrY: p.vy, vPtrZ: p.vz,
-                                    spinRate: p.spin, rotAngle: p.angle,
-                                    earthMass: earthMass, dt: dt,
-                                    killRadiusSq: killRadiusSq, maxRadiusSq: maxRadiusSq
-                                )
-                            }
-                        }
-                    }
+        withSixBuffers(&posX, &posY, &posZ, &velX, &velY, &velZ) { pX, pY, pZ, vX, vY, vZ in
+            let xBase = pX.baseAddress!
+            let yBase = pY.baseAddress!
+            let zBase = pZ.baseAddress!
+            let vxBase = vX.baseAddress!
+            let vyBase = vY.baseAddress!
+            let vzBase = vZ.baseAddress!
+
+            vDSP_vsq(xBase, 1, scratchA, 1, n)
+            vDSP_vsq(yBase, 1, scratchC, 1, n)
+            vDSP_vadd(scratchA, 1, scratchC, 1, scratchA, 1, n)
+            vDSP_vsq(zBase, 1, scratchC, 1, n)
+            vDSP_vadd(scratchA, 1, scratchC, 1, scratchA, 1, n)
+
+            var n32 = Int32(count)
+            vvrsqrtf(scratchB, scratchA, &n32)
+
+            vDSP_vmul(scratchB, 1, scratchB, 1, scratchC, 1, n)
+            vDSP_vmul(scratchC, 1, scratchB, 1, scratchC, 1, n)
+            var coeff = -earthMass * dt
+            vDSP_vsmul(scratchC, 1, &coeff, scratchC, 1, n)
+
+            for i in 0..<count {
+                if scratchA[i] < killRadiusSq || scratchA[i] > maxRadiusSq {
+                    scratchC[i] = 0
                 }
+            }
+
+            vDSP_vma(xBase, 1, scratchC, 1, vxBase, 1, vxBase, 1, n)
+            vDSP_vma(yBase, 1, scratchC, 1, vyBase, 1, vyBase, 1, n)
+            vDSP_vma(zBase, 1, scratchC, 1, vzBase, 1, vzBase, 1, n)
+
+            var dt_val = dt
+            vDSP_vsma(vxBase, 1, &dt_val, xBase, 1, xBase, 1, n)
+            vDSP_vsma(vyBase, 1, &dt_val, yBase, 1, yBase, 1, n)
+            vDSP_vsma(vzBase, 1, &dt_val, zBase, 1, zBase, 1, n)
+        }
+
+        spinRate.withUnsafeBufferPointer { pSpin in
+            rotAngle.withUnsafeMutableBufferPointer { pAngle in
+                var dt_val = dt
+                vDSP_vsma(pSpin.baseAddress!, 1, &dt_val, pAngle.baseAddress!, 1, pAngle.baseAddress!, 1, n)
             }
         }
 
@@ -163,41 +189,26 @@ class DebrisPool {
     }
 
     @inline(__always)
-    static func integrateParticle(i: Int,
-                                  ptrX: UnsafeMutableBufferPointer<Float>,
-                                  ptrY: UnsafeMutableBufferPointer<Float>,
-                                  ptrZ: UnsafeMutableBufferPointer<Float>,
-                                  vPtrX: UnsafeMutableBufferPointer<Float>,
-                                  vPtrY: UnsafeMutableBufferPointer<Float>,
-                                  vPtrZ: UnsafeMutableBufferPointer<Float>,
-                                  spinRate: UnsafeMutableBufferPointer<Float>,
-                                  rotAngle: UnsafeMutableBufferPointer<Float>,
-                                  earthMass: Float, dt: Float,
-                                  killRadiusSq: Float, maxRadiusSq: Float) {
-        
-        let px = ptrX[i], py = ptrY[i], pz = ptrZ[i]
-        let distSq = px*px + py*py + pz*pz
-        
-        if distSq >= killRadiusSq && distSq <= maxRadiusSq {
-            let invDist = simd_rsqrt(distSq)
-            let factor = -earthMass * invDist * invDist * invDist * dt
-            vPtrX[i] += px * factor
-            vPtrY[i] += py * factor
-            vPtrZ[i] += pz * factor
-        }
-
-        ptrX[i] += vPtrX[i] * dt
-        ptrY[i] += vPtrY[i] * dt
-        ptrZ[i] += vPtrZ[i] * dt
-
-        rotAngle[i] += spinRate[i] * dt
-    }
-
-    @inline(__always)
     func position(at i: Int) -> SIMD3<Float> { SIMD3<Float>(posX[i], posY[i], posZ[i]) }
 
     @inline(__always)
     func velocity(at i: Int) -> SIMD3<Float> { SIMD3<Float>(velX[i], velY[i], velZ[i]) }
+
+    struct CollisionBuffers: @unchecked Sendable {
+        let posX, posY, posZ: UnsafeBufferPointer<Float>
+        let velX, velY, velZ: UnsafeBufferPointer<Float>
+    }
+
+    func withCollisionBuffers<R>(_ body: (CollisionBuffers) -> R) -> R {
+        posX.withUnsafeBufferPointer { pX in
+        posY.withUnsafeBufferPointer { pY in
+        posZ.withUnsafeBufferPointer { pZ in
+        velX.withUnsafeBufferPointer { vX in
+        velY.withUnsafeBufferPointer { vY in
+        velZ.withUnsafeBufferPointer { vZ in
+            body(CollisionBuffers(posX: pX, posY: pY, posZ: pZ, velX: vX, velY: vY, velZ: vZ))
+        }}}}}}
+    }
 }
 
 @inline(__always)
