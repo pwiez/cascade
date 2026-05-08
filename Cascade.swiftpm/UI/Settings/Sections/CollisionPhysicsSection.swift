@@ -21,8 +21,8 @@ struct CollisionPhysicsSection: View {
                       format: "%.0f")
             SliderRow(label: "Max Debris Count",
                       value: $simulation.maxDebris,
-                      range: 1000...5000,
-                      step: 200,
+                      range: 3000...7500,
+                      step: 250,
                       format: "%.0f")
         } header: {
             Text("Collision Physics")

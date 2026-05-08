@@ -102,8 +102,8 @@ actor PhysicsSolver {
     private static let lodSpinDistSq: Float = 700 * 700
 
     private static let localVerts: [SIMD3<Float>] = [
-        SIMD3(0, 0.5, 0), SIMD3(0.5, -0.5, 0.289),
-        SIMD3(-0.5, -0.5, 0.289), SIMD3(0, -0.5, -0.577)
+        SIMD3(0, 0.75, 0), SIMD3(0.75, -0.75, 0.4335),
+        SIMD3(-0.75, -0.75, 0.4335), SIMD3(0, -0.75, -0.866)
     ]
 
     init(settings: SimSettings, earthRadius: Float) {
@@ -111,7 +111,7 @@ actor PhysicsSolver {
         self.killRadiusSq = pow(earthRadius + 2.0, 2)
         self.maxRadiusSq = 600 * 600
 
-        self.debrisPool = DebrisPool(capacity: 5500)
+        self.debrisPool = DebrisPool(capacity: 8000)
 
         let minGridWidth: Float = 1500.0
         let requiredCellSize = minGridWidth / 128.0
@@ -129,11 +129,11 @@ actor PhysicsSolver {
 
         frameDeaths.reserveCapacity(200)
         frameExplosions.reserveCapacity(200)
-        self.killMask = ContiguousArray(repeating: false, count: 5500)
+        self.killMask = ContiguousArray(repeating: false, count: 8000)
 
         self.frameBuffers = [
-            FrameBuffer(maxDebris: 5500),
-            FrameBuffer(maxDebris: 5500)
+            FrameBuffer(maxDebris: 8000),
+            FrameBuffer(maxDebris: 8000)
         ]
     }
 
@@ -448,7 +448,7 @@ actor PhysicsSolver {
 
         let activeBefore = debrisPool.activeCount
         if killMask.count < activeBefore {
-            killMask = ContiguousArray(repeating: false, count: max(activeBefore, 5500))
+            killMask = ContiguousArray(repeating: false, count: max(activeBefore, 8000))
         }
 
         for bucket in buckets {

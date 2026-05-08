@@ -42,7 +42,7 @@ struct SimSettings {
 extension SimSettings {
     static let defaults = SimSettings(
         debrisPerCollision: 7,
-        explosionForce: 1.0,
+        explosionForce: 0.7,
         collisionRadius: 1.0,
         spreadTangential: 0.1,
         spreadVertical: 0.6,
@@ -52,13 +52,13 @@ extension SimSettings {
         satelliteColor: Color(red: 0.108, green: 0.725, blue: 0.229),
         debrisColor: .red,
         backgroundColor: .black,
-        maxDebris: 2500,
+        maxDebris: 5000,
         useRandomInclination: true,
-        satelliteScale: 1.5,
-        debrisScale: 1.5,
+        satelliteScale: 1.0,
+        debrisScale: 1.0,
         gravityMultiplier: 1.0,
-        orbitAltitude: 270,
-        orbitVariance: 4.0,
+        orbitAltitude: 290,
+        orbitVariance: 10.0,
         useOmniLight: false,
         showEarth: true,
         showDebris: true,
@@ -89,7 +89,7 @@ struct PopulationDraft {
     var useRandomInclination: Bool
 
     static let defaults = PopulationDraft(
-        satelliteCount: 150,
+        satelliteCount: 300,
         orbitAltitude: SimSettings.defaults.orbitAltitude,
         orbitVariance: SimSettings.defaults.orbitVariance,
         useRandomInclination: SimSettings.defaults.useRandomInclination

@@ -16,7 +16,7 @@ class CameraRig {
     let camera: Entity
     
     
-    private var zoomLevel: Float = 700.0
+    private var zoomLevel: Float = 850.0
     private var angleX: Float = -0.35
     private var angleY: Float = 3.25
 
@@ -99,7 +99,7 @@ class CameraRig {
     func reset() {
         self.angleX = -0.35
         self.angleY = 3.25
-        self.zoomLevel = 700.0
+        self.zoomLevel = 850.0
         
         let targetOrientation = simd_quatf(angle: angleY, axis: [0, 1, 0]) * simd_quatf(angle: angleX, axis: [1, 0, 0])
         pivot.move(to: Transform(rotation: targetOrientation), relativeTo: pivot.parent, duration: 1.5, timingFunction: .easeInOut)

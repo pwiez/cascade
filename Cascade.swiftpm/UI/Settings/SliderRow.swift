@@ -8,6 +8,8 @@ struct SliderRow: View {
     var format: String = "%.1f"
     var requiresRestart: Bool = false
 
+    private var formatted: String { String(format: format, value) }
+
     var body: some View {
         VStack(spacing: 4) {
             LabeledContent(label) {
@@ -17,7 +19,7 @@ struct SliderRow: View {
                             .font(.caption2.weight(.bold))
                             .imageScale(.small)
                     }
-                    Text(String(format: format, value))
+                    Text(formatted)
                         .monospacedDigit()
                 }
                 .foregroundStyle(requiresRestart ? .yellow : .secondary)
@@ -32,6 +34,6 @@ struct SliderRow: View {
         }
         .padding(.vertical, 4)
         .accessibilityLabel(label)
-        .accessibilityValue(String(format: format, value))
+        .accessibilityValue(formatted)
     }
 }
