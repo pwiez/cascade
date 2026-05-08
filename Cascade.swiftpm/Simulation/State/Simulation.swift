@@ -8,6 +8,7 @@
 import SwiftUI
 import RealityKit
 import Combine
+import Observation
 
 struct SimSettings {
     var debrisPerCollision: Double
@@ -56,8 +57,8 @@ extension SimSettings {
         satelliteScale: 1.5,
         debrisScale: 1.5,
         gravityMultiplier: 1.0,
-        orbitAltitude: 140,
-        orbitVariance: 2.0,
+        orbitAltitude: 270,
+        orbitVariance: 4.0,
         useOmniLight: false,
         showEarth: true,
         showDebris: true,
@@ -65,8 +66,9 @@ extension SimSettings {
     )
 }
 
-class Telemetry: ObservableObject {
-    @Published var stats = SimStats()
+@MainActor @Observable
+final class Telemetry {
+    var stats = SimStats()
 }
 
 struct SimStats {
@@ -94,51 +96,51 @@ struct PopulationDraft {
     )
 }
 
-@MainActor
-class Simulation: ObservableObject {
+@MainActor @Observable
+final class Simulation {
 
-    private let controller = SceneController()
+    @ObservationIgnored private let controller = SceneController()
     let telemetry = Telemetry()
-    private var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored private var cancellables = Set<AnyCancellable>()
 
-    @Published var draft = PopulationDraft.defaults
+    var draft = PopulationDraft.defaults
 
-    @Published private(set) var activeSatelliteCount: Double = PopulationDraft.defaults.satelliteCount
-    @Published private(set) var activeOrbitAltitude: Double = SimSettings.defaults.orbitAltitude
-    @Published private(set) var activeOrbitVariance: Double = SimSettings.defaults.orbitVariance
-    @Published private(set) var activeUseRandomInclination: Bool = SimSettings.defaults.useRandomInclination
+    private(set) var activeSatelliteCount: Double = PopulationDraft.defaults.satelliteCount
+    private(set) var activeOrbitAltitude: Double = SimSettings.defaults.orbitAltitude
+    private(set) var activeOrbitVariance: Double = SimSettings.defaults.orbitVariance
+    private(set) var activeUseRandomInclination: Bool = SimSettings.defaults.useRandomInclination
 
-    @Published var timeScale: Double = SimSettings.defaults.timeScale { didSet { syncSettings() } }
-    @Published var gravityMultiplier: Double = SimSettings.defaults.gravityMultiplier { didSet { syncSettings() } }
-    @Published var explosionForce: Double = SimSettings.defaults.explosionForce { didSet { syncSettings() } }
-    @Published var collisionRadius: Double = SimSettings.defaults.collisionRadius { didSet { syncSettings() } }
+    var timeScale: Double = SimSettings.defaults.timeScale { didSet { syncSettings() } }
+    var gravityMultiplier: Double = SimSettings.defaults.gravityMultiplier { didSet { syncSettings() } }
+    var explosionForce: Double = SimSettings.defaults.explosionForce { didSet { syncSettings() } }
+    var collisionRadius: Double = SimSettings.defaults.collisionRadius { didSet { syncSettings() } }
 
-    @Published var spreadTangential: Double = SimSettings.defaults.spreadTangential { didSet { syncSettings() } }
-    @Published var spreadVertical: Double = SimSettings.defaults.spreadVertical { didSet { syncSettings() } }
-    @Published var spreadRadial: Double = SimSettings.defaults.spreadRadial { didSet { syncSettings() } }
+    var spreadTangential: Double = SimSettings.defaults.spreadTangential { didSet { syncSettings() } }
+    var spreadVertical: Double = SimSettings.defaults.spreadVertical { didSet { syncSettings() } }
+    var spreadRadial: Double = SimSettings.defaults.spreadRadial { didSet { syncSettings() } }
 
-    @Published var debrisPerCollision: Double = SimSettings.defaults.debrisPerCollision { didSet { syncSettings() } }
-    @Published var maxDebris: Double = Double(SimSettings.defaults.maxDebris) { didSet { syncSettings() } }
+    var debrisPerCollision: Double = SimSettings.defaults.debrisPerCollision { didSet { syncSettings() } }
+    var maxDebris: Double = Double(SimSettings.defaults.maxDebris) { didSet { syncSettings() } }
 
-    @Published var isCameraEnabled: Bool = false
-    @Published var showSatellites: Bool = SimSettings.defaults.showSatellites { didSet { syncSettings() } }
-    @Published var satelliteColor: Color = .cyan { didSet { syncSettings() } }
-    @Published var debrisColor: Color = .red { didSet { syncSettings() } }
-    @Published var backgroundColor: Color = .black { didSet { syncSettings() } }
-    @Published var satelliteScale: Double = SimSettings.defaults.satelliteScale { didSet { syncSettings() } }
-    @Published var debrisScale: Double = SimSettings.defaults.debrisScale { didSet { syncSettings() } }
-    @Published var debrisRotation: Bool = SimSettings.defaults.debrisRotation { didSet { syncSettings() } }
-    @Published var useOmniLight: Bool = SimSettings.defaults.useOmniLight { didSet { syncSettings() } }
-    @Published var showEarth: Bool = SimSettings.defaults.showEarth { didSet { syncSettings() } }
-    @Published var showDebris: Bool = SimSettings.defaults.showDebris { didSet { syncSettings() } }
+    var isCameraEnabled: Bool = false
+    var showSatellites: Bool = SimSettings.defaults.showSatellites { didSet { syncSettings() } }
+    var satelliteColor: Color = .cyan { didSet { syncSettings() } }
+    var debrisColor: Color = .red { didSet { syncSettings() } }
+    var backgroundColor: Color = .black { didSet { syncSettings() } }
+    var satelliteScale: Double = SimSettings.defaults.satelliteScale { didSet { syncSettings() } }
+    var debrisScale: Double = SimSettings.defaults.debrisScale { didSet { syncSettings() } }
+    var debrisRotation: Bool = SimSettings.defaults.debrisRotation { didSet { syncSettings() } }
+    var useOmniLight: Bool = SimSettings.defaults.useOmniLight { didSet { syncSettings() } }
+    var showEarth: Bool = SimSettings.defaults.showEarth { didSet { syncSettings() } }
+    var showDebris: Bool = SimSettings.defaults.showDebris { didSet { syncSettings() } }
 
-    @Published var showStats: Bool = true
-    @Published var isPaused: Bool = true { didSet { controller.isPaused = isPaused } }
+    var showStats: Bool = true
+    var isPaused: Bool = true { didSet { controller.isPaused = isPaused } }
 
-    private var isBatchingUpdates = false
+    @ObservationIgnored private var isBatchingUpdates = false
 
-    @Published private(set) var hasStarted: Bool = false
-    @Published private(set) var initialSatelliteCount: Int = 0
+    private(set) var hasStarted: Bool = false
+    private(set) var initialSatelliteCount: Int = 0
 
     init() {
         controller.$simulationStats
