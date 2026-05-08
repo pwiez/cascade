@@ -57,9 +57,9 @@ class SceneController: ObservableObject {
         self.system = PhysicsSolver(settings: settings, earthRadius: earthRadius)
         
         self.satelliteMaterial = UnlitMaterial(color: UIColor(settings.satelliteColor))
-        self.satelliteMesh = .generateBox(size: 1.2)
+        self.satelliteMesh = .generateBox(size: 1.8)
         
-        self.debrisBatchSystem = DebrisBatchSystem(maxDebris: 5000, color: UIColor(settings.debrisColor))
+        self.debrisBatchSystem = DebrisBatchSystem(maxDebris: 8000, color: UIColor(settings.debrisColor))
         
         satPosBuffer.reserveCapacity(500)
         satVelBuffer.reserveCapacity(500)
@@ -384,7 +384,7 @@ class SceneController: ObservableObject {
         self.earthEntity = earth
         rootAnchor.addChild(earth)
         
-        let atmMesh = MeshResource.generateSphere(radius: earthRadius + 3.0)
+        let atmMesh = MeshResource.generateSphere(radius: earthRadius + 4.0)
         var atmMat = PhysicallyBasedMaterial()
         atmMat.baseColor = .init(tint: UIColor(red: 0.3, green: 0.7, blue: 1.0, alpha: 1.0))
         atmMat.roughness = 1.0

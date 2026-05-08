@@ -15,8 +15,8 @@ struct ScenarioSection: View {
             SliderRow(
                 label: "Initial Satellites",
                 value: $simulation.draft.satelliteCount,
-                range: 150...300,
-                step: 10,
+                range: 200...500,
+                step: 25,
                 format: "%.0f",
                 requiresRestart: simulation.draft.satelliteCount != simulation.activeSatelliteCount
             )
@@ -33,7 +33,7 @@ struct ScenarioSection: View {
             SliderRow(
                 label: "Altitude Variance",
                 value: $simulation.draft.orbitVariance,
-                range: 0...20,
+                range: 0...40,
                 step: 1,
                 format: "±%.0f Units",
                 requiresRestart: simulation.draft.orbitVariance != simulation.activeOrbitVariance
