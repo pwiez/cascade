@@ -41,8 +41,8 @@ class SceneController: ObservableObject {
     private var debrisBatchSystem: DebrisBatchSystem
 
     private var earthEntity: Entity?
-    private let earthRadius: Float = 100.0
-    private let earthMass: Float = 50000
+    private let earthRadius: Float = 240.0
+    private let earthMass: Float = 150_000
     private let gravitationalConstant: Float = 1.0
     private var atmEntity: ModelEntity?
     private var aoTexture: TextureResource?
@@ -118,14 +118,17 @@ class SceneController: ObservableObject {
             satVelBuffer.append(sat.components[OrbitalData.self]?.velocity ?? .zero)
             satIdxBuffer.append(i)
         }
-        
+
+        let cameraWorldPos = cameraRig?.camera.position(relativeTo: nil) ?? .zero
+
         physicsTask = Task {
             let frame = await system.step(
                 dt: deltaTime,
                 earthMass: effectiveEarthMass,
                 satellitePositions: satPosBuffer,
                 satelliteVelocities: satVelBuffer,
-                satelliteIndices: satIdxBuffer
+                satelliteIndices: satIdxBuffer,
+                cameraPosition: cameraWorldPos
             )
             guard !Task.isCancelled else {
                 self.physicsTask = nil
@@ -381,7 +384,7 @@ class SceneController: ObservableObject {
         self.earthEntity = earth
         rootAnchor.addChild(earth)
         
-        let atmMesh = MeshResource.generateSphere(radius: earthRadius + 1.2)
+        let atmMesh = MeshResource.generateSphere(radius: earthRadius + 3.0)
         var atmMat = PhysicallyBasedMaterial()
         atmMat.baseColor = .init(tint: UIColor(red: 0.3, green: 0.7, blue: 1.0, alpha: 1.0))
         atmMat.roughness = 1.0
