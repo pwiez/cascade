@@ -16,21 +16,20 @@ class CameraRig {
     let camera: Entity
     
     
-    private var zoomLevel: Float = 555.0 
+    private var zoomLevel: Float = 700.0
     private var angleX: Float = -0.35
     private var angleY: Float = 3.25
-    
-    private var currentAspectRatio: Float = 1.77 
+
+    private var currentAspectRatio: Float = 1.77
     private var targetScreenOffset: Float = 0.0
-    
+
     private var savedTransform: Transform?
     private var savedZoom: Float?
     private var savedAngleX: Float?
     private var savedAngleY: Float?
-    
-    
-    private let minZoom: Float = 190.0
-    private let maxZoom: Float = 1200.0
+
+    private let minZoom: Float = 280.0
+    private let maxZoom: Float = 1800.0
     private let minAngleX: Float = -1.4
     private let maxAngleX: Float = 1.4
     
@@ -41,7 +40,7 @@ class CameraRig {
         
         
         var cameraComponent = PerspectiveCameraComponent(near: 0.1, far: 3000)
-        cameraComponent.fieldOfViewInDegrees = 40.0 
+        cameraComponent.fieldOfViewInDegrees = 52.0
         camera.components.set(cameraComponent)
         
         pivot.addChild(camera)
@@ -100,7 +99,7 @@ class CameraRig {
     func reset() {
         self.angleX = -0.35
         self.angleY = 3.25
-        self.zoomLevel = 555.0
+        self.zoomLevel = 700.0
         
         let targetOrientation = simd_quatf(angle: angleY, axis: [0, 1, 0]) * simd_quatf(angle: angleX, axis: [1, 0, 0])
         pivot.move(to: Transform(rotation: targetOrientation), relativeTo: pivot.parent, duration: 1.5, timingFunction: .easeInOut)
@@ -121,7 +120,7 @@ class CameraRig {
     }
     
     private func updatePosition(animated: Bool, duration: TimeInterval = 0.4) {
-        let verticalFOVScalar: Float = 0.7279
+        let verticalFOVScalar: Float = 0.9755
         let worldWidthAtZoom = zoomLevel * verticalFOVScalar * currentAspectRatio
         let targetX = worldWidthAtZoom * targetScreenOffset
         

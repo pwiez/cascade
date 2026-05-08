@@ -22,10 +22,7 @@ struct CollisionEvent: Sendable {
     let velocity: SIMD3<Float>
 }
 
-struct DebrisVertex {
-    var position: SIMD3<Float>
-    var normal: SIMD3<Float>
-}
+typealias DebrisVertex = SIMD3<Float>
 
 final class FrameBuffer: @unchecked Sendable {
     var vertices: ContiguousArray<DebrisVertex>
@@ -35,10 +32,7 @@ final class FrameBuffer: @unchecked Sendable {
 
     init(maxDebris: Int) {
         let maxVerts = maxDebris * 4
-        vertices = ContiguousArray(
-            repeating: DebrisVertex(position: .zero, normal: .zero),
-            count: maxVerts
-        )
+        vertices = ContiguousArray(repeating: .zero, count: maxVerts)
     }
 
     func prepare(activeCount: Int) {
@@ -54,6 +48,29 @@ struct SimulationFrame: @unchecked Sendable {
     let vertexBuffer: FrameBuffer
     let killedSatelliteIndices: [Int]
     let explosions: [CollisionEvent]
+}
+
+struct FastRNG {
+    var state: UInt32
+    init(seed: UInt32) { self.state = seed == 0 ? 0xdeadbeef : seed }
+    mutating func nextU32() -> UInt32 {
+        var x = state
+        x ^= x << 13
+        x ^= x >> 17
+        x ^= x << 5
+        state = x
+        return x
+    }
+    mutating func nextSym() -> Float {
+        let v = Float(nextU32() >> 8) * (1.0 / 8388608.0)
+        return v - 1.0
+    }
+    mutating func next(in range: ClosedRange<Float>) -> Float {
+        let lo = range.lowerBound
+        let hi = range.upperBound
+        let v = Float(nextU32() >> 8) * (1.0 / 16777216.0)
+        return lo + (hi - lo) * v
+    }
 }
 
 actor PhysicsSolver {
@@ -74,11 +91,15 @@ actor PhysicsSolver {
     private var settings: SimSettings
 
     private var frameDeaths: [Int] = []
-    private var frameDebrisKills: [Int] = []
     private var frameExplosions: [CollisionEvent] = []
+    private var killMask: ContiguousArray<Bool>
 
     private var frameBuffers: [FrameBuffer]
     private var bufferIndex: Int = 0
+
+    private var rng = FastRNG(seed: 0xC0FFEE17)
+
+    private static let lodSpinDistSq: Float = 700 * 700
 
     private static let localVerts: [SIMD3<Float>] = [
         SIMD3(0, 0.5, 0), SIMD3(0.5, -0.5, 0.289),
@@ -88,11 +109,11 @@ actor PhysicsSolver {
     init(settings: SimSettings, earthRadius: Float) {
         self.settings = settings
         self.killRadiusSq = pow(earthRadius + 2.0, 2)
-        self.maxRadiusSq = 300 * 300
+        self.maxRadiusSq = 600 * 600
 
         self.debrisPool = DebrisPool(capacity: 5500)
 
-        let minGridWidth: Float = 350.0
+        let minGridWidth: Float = 1500.0
         let requiredCellSize = minGridWidth / 128.0
         let safeCellSize = max(Float(settings.collisionRadius * 2.1), requiredCellSize)
         self.grid = SpatialGrid(maxObjects: 6000, cellSize: safeCellSize)
@@ -107,8 +128,8 @@ actor PhysicsSolver {
         }
 
         frameDeaths.reserveCapacity(200)
-        frameDebrisKills.reserveCapacity(200)
         frameExplosions.reserveCapacity(200)
+        self.killMask = ContiguousArray(repeating: false, count: 5500)
 
         self.frameBuffers = [
             FrameBuffer(maxDebris: 5500),
@@ -120,7 +141,8 @@ actor PhysicsSolver {
               earthMass: Float,
               satellitePositions: [SIMD3<Float>],
               satelliteVelocities: [SIMD3<Float>],
-              satelliteIndices: [Int]) -> SimulationFrame {
+              satelliteIndices: [Int],
+              cameraPosition: SIMD3<Float>) -> SimulationFrame {
 
         debrisPool.updatePhysics(
             dt: dt,
@@ -152,7 +174,7 @@ actor PhysicsSolver {
 
         let buf = frameBuffers[bufferIndex]
         bufferIndex = 1 - bufferIndex
-        computeVertices(into: buf)
+        computeVertices(into: buf, cameraPosition: cameraPosition)
 
         return SimulationFrame(
             count: debrisPool.activeCount,
@@ -167,7 +189,7 @@ actor PhysicsSolver {
         let newRadius = Float(newSettings.collisionRadius)
 
         if abs(oldRadius - newRadius) > 0.5 {
-            let minGridWidth: Float = 350.0
+            let minGridWidth: Float = 1500.0
             let requiredCellSize = minGridWidth / 128.0
             let safeCellSize = max(newRadius * 2.1, requiredCellSize)
             self.grid = SpatialGrid(maxObjects: 6_000, cellSize: safeCellSize)
@@ -207,15 +229,15 @@ actor PhysicsSolver {
         for _ in 0..<debrisCount {
             guard debrisPool.activeCount < settings.maxDebris else { break }
 
-            let rT = Float.random(in: -0.2...0.2) * scaleTangential
-            let rV = Float.random(in: -1...1) * scaleVertical
-            let rR = Float.random(in: -7...7) * scaleRadial
+            let rT = rng.nextSym() * 0.2 * scaleTangential
+            let rV = rng.nextSym() * scaleVertical
+            let rR = rng.nextSym() * 7.0 * scaleRadial
 
             let impulse = (velocityDirection * rT) +
             (normalDirection * rV) +
             (radialDirection * rR)
 
-            let speedVariance = Float.random(in: 0.8...1.4)
+            let speedVariance = rng.next(in: 0.8...1.4)
             var finalVelocity = velocity + (impulse * explosionForce * speedVariance)
 
             if length(finalVelocity) < 10.0 {
@@ -226,7 +248,12 @@ actor PhysicsSolver {
         }
     }
 
-    private func computeVertices(into buf: FrameBuffer) {
+    private struct VertCtx: @unchecked Sendable {
+        let verts: UnsafeMutableBufferPointer<DebrisVertex>
+        let debris: DebrisPool.VertexBuffers
+    }
+
+    private func computeVertices(into buf: FrameBuffer, cameraPosition: SIMD3<Float>) {
         let count = debrisPool.activeCount
         buf.prepare(activeCount: count)
 
@@ -236,36 +263,74 @@ actor PhysicsSolver {
         let sv1 = Self.localVerts[1] * scale
         let sv2 = Self.localVerts[2] * scale
         let sv3 = Self.localVerts[3] * scale
-        let defaultNormal = SIMD3<Float>(0, 1, 0)
+        let lodSq = Self.lodSpinDistSq
 
         buf.vertices.withUnsafeMutableBufferPointer { verts in
-            if spinEnabled {
-                for i in 0..<count {
-                    let pos = debrisPool.position(at: i)
-                    let axis = SIMD3<Float>(debrisPool.rotAxisX[i], debrisPool.rotAxisY[i], debrisPool.rotAxisZ[i])
-                    let q = simd_quatf(angle: debrisPool.rotAngle[i], axis: axis)
-                    let base = i * 4
-                    verts[base    ] = DebrisVertex(position: pos + q.act(sv0), normal: defaultNormal)
-                    verts[base + 1] = DebrisVertex(position: pos + q.act(sv1), normal: defaultNormal)
-                    verts[base + 2] = DebrisVertex(position: pos + q.act(sv2), normal: defaultNormal)
-                    verts[base + 3] = DebrisVertex(position: pos + q.act(sv3), normal: defaultNormal)
+            debrisPool.withVertexBuffers { debrisBufs in
+                let ctx = VertCtx(verts: verts, debris: debrisBufs)
+
+                let chunkSize = 256
+                let chunkCount = (count + chunkSize - 1) / chunkSize
+
+                if chunkCount <= 1 {
+                    Self.writeVertices(
+                        start: 0, end: count, ctx: ctx,
+                        spinEnabled: spinEnabled, lodSq: lodSq,
+                        camera: cameraPosition,
+                        sv0: sv0, sv1: sv1, sv2: sv2, sv3: sv3
+                    )
+                } else {
+                    DispatchQueue.concurrentPerform(iterations: chunkCount) { chunk in
+                        let start = chunk * chunkSize
+                        let end = min(start + chunkSize, count)
+                        Self.writeVertices(
+                            start: start, end: end, ctx: ctx,
+                            spinEnabled: spinEnabled, lodSq: lodSq,
+                            camera: cameraPosition,
+                            sv0: sv0, sv1: sv1, sv2: sv2, sv3: sv3
+                        )
+                    }
                 }
-            } else {
-                for i in 0..<count {
-                    let pos = debrisPool.position(at: i)
-                    let base = i * 4
-                    verts[base    ] = DebrisVertex(position: pos + sv0, normal: defaultNormal)
-                    verts[base + 1] = DebrisVertex(position: pos + sv1, normal: defaultNormal)
-                    verts[base + 2] = DebrisVertex(position: pos + sv2, normal: defaultNormal)
-                    verts[base + 3] = DebrisVertex(position: pos + sv3, normal: defaultNormal)
+
+                let staleStart = buf.activeVertexCount
+                let staleEnd = buf.dirtyVertexCount
+                if staleStart < staleEnd {
+                    let ptr = UnsafeMutableRawPointer(verts.baseAddress! + staleStart)
+                    memset(ptr, 0, (staleEnd - staleStart) * MemoryLayout<DebrisVertex>.stride)
                 }
             }
+        }
+    }
 
-            let staleStart = buf.activeVertexCount
-            let staleEnd = buf.dirtyVertexCount
-            if staleStart < staleEnd {
-                let ptr = UnsafeMutableRawPointer(verts.baseAddress! + staleStart)
-                memset(ptr, 0, (staleEnd - staleStart) * MemoryLayout<DebrisVertex>.stride)
+    private static func writeVertices(
+        start: Int, end: Int,
+        ctx: VertCtx,
+        spinEnabled: Bool, lodSq: Float,
+        camera: SIMD3<Float>,
+        sv0: SIMD3<Float>, sv1: SIMD3<Float>, sv2: SIMD3<Float>, sv3: SIMD3<Float>
+    ) {
+        let d = ctx.debris
+        let verts = ctx.verts
+        for i in start..<end {
+            let pos = SIMD3<Float>(d.posX[i], d.posY[i], d.posZ[i])
+            let base = i * 4
+            let dx = pos.x - camera.x
+            let dy = pos.y - camera.y
+            let dz = pos.z - camera.z
+            let camDistSq = dx*dx + dy*dy + dz*dz
+
+            if spinEnabled && camDistSq < lodSq {
+                let axis = SIMD3<Float>(d.rotAxisX[i], d.rotAxisY[i], d.rotAxisZ[i])
+                let m = simd_float3x3(simd_quatf(angle: d.rotAngle[i], axis: axis))
+                verts[base    ] = pos + m * sv0
+                verts[base + 1] = pos + m * sv1
+                verts[base + 2] = pos + m * sv2
+                verts[base + 3] = pos + m * sv3
+            } else {
+                verts[base    ] = pos + sv0
+                verts[base + 1] = pos + sv1
+                verts[base + 2] = pos + sv2
+                verts[base + 3] = pos + sv3
             }
         }
     }
@@ -316,10 +381,13 @@ actor PhysicsSolver {
                 debris: debrisBufs
             )
 
+            let chunkBase = max(1, (satCount + coreCount - 1) / coreCount)
             DispatchQueue.concurrentPerform(iterations: coreCount) { coreIndex in
                 let bucket = buckets[coreIndex]
+                let sStart = min(coreIndex * chunkBase, satCount)
+                let sEnd = min(sStart + chunkBase, satCount)
 
-                for i in stride(from: coreIndex, to: satCount, by: coreCount) {
+                for i in sStart..<sEnd {
                     let posA = ptrs.satPos[i]
                     let cellID = localGrid.getCellIndex(for: posA)
                     guard cellID != -1 else { continue }
@@ -376,18 +444,30 @@ actor PhysicsSolver {
         }}}}
 
         frameDeaths.removeAll(keepingCapacity: true)
-        frameDebrisKills.removeAll(keepingCapacity: true)
         frameExplosions.removeAll(keepingCapacity: true)
+
+        let activeBefore = debrisPool.activeCount
+        if killMask.count < activeBefore {
+            killMask = ContiguousArray(repeating: false, count: max(activeBefore, 5500))
+        }
 
         for bucket in buckets {
             frameDeaths.append(contentsOf: bucket.deaths)
-            frameDebrisKills.append(contentsOf: bucket.debrisKills)
             frameExplosions.append(contentsOf: bucket.explosions)
+            for k in bucket.debrisKills where k < activeBefore {
+                killMask[k] = true
+            }
         }
 
-        for debrisIndex in Set(frameDebrisKills).sorted(by: >) {
-            debrisPool.kill(at: debrisIndex)
+        var i = activeBefore - 1
+        while i >= 0 {
+            if killMask[i] {
+                killMask[i] = false
+                debrisPool.kill(at: i)
+            }
+            i -= 1
         }
+
         for boom in frameExplosions {
             spawnExplosion(at: boom.position, velocity: boom.velocity)
         }

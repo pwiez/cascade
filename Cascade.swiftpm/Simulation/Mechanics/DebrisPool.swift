@@ -172,19 +172,37 @@ class DebrisPool {
             vDSP_vsma(vxBase, 1, &dt_val, xBase, 1, xBase, 1, n)
             vDSP_vsma(vyBase, 1, &dt_val, yBase, 1, yBase, 1, n)
             vDSP_vsma(vzBase, 1, &dt_val, zBase, 1, zBase, 1, n)
+
+            vDSP_vsq(xBase, 1, scratchA, 1, n)
+            vDSP_vsq(yBase, 1, scratchC, 1, n)
+            vDSP_vadd(scratchA, 1, scratchC, 1, scratchA, 1, n)
+            vDSP_vsq(zBase, 1, scratchC, 1, n)
+            vDSP_vadd(scratchA, 1, scratchC, 1, scratchA, 1, n)
         }
 
-        spinRate.withUnsafeBufferPointer { pSpin in
-            rotAngle.withUnsafeMutableBufferPointer { pAngle in
+        rotAngle.withUnsafeMutableBufferPointer { pAngle in
+            spinRate.withUnsafeBufferPointer { pSpin in
                 var dt_val = dt
                 vDSP_vsma(pSpin.baseAddress!, 1, &dt_val, pAngle.baseAddress!, 1, pAngle.baseAddress!, 1, n)
+            }
+            let twoPi: Float = 2 * .pi
+            for i in 0..<count {
+                let a = pAngle[i]
+                if a >= twoPi || a <= -twoPi {
+                    pAngle[i] = a.truncatingRemainder(dividingBy: twoPi)
+                }
             }
         }
 
         var i = 0
         while i < activeCount {
-            let d = posX[i] * posX[i] + posY[i] * posY[i] + posZ[i] * posZ[i]
-            if d < killRadiusSq || d > maxRadiusSq { kill(at: i) } else { i += 1 }
+            let d = scratchA[i]
+            if d < killRadiusSq || d > maxRadiusSq {
+                kill(at: i)
+                scratchA[i] = scratchA[activeCount]
+            } else {
+                i += 1
+            }
         }
     }
 
@@ -208,6 +226,28 @@ class DebrisPool {
         velZ.withUnsafeBufferPointer { vZ in
             body(CollisionBuffers(posX: pX, posY: pY, posZ: pZ, velX: vX, velY: vY, velZ: vZ))
         }}}}}}
+    }
+
+    struct VertexBuffers: @unchecked Sendable {
+        let posX, posY, posZ: UnsafeBufferPointer<Float>
+        let rotAxisX, rotAxisY, rotAxisZ: UnsafeBufferPointer<Float>
+        let rotAngle: UnsafeBufferPointer<Float>
+    }
+
+    func withVertexBuffers<R>(_ body: (VertexBuffers) -> R) -> R {
+        posX.withUnsafeBufferPointer { pX in
+        posY.withUnsafeBufferPointer { pY in
+        posZ.withUnsafeBufferPointer { pZ in
+        rotAxisX.withUnsafeBufferPointer { rX in
+        rotAxisY.withUnsafeBufferPointer { rY in
+        rotAxisZ.withUnsafeBufferPointer { rZ in
+        rotAngle.withUnsafeBufferPointer { rA in
+            body(VertexBuffers(
+                posX: pX, posY: pY, posZ: pZ,
+                rotAxisX: rX, rotAxisY: rY, rotAxisZ: rZ,
+                rotAngle: rA
+            ))
+        }}}}}}}
     }
 }
 

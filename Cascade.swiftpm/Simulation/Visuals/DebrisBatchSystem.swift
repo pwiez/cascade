@@ -19,6 +19,7 @@ class DebrisBatchSystem {
     private var material: UnlitMaterial
 
     private let maxDebris: Int
+    private static let ringSize = 3
 
     init(maxDebris: Int, color: UIColor) {
         self.maxDebris = maxDebris
@@ -29,19 +30,18 @@ class DebrisBatchSystem {
         desc.vertexCapacity = totalVerts
         desc.indexCapacity = totalIndices
         desc.vertexAttributes = [
-            .init(semantic: .position, format: .float3, offset: 0),
-            .init(semantic: .normal, format: .float3, offset: 16)
+            .init(semantic: .position, format: .float3, offset: 0)
         ]
-        desc.vertexLayouts = [.init(bufferIndex: 0, bufferStride: 32)]
+        desc.vertexLayouts = [.init(bufferIndex: 0, bufferStride: 16)]
         desc.indexType = .uint32
-
-        let mesh0 = try! LowLevelMesh(descriptor: desc)
-        let mesh1 = try! LowLevelMesh(descriptor: desc)
 
         let baseIndices: [UInt32] = [0, 2, 1, 0, 3, 2, 0, 1, 3, 1, 2, 3]
         let bounds = BoundingBox(min: [-1000, -1000, -1000], max: [1000, 1000, 1000])
 
-        for mesh in [mesh0, mesh1] {
+        var builtMeshes: [LowLevelMesh] = []
+        builtMeshes.reserveCapacity(Self.ringSize)
+        for _ in 0..<Self.ringSize {
+            let mesh = try! LowLevelMesh(descriptor: desc)
             mesh.withUnsafeMutableIndices { buffer in
                 let indices = buffer.bindMemory(to: UInt32.self)
                 for i in 0..<maxDebris {
@@ -51,20 +51,18 @@ class DebrisBatchSystem {
                 }
             }
             mesh.parts.replaceAll([LowLevelMesh.Part(indexCount: totalIndices, topology: .triangle, bounds: bounds)])
+            builtMeshes.append(mesh)
         }
 
-        self.meshes = [mesh0, mesh1]
-        self.meshResources = [
-            try! MeshResource(from: mesh0),
-            try! MeshResource(from: mesh1)
-        ]
+        self.meshes = builtMeshes
+        self.meshResources = builtMeshes.map { try! MeshResource(from: $0) }
 
         self.material = UnlitMaterial(color: color)
         self.entity = ModelEntity(mesh: meshResources[0], materials: [self.material])
     }
 
     func commitVertices(from buffer: FrameBuffer) {
-        let backIndex = 1 - currentMeshIndex
+        let backIndex = (currentMeshIndex + 1) % Self.ringSize
         let vertexStride = MemoryLayout<DebrisVertex>.stride
 
         meshes[backIndex].withUnsafeMutableBytes(bufferIndex: 0) { rawBuffer in
@@ -81,7 +79,7 @@ class DebrisBatchSystem {
     }
 
     func clear() {
-        let backIndex = 1 - currentMeshIndex
+        let backIndex = (currentMeshIndex + 1) % Self.ringSize
         meshes[backIndex].withUnsafeMutableBytes(bufferIndex: 0) { buffer in
             memset(buffer.baseAddress!, 0, buffer.count)
         }
