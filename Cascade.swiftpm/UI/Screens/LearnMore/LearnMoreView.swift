@@ -18,7 +18,7 @@ enum AppSection: String, CaseIterable, Identifiable {
     case credits = "07. Credits"
     
     var id: String { rawValue }
-    
+
     var title: String {
         switch self {
         case .hero: return "What is Kessler Syndrome?"
@@ -121,21 +121,24 @@ struct ChapterContainerView: View {
                 VStack(alignment: .leading, spacing: 32) {
                     Color.clear.frame(height: 0).id("top")
                     
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text(activeSection.title)
                             .font(.largeTitle.weight(.bold))
+                            .fixedSize(horizontal: false, vertical: true)
                             .foregroundStyle(.primary)
-                        
+
                         if !activeSection.subtitle.isEmpty {
                             Text(activeSection.subtitle)
-                                .font(.title2)
+                                .font(.title3.weight(.regular))
                                 .foregroundStyle(DesignTokens.dimText)
                         }
-                        
-                        Divider().overlay(DesignTokens.dividerColor)
-                            .padding(.top, 24)
-                            .padding(.bottom, 8)
+
+                        Rectangle()
+                            .fill(DesignTokens.ruleStrong)
+                            .frame(height: 1)
+                            .padding(.top, 16)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityElement(children: .combine)
                     
@@ -152,8 +155,9 @@ struct ChapterContainerView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 28)
-                .frame(maxWidth: 800, alignment: .leading)
+                .padding(.horizontal, 32)
+                .padding(.top, 8)
+                .frame(maxWidth: 720, alignment: .leading)
                 .frame(maxWidth: .infinity, alignment: .center)
             }
             .onChange(of: activeSection) { _, _ in

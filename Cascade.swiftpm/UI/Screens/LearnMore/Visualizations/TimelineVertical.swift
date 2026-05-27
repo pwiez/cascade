@@ -31,31 +31,30 @@ struct TimelineVertical: View {
             ForEach(Array(events.enumerated()), id: \.offset) { index, event in
                 HStack(alignment: .top, spacing: 16) {
                     VStack(spacing: 0) {
-                        
-                        Image(systemName: "pyramid.fill")
-                            .foregroundStyle(.primary)
-                            .frame(width: 10, height: 10)
-                        
+                        Circle()
+                            .fill(DesignTokens.signal)
+                            .frame(width: 7, height: 7)
+                            .padding(.top, 5)
+
                         if index != events.count - 1 {
                             Rectangle()
-                                .fill(DesignTokens.dividerColor)
+                                .fill(DesignTokens.hairline)
                                 .frame(width: 1)
                                 .frame(maxHeight: .infinity)
                                 .padding(.vertical, 8)
                         }
                     }
-                    .frame(width: 20)
-                    
+                    .frame(width: 12)
+
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(event.0)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(DesignTokens.mutedText)
+                        Kicker(text: event.0)
                         Text(event.1)
-                            .font(.headline.weight(.semibold))
+                            .font(.headline)
                             .foregroundStyle(.primary)
                         Text(event.2)
-                            .font(.subheadline)
+                            .font(.body)
                             .foregroundStyle(DesignTokens.bodyText)
+                            .lineSpacing(DesignTokens.bodyLineSpacing)
                             .padding(.bottom, 30)
                     }
                 }

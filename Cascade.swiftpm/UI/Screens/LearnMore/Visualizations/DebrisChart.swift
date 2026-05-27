@@ -60,19 +60,19 @@ struct DebrisChart: View {
                     )
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [Color.blue.opacity(0.30), Color.blue.opacity(0.03)],
+                            colors: [DesignTokens.signal.opacity(0.28), DesignTokens.signal.opacity(0.02)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
                     .interpolationMethod(.catmullRom)
-                    
+
                     LineMark(
                         x: .value("Year", point.year),
                         y: .value("Count", point.count)
                     )
-                    .foregroundStyle(Color.cyan)
-                    .lineStyle(StrokeStyle(lineWidth: 2.5))
+                    .foregroundStyle(DesignTokens.signal)
+                    .lineStyle(StrokeStyle(lineWidth: 2))
                     .interpolationMethod(.catmullRom)
                 }
                 
@@ -104,10 +104,10 @@ struct DebrisChart: View {
                     }
             }
             .chartXScale(domain: 1960...2026)
-            .chartYScale(domain: 0...36000)
+            .chartYScale(domain: 0...48000)
             .chartXAxis {
                 AxisMarks(values: stride(from: 1960, through: 2026, by: 10).map { $0 }) { value in
-                    AxisGridLine().foregroundStyle(DesignTokens.cardBorder)
+                    AxisGridLine().foregroundStyle(DesignTokens.hairline)
                     AxisValueLabel {
                         if let intVal = value.as(Int.self) {
                             Text("'\(intVal % 100, specifier: "%02d")")
@@ -118,8 +118,8 @@ struct DebrisChart: View {
                 }
             }
             .chartYAxis {
-                AxisMarks(values: stride(from: 0, through: 46000, by: 5000).map { $0 }) { value in
-                    AxisGridLine().foregroundStyle(DesignTokens.cardBorder)
+                AxisMarks(values: stride(from: 0, through: 48000, by: 8000).map { $0 }) { value in
+                    AxisGridLine().foregroundStyle(DesignTokens.hairline)
                     AxisValueLabel {
                         if let intValue = value.as(Int.self) {
                             Text(intValue >= 1000 ? "\(intValue / 1000)k" : "\(intValue)")

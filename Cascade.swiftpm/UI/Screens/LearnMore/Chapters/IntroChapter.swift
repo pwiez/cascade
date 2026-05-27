@@ -18,20 +18,14 @@ struct IntroChapter: View {
             )
             
             VStack(alignment: .leading, spacing: 24) {
-                Text("Why is learning about this important?")
-                    .font(.title2.weight(.bold))
-                    .foregroundStyle(.primary)
-                
+                EditorialSectionHeader(title: "Why is learning about this important?")
+
                 TextParagraph("Nowadays, our life relies on satellites: GPS, weather forecasting, global internet, disaster warnings, and more. All of these require not only safe access to Low Earth Orbit, but long-lasting orbital safety. If collision rates cross a critical threshold, that entire region of space could become a lethal minefield for everything else in it. Cascade shows that this isn't triggered by a single massive explosion, but instead a slow, compounding chain reaction.")
             }
-            
-            Divider().cascadeDivider()
-            
+
             VStack(alignment: .leading, spacing: 24) {
-                Text("What Cascade can teach you")
-                    .font(.title2.weight(.bold))
-                    .foregroundStyle(.primary)
-                
+                EditorialSectionHeader(title: "What Cascade can teach you")
+
                 VStack(alignment: .leading, spacing: 12) {
                     LearningObjective(text: "Understand why Kessler Syndrome is dangerous for humanity")
                     LearningObjective(text: "See how extreme orbital speeds can turn tiny debris into lethal weapons")
