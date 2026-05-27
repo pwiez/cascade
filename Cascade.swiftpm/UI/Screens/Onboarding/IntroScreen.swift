@@ -124,8 +124,9 @@ struct OnboardingOverlay: View {
 private struct IntroPage: View {
     var body: some View {
         HStack(alignment: .center, spacing: 64) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 0) {
                 Kicker(text: "Welcome to", color: .blue)
+                    .padding(.bottom, 10)
 
                 Text("Cascade")
                     .font(.system(size: 60, weight: .bold))
@@ -134,11 +135,11 @@ private struct IntroPage: View {
                 Text("A real-time Kessler Syndrome simulator")
                     .font(.title2.weight(.regular))
                     .foregroundStyle(DesignTokens.dimText)
-                    .padding(.bottom, 6)
 
-                Text("A runaway chain reaction: once orbital collisions grow frequent enough, the debris they create triggers still more collisions. Watch it unfold in real time and see how a single impact can snowball into a cascade that fills an entire orbit with shrapnel.")
+                Text("A runaway chain reaction: once orbital collisions grow frequent enough, the debris they create triggers still more collisions. Play with the simulation, and see how impacts snowball into a cascade that fills an entire orbit with shrapnel.")
                     .font(.body)
                     .foregroundStyle(DesignTokens.bodyText)
+                    .padding(.top, 24)
                     .lineSpacing(DesignTokens.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -176,7 +177,7 @@ private struct IntroPage: View {
 
 private struct ControlsPage: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 28) {
+        VStack(alignment: .leading, spacing: 0) {
             Text("Controls")
                 .font(.system(size: 40, weight: .bold))
                 .foregroundStyle(.primary)
@@ -195,12 +196,8 @@ private struct ControlsPage: View {
                     .init("hand.pinch.fill", .primary, "Pinch", "Zoom in and out")
                 ])
             }
-
-            Text("The simulation starts paused — tap play to begin. Open Settings to tune the visuals, or switch to Learn More for the science behind it. I hope you come away knowing more about this fascinating, and genuinely worrying, corner of our future in space.")
-                .font(.body)
-                .foregroundStyle(DesignTokens.bodyText)
-                .lineSpacing(DesignTokens.bodyLineSpacing)
-                .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 32)
+            .padding(.bottom, 32)
         }
     }
 
