@@ -12,14 +12,13 @@ struct AboutChapter: View {
         VStack(alignment: .leading, spacing: 40) {
             
             VStack(alignment: .leading, spacing: 24) {
-                
+
                 TextParagraph("Cascade runs a custom deterministic physics engine written in Swift 6. It uses Apple's RealityKit framework for rendering. Tracking thousands of objects while keeping a smooth framerate requires some pretty heavy math optimizations and architectural choices:")
-                
+
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 18) {
-                        Label("Specifications", systemImage: "cpu.fill")
-                            .font(.headline).foregroundStyle(.primary)
-                        
+                        Kicker(text: "Specifications")
+
                         VStack(spacing: 12) {
                             ModelParam(name: "Integrator", value: "Semi-Implicit Euler", detail: "Symplectic integration for stable orbits")
                             Divider().cascadeDivider()
@@ -38,13 +37,10 @@ struct AboutChapter: View {
                     }
                 }
             }
-            
-            Divider().cascadeDivider()
-            
+
             VStack(alignment: .leading, spacing: 24) {
-                Text("Compromises & Constraints")
-                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
-                
+                EditorialSectionHeader(title: "Compromises & Constraints")
+
                 TextParagraph("A full-fidelity orbital simulation with all variables and proper scales requires an extremely expensive supercomputer, in particular to simulate such a complex event. So, in order to run smoothly and as accurately as possible, Cascade makes a few major physics compromises:")
                 
                 VStack(spacing: 20) {
@@ -86,29 +82,23 @@ struct AboutChapter: View {
                     
                 }
             }
-            
-            Divider().cascadeDivider()
-            
+
             VStack(alignment: .leading, spacing: 24) {
-                HStack(spacing: 16) {
-                    ThemedIcon(systemName: "macbook.and.ipad", color: .blue, isCircle: false)
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Cascade was designed and developed by")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        
-                        Text("Pedro Wiezel")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                        
-                        Link("pedrowiezel.com", destination: URL(string: "https://pedrowiezel.com")!)
-                            .font(.subheadline)
-                            .foregroundStyle(.cyan)
-                            .padding(.top, -2)
-                    }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Cascade was designed and developed by")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    Text("Pedro Wiezel")
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(.primary)
+
+                    Link("pedrowiezel.com", destination: URL(string: "https://pedrowiezel.com")!)
+                        .font(.subheadline)
+                        .foregroundStyle(DesignTokens.signal)
+                        .padding(.top, 2)
                 }
-                
+
                 Text("Made with ❤️ in SwiftUI and RealityKit")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -123,28 +113,27 @@ struct SimplificationCard: View {
     let description: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            ThemedIcon(systemName: icon, color: .orange, isCircle: true)
-            
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 12) {
+            Rectangle()
+                .fill(DesignTokens.hairline)
+                .frame(height: 1)
+
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.callout)
+                    .foregroundStyle(DesignTokens.signal)
+                    .frame(width: 22)
                 Text(title)
                     .font(.headline)
                     .foregroundStyle(.primary)
-                
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(DesignTokens.bodyText)
-                    .lineSpacing(DesignTokens.bodyLineSpacing)
             }
+
+            Text(description)
+                .font(.body)
+                .foregroundStyle(DesignTokens.bodyText)
+                .lineSpacing(DesignTokens.bodyLineSpacing)
         }
-        .padding(DesignTokens.compactPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
-                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
-        )
     }
 }
 
@@ -166,7 +155,7 @@ struct ModelParam: View {
             Spacer()
             Text(value)
                 .font(.subheadline.weight(.semibold).monospacedDigit())
-                .foregroundStyle(.cyan)
+                .foregroundStyle(DesignTokens.signal)
         }
         .accessibilityElement(children: .combine)
     }
@@ -176,14 +165,14 @@ struct LearningObjective: View {
     let text: String
     
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.body)
-                .foregroundStyle(.green)
-                .padding(.top, 1)
-            
+        HStack(alignment: .top, spacing: 14) {
+            Rectangle()
+                .fill(DesignTokens.signal)
+                .frame(width: 14, height: 2)
+                .padding(.top, 9)
+
             Text(text)
-                .font(.subheadline)
+                .font(.body)
                 .foregroundStyle(DesignTokens.bodyText)
                 .lineSpacing(3)
         }

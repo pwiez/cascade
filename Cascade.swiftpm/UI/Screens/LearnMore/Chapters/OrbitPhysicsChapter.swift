@@ -13,7 +13,7 @@ struct OrbitPhysicsChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
                 TextParagraph("The most common misconception about space is that there is zero gravity up there. At the altitude of the International Space Station, Earth's gravity is actually still about 90% as strong as it is on the surface. So why do astronauts float?")
-                
+
                 TextParagraph("This may sound strange, but they seem to float because they are falling! An orbit is simply a state of continuously falling, without ever actually hitting the ground. Spacecraft such as shuttles and satellites are launched high enough to escape the thickest parts of the atmosphere. Then, they are accelerated sideways, in a maneuver called circularization, to incredible speeds: an average of 30,000 km/h (18640 mph).")
                 
                 KeyConceptBox(
@@ -22,13 +22,10 @@ struct OrbitPhysicsChapter: View {
                     icon: "arrow.turn.down.right"
                 )
             }
-            
-            Divider().cascadeDivider()
-            
+
             VStack(alignment: .leading, spacing: 24) {
-                Text("Orbital Regimes")
-                    .font(.title2.bold()).foregroundStyle(.primary)
-                
+                EditorialSectionHeader(title: "Orbital Regimes")
+
                 TextParagraph("Different altitudes are useful for different purposes. Satellite population varies according to altitude ranges, and it is highest in Low Earth Orbit, precisely the one represented in the simulation.")
                 
                 ScientificCard {
@@ -42,7 +39,6 @@ struct OrbitPhysicsChapter: View {
                 }
                 
                 TryThisBox(
-                    title: "Try This!",
                     instruction: "In the Settings panel, change the Orbit Altitude and tap Restart. Notice how satellites vary their speed to maintain their orbit."
                 )
             }

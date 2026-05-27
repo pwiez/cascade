@@ -11,11 +11,10 @@ struct RemediationChapter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 40) {
             TextParagraph("As you learned in previous chapters, the situation is pretty grim, but it is fixable. We need to do three things: stop making new debris, responsibly dispose of dead satellites, and drag the most dangerous junk out of orbit before it gets hit.")
-            
+
             VStack(alignment: .leading, spacing: 24) {
-                Text("Atmospheric Drag")
-                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
-                
+                EditorialSectionHeader(title: "Atmospheric Drag")
+
                 TextParagraph("This is our main ally in this. Did you know Earth's atmosphere does not just end when you get to space? Instead, it tapers off gradually. Gas molecules at very high altitudes are few and far between, but they exert a persistent drag force on orbiting objects. Over time, this drag lowers an object's altitude until it burns up in the thicker atmosphere.")
                 
                 ScientificCard {
@@ -37,13 +36,10 @@ struct RemediationChapter: View {
                 
                 TextParagraph("Below 600 km, drag can clear most debris within a few decades. The real challenge lies in higher orbits, where drag is negligible and debris can persist for centuries.")
             }
-            
-            Divider().cascadeDivider()
-            
+
             VStack(alignment: .leading, spacing: 24) {
-                Text("Active Removal Technologies")
-                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
-                
+                EditorialSectionHeader(title: "Active Removal Technologies")
+
                 TextParagraph("Atmospheric drag is powerful, but it is insufficient. We need engineered interventions to clear higher orbits or at least make them safer. Several approaches are currently under development. Some of them may seem like they came out of science fiction, but they are very real ideas being researched and tested currently.")
                 
                 VStack(spacing: 20) {
@@ -78,13 +74,10 @@ struct RemediationChapter: View {
                     )
                 }
             }
-            
-            Divider().cascadeDivider()
-            
+
             VStack(alignment: .leading, spacing: 24) {
-                Text("Guidelines and Policies")
-                    .font(.title2.weight(.bold)).foregroundStyle(.primary)
-                
+                EditorialSectionHeader(title: "Guidelines and Policies")
+
                 TextParagraph("The Inter-Agency Space Debris Coordination Committee (IADC) recommends that all satellites in Low Earth Orbit deorbit within 25 years after a mission ends. So, if a satellite reaches its mission end in 2030 it should be deorbited at most by 2055. Compliance to these guidelines, however, is voluntary. In 2022, the U.S. Federal Communications Commission adopted a stricter mandatory 5-year rule.")
             }
         }
@@ -132,31 +125,27 @@ struct StrategyCard: View {
     let description: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .center) {
-                ThemedIcon(systemName: icon, color: .blue, isCircle: true)
+        VStack(alignment: .leading, spacing: 12) {
+            Rectangle()
+                .fill(DesignTokens.hairline)
+                .frame(height: 1)
+
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.callout)
+                    .foregroundStyle(DesignTokens.signal)
+                    .frame(width: 22)
                 Text(title)
                     .font(.headline)
                     .foregroundStyle(.primary)
-                Spacer()
             }
-            
-            Divider().overlay(Color.primary.opacity(0.1))
-            
-            VStack(alignment: .leading, spacing: 16) {
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(DesignTokens.bodyText)
-                    .lineSpacing(DesignTokens.bodyLineSpacing)
-            }
+
+            Text(description)
+                .font(.body)
+                .foregroundStyle(DesignTokens.bodyText)
+                .lineSpacing(DesignTokens.bodyLineSpacing)
         }
-        .padding(DesignTokens.cardPadding)
-        .background(DesignTokens.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
-                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
-        )
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .contain)
     }
 }

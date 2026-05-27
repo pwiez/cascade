@@ -9,25 +9,16 @@ import SwiftUI
 
 struct ScientificCard<Content: View>: View {
     @ViewBuilder let content: Content
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            content.padding(DesignTokens.cardPadding)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
-                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
-        )
+        DataPanel { content }
     }
 }
 
 struct TextParagraph: View {
     let text: LocalizedStringKey
     init(_ text: LocalizedStringKey) { self.text = text }
-    
+
     var body: some View {
         Text(text)
             .font(.body)
@@ -40,7 +31,7 @@ struct TextParagraph: View {
 struct GuideRow: View {
     let number: String
     let text: LocalizedStringKey
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             Text(number)
@@ -49,7 +40,7 @@ struct GuideRow: View {
                 .frame(width: 22, height: 22)
                 .background(Color.blue.opacity(DesignTokens.iconBackgroundOpacity))
                 .clipShape(Circle())
-            
+
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -61,47 +52,26 @@ struct DefinitionCallout: View {
     let term: String
     let definition: String
     let source: String
-    
+
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            RoundedRectangle(cornerRadius: 2)
-                .fill(.blue)
-                .frame(width: 4)
-            
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 8) {
-                    Image(systemName: "text.book.closed.fill")
-                        .foregroundStyle(.blue)
-                    Text("Definition")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.blue)
-                        .textCase(.uppercase)
-                        .tracking(0.5)
-                }
-                
-                Text(term)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(.primary)
-                
-                Text(definition)
-                    .font(.subheadline)
-                    .foregroundStyle(DesignTokens.bodyText)
-                    .lineSpacing(DesignTokens.bodyLineSpacing)
-                
-                Text("— \(source)")
-                    .font(.caption.italic())
-                    .foregroundStyle(DesignTokens.mutedText)
-            }
-            .padding(.vertical, 4)
+        VStack(alignment: .leading, spacing: 16) {
+            Kicker(text: "Definition", color: DesignTokens.signal)
+
+            Text(term)
+                .font(.title.weight(.bold))
+                .foregroundStyle(.primary)
+
+            Text(definition)
+                .font(.title3.weight(.regular))
+                .foregroundStyle(DesignTokens.ink)
+                .lineSpacing(6)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text("— \(source)")
+                .font(.caption.italic())
+                .foregroundStyle(DesignTokens.mutedText)
+                .padding(.top, 2)
         }
-        .padding(DesignTokens.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
-                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
-        )
         .accessibilityElement(children: .combine)
     }
 }
@@ -110,46 +80,17 @@ struct KeyConceptBox: View {
     let title: String
     let bodyText: String
     let icon: String
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            ThemedIcon(systemName: icon, color: .green, isCircle: false)
-            
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(.primary)
-                Text(bodyText)
-                    .font(.subheadline)
-                    .foregroundStyle(DesignTokens.bodyText)
-                    .lineSpacing(DesignTokens.bodyLineSpacing)
-            }
-        }
-        .padding(DesignTokens.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
-                .stroke(DesignTokens.cardBorder, lineWidth: DesignTokens.borderWidth)
-        )
-        .accessibilityElement(children: .combine)
-    }
-}
 
-struct ThemedIcon: View {
-    let systemName: String
-    let color: Color
-    var size: CGFloat = DesignTokens.iconSize
-    var isCircle: Bool = false
-    
     var body: some View {
-        Image(systemName: systemName)
-            .font(.title3)
-            .foregroundStyle(color)
-            .frame(width: size, height: size)
-            .background(color.opacity(DesignTokens.iconBackgroundOpacity))
-            .clipShape(isCircle ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: DesignTokens.iconRadius)))
+        RuledCallout(label: "Key Concept") {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(.primary)
+            Text(bodyText)
+                .font(.body)
+                .foregroundStyle(DesignTokens.bodyText)
+                .lineSpacing(DesignTokens.bodyLineSpacing)
+        }
     }
 }
 
@@ -158,55 +99,33 @@ struct GlossaryItem: View {
     let definition: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            RoundedRectangle(cornerRadius: 2)
-                .fill(.blue.opacity(0.6))
-                .frame(width: 3)
-            
-            VStack(alignment: .leading, spacing: 6) {
-                Text(term)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(.primary)
-                
-                Text(definition)
-                    .font(.subheadline)
-                    .foregroundStyle(DesignTokens.bodyText)
-                    .lineSpacing(DesignTokens.bodyLineSpacing)
-            }
-            .padding(.vertical, 4)
+        VStack(alignment: .leading, spacing: 8) {
+            Rectangle()
+                .fill(DesignTokens.hairline)
+                .frame(height: 1)
+
+            Text(term)
+                .font(.headline)
+                .foregroundStyle(.primary)
+
+            Text(definition)
+                .font(.body)
+                .foregroundStyle(DesignTokens.bodyText)
+                .lineSpacing(DesignTokens.bodyLineSpacing)
         }
         .accessibilityElement(children: .combine)
     }
 }
 
 struct TryThisBox: View {
-    let title: String
     let instruction: String
-    
+
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            ThemedIcon(systemName: "slider.horizontal.3", color: .purple, isCircle: false)
-            
-            VStack(alignment: .leading, spacing: 14) {
-                Text(title)
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(.purple)
-                
-                Text(instruction)
-                    .font(.subheadline)
-                    .foregroundStyle(DesignTokens.bodyText)
-                    .lineSpacing(DesignTokens.bodyLineSpacing)
-            }
+        RuledCallout(label: "Try It", accent: DesignTokens.signal, labelColor: DesignTokens.signal) {
+            Text(instruction)
+                .font(.body)
+                .foregroundStyle(DesignTokens.bodyText)
+                .lineSpacing(DesignTokens.bodyLineSpacing)
         }
-        .padding(DesignTokens.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(DesignTokens.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cardRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: DesignTokens.cardRadius)
-                .stroke(Color.purple.opacity(0.6), lineWidth: DesignTokens.borderWidth)
-        )
-        .accessibilityElement(children: .combine)
     }
 }
-

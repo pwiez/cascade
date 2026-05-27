@@ -30,6 +30,12 @@ enum DesignTokens {
     
     static let trackColor = Color(white: 0.12)
     static let trackHeight: CGFloat = 4
+
+    static let signal = Color.blue
+    static let ink = Color(white: 0.92)
+    static let hairline = Color.white.opacity(0.12)
+    static let ruleStrong = Color.white.opacity(0.22)
+    static let dataSurface = Color.white.opacity(0.022)
 }
 
 extension View {

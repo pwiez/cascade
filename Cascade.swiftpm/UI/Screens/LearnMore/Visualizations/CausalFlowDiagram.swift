@@ -8,63 +8,53 @@
 import SwiftUI
 
 struct CausalFlowDiagram: View {
+    private let steps: [(icon: String, color: Color, title: String)] = [
+        ("cube.fill", .green, "Density of objects\nin orbit increases"),
+        ("burst.fill", .orange, "A collision happens\nbetween them"),
+        ("aqi.medium", .red, "Many new objects\nare created"),
+        ("exclamationmark.triangle.fill", .yellow, "Collision risk\nincreases")
+    ]
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            
-            HStack(spacing: 0) {
-                flowNode(icon: "cube.fill", title: "Density of objects\nin orbit increases", color: .blue)
-                flowConnector
-                flowNode(icon: "burst.fill", title: "A collision happens\nbetween them", color: .orange)
-                flowConnector
-                flowNode(icon: "aqi.medium", title: "Many new objects\nare created", color: .gray)
-                flowConnector
-                flowNode(icon: "exclamationmark.triangle.fill", title: "Collision risk\nincreases", color: .red)
+        VStack(spacing: 22) {
+            HStack(alignment: .top, spacing: 0) {
+                ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                    node(icon: step.icon, color: step.color, title: step.title)
+
+                    if index != steps.count - 1 {
+                        Image(systemName: "chevron.compact.right")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(DesignTokens.dimText)
+                            .frame(width: 16)
+                            .padding(.top, 12)
+                    }
+                }
             }
-            
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.turn.up.left")
+
+            HStack(spacing: 10) {
+                Image(systemName: "arrow.triangle.2.circlepath")
                     .font(.caption)
-                    .foregroundStyle(.green.opacity(0.6))
+                    .foregroundStyle(DesignTokens.signal)
                 Text("Each of these events feeds every other event!")
                     .font(.caption)
                     .foregroundStyle(DesignTokens.mutedText)
-                Image(systemName: "arrow.turn.up.right")
-                    .font(.caption)
-                    .foregroundStyle(.green.opacity(0.6))
             }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 5)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Cascade loop diagram: increasing density leads to collisions, which create fragments, which escalate risk, which further increases density. The loop is self-reinforcing.")
     }
-    
-    var flowConnector: some View {
-        VStack {
-            Image(systemName: "chevron.right")
-                .font(.caption2.bold())
-                .foregroundStyle(.primary.opacity(0.7))
-        }
-        .frame(width: 24)
-    }
-    
-    func flowNode(icon: String, title: String, color: Color) -> some View {
-        VStack(spacing: 10) {
-            ThemedIcon(systemName: icon, color: color, isCircle: true)
-            
+
+    private func node(icon: String, color: Color, title: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(color)
             Text(title)
                 .font(.caption.weight(.medium))
-                .foregroundStyle(.primary.opacity(0.9))
+                .foregroundStyle(.primary)
                 .multilineTextAlignment(.center)
-                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(Color.primary.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(DesignTokens.cardBorder, lineWidth: 1)
-        )
     }
 }
