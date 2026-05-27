@@ -41,6 +41,7 @@ class SceneController: ObservableObject {
     private var debrisBatchSystem: DebrisBatchSystem
 
     private var earthEntity: Entity?
+    private var earthSpinRate: Float = 0
     private let earthRadius: Float = 240.0
     private let earthMass: Float = 150_000
     private let gravitationalConstant: Float = 1.0
@@ -57,7 +58,7 @@ class SceneController: ObservableObject {
         self.system = PhysicsSolver(settings: settings, earthRadius: earthRadius)
         
         self.satelliteMaterial = UnlitMaterial(color: UIColor(settings.satelliteColor))
-        self.satelliteMesh = .generateBox(size: 1.8)
+        self.satelliteMesh = .generateBox(size: 2.25)
         
         self.debrisBatchSystem = DebrisBatchSystem(maxDebris: 8000, color: UIColor(settings.debrisColor))
         
@@ -67,7 +68,8 @@ class SceneController: ObservableObject {
         
         setupLighting()
         setupEarth()
-        
+        computeEarthSpinRate()
+
         rootAnchor.addChild(debrisBatchSystem.entity)
     }
     
@@ -170,9 +172,18 @@ class SceneController: ObservableObject {
         }
     }
     
+    private static let spinToOrbitRatio: Float = 1.4814
+
     private func updateEarthRotation() {
         let deltaTime = (1.0 / 300.0) * Float(settings.timeScale)
-        earthEntity?.orientation *= simd_quatf(angle: 0.2 * deltaTime, axis: [0, 1, 0])
+        earthEntity?.orientation *= simd_quatf(angle: earthSpinRate * deltaTime, axis: [0, 1, 0])
+    }
+
+    private func computeEarthSpinRate() {
+        let GM = gravitationalConstant * earthMass * Float(settings.gravityMultiplier)
+        let r = Float(settings.orbitAltitude)
+        let orbitalOmega = (GM > 0 && r > 0) ? sqrt(GM / (r * r * r)) : 0
+        earthSpinRate = Self.spinToOrbitRatio * orbitalOmega
     }
     
     func queueCommand(_ command: EngineCommand) {
@@ -290,11 +301,15 @@ class SceneController: ObservableObject {
                              settings.showSatellites != newSettings.showSatellites
         let lightingChanged = settings.useOmniLight != newSettings.useOmniLight
         
+        let orbitChanged = settings.orbitAltitude != newSettings.orbitAltitude ||
+                           settings.gravityMultiplier != newSettings.gravityMultiplier
+
         self.settings = newSettings
-        
+
         if lightingChanged { updateLightingMode() }
         if colorChanged    { updateMaterials() }
         if visualsChanged  { updateSatelliteVisuals() }
+        if orbitChanged    { computeEarthSpinRate() }
         
         arView?.environment.background = .color(UIColor(settings.backgroundColor))
         earthEntity?.isEnabled = newSettings.showEarth
