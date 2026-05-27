@@ -102,8 +102,8 @@ actor PhysicsSolver {
     private static let lodSpinDistSq: Float = 700 * 700
 
     private static let localVerts: [SIMD3<Float>] = [
-        SIMD3(0, 0.75, 0), SIMD3(0.75, -0.75, 0.4335),
-        SIMD3(-0.75, -0.75, 0.4335), SIMD3(0, -0.75, -0.866)
+        SIMD3(0, 1.125, 0), SIMD3(1.125, -1.125, 0.65025),
+        SIMD3(-1.125, -1.125, 0.65025), SIMD3(0, -1.125, -1.299)
     ]
 
     init(settings: SimSettings, earthRadius: Float) {
