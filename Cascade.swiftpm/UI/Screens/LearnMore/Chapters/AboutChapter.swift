@@ -13,12 +13,10 @@ struct AboutChapter: View {
             
             VStack(alignment: .leading, spacing: 24) {
 
-                TextParagraph("Cascade runs a custom deterministic physics engine written in Swift 6. It uses Apple's RealityKit framework for rendering. Tracking thousands of objects while keeping a smooth framerate requires some pretty heavy math optimizations and architectural choices:")
+                TextParagraph("Cascade runs a custom deterministic physics engine written in Swift 6. It uses Apple's RealityKit framework for rendering. Tracking many objects while keeping a smooth framerate requires some pretty heavy math optimizations and architectural choices:")
 
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 18) {
-                        Kicker(text: "Specifications")
-
                         VStack(spacing: 12) {
                             ModelParam(name: "Integrator", value: "Semi-Implicit Euler", detail: "Symplectic integration for stable orbits")
                             Divider().cascadeDivider()
