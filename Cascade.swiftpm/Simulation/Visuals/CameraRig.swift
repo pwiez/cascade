@@ -28,7 +28,7 @@ class CameraRig {
     private var savedAngleX: Float?
     private var savedAngleY: Float?
 
-    private let minZoom: Float = 280.0
+    private let minZoom: Float = 450.0
     private let maxZoom: Float = 1800.0
     private let minAngleX: Float = -1.4
     private let maxAngleX: Float = 1.4
