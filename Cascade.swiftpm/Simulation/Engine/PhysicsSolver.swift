@@ -87,7 +87,7 @@ actor PhysicsSolver {
     private var grid: SpatialGrid
 
     private var killRadiusSq: Float
-    private let maxRadiusSq: Float
+    private var maxRadiusSq: Float
     private var settings: SimSettings
 
     private var frameDeaths: [Int] = []
@@ -109,7 +109,7 @@ actor PhysicsSolver {
     init(settings: SimSettings, earthRadius: Float) {
         self.settings = settings
         self.killRadiusSq = pow(earthRadius + 2.0, 2)
-        self.maxRadiusSq = 600 * 600
+        self.maxRadiusSq = pow(Float(settings.eliminationRadius), 2)
 
         self.debrisPool = DebrisPool(capacity: 8000)
 
@@ -195,6 +195,7 @@ actor PhysicsSolver {
             self.grid = SpatialGrid(maxObjects: 6_000, cellSize: safeCellSize)
         }
 
+        self.maxRadiusSq = pow(Float(newSettings.eliminationRadius), 2)
         self.settings = newSettings
     }
 
