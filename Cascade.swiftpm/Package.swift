@@ -6,7 +6,7 @@ import AppleProductTypes
 let package = Package(
     name: "Cascade",
     platforms: [
-        .iOS("26.0")
+        .iOS("18.0")
     ],
     products: [
         .iOSApplication(
@@ -36,5 +36,5 @@ let package = Package(
             path: "."
         )
     ],
-    swiftLanguageVersions: [.version("6")]
+    swiftLanguageModes: [.version("6")]
 )
