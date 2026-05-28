@@ -24,6 +24,11 @@ struct CollisionPhysicsSection: View {
                       range: 3000...7500,
                       step: 250,
                       format: "%.0f")
+            SliderRow(label: "Debris Removal Distance",
+                      value: $simulation.eliminationRadius,
+                      range: 350...1000,
+                      step: 25,
+                      format: "%.0f")
         } header: {
             Text("Collision Physics")
         }

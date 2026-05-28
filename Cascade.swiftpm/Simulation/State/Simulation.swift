@@ -27,6 +27,7 @@ struct SimSettings {
     var backgroundColor: Color
 
     var maxDebris: Int
+    var eliminationRadius: Double
     var useRandomInclination: Bool
     var satelliteScale: Double
     var debrisScale: Double
@@ -53,6 +54,7 @@ extension SimSettings {
         debrisColor: .red,
         backgroundColor: .black,
         maxDebris: 5000,
+        eliminationRadius: 600,
         useRandomInclination: true,
         satelliteScale: 1.0,
         debrisScale: 1.0,
@@ -121,6 +123,7 @@ final class Simulation {
 
     var debrisPerCollision: Double = SimSettings.defaults.debrisPerCollision { didSet { syncSettings() } }
     var maxDebris: Double = Double(SimSettings.defaults.maxDebris) { didSet { syncSettings() } }
+    var eliminationRadius: Double = SimSettings.defaults.eliminationRadius { didSet { syncSettings() } }
 
     var isCameraEnabled: Bool = false
     var showSatellites: Bool = SimSettings.defaults.showSatellites { didSet { syncSettings() } }
@@ -188,6 +191,7 @@ final class Simulation {
             debrisColor: debrisColor,
             backgroundColor: backgroundColor,
             maxDebris: Int(maxDebris),
+            eliminationRadius: eliminationRadius,
             useRandomInclination: activeUseRandomInclination,
             satelliteScale: satelliteScale,
             debrisScale: debrisScale,
@@ -209,6 +213,7 @@ final class Simulation {
         timeScale = d.timeScale
         explosionForce = d.explosionForce
         collisionRadius = d.collisionRadius
+        eliminationRadius = d.eliminationRadius
         satelliteScale = d.satelliteScale
         debrisScale = d.debrisScale
         gravityMultiplier = d.gravityMultiplier
