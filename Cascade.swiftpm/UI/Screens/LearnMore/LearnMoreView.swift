@@ -60,8 +60,19 @@ enum AppSection: String, CaseIterable, Identifiable {
 }
 
 struct LearnMoreView: View {
+    var body: some View {
+        if #available(iOS 26, *) {
+            LearnMoreNativeView()
+        } else {
+            LearnMoreLegacyView()
+        }
+    }
+}
+
+@available(iOS 26, *)
+private struct LearnMoreNativeView: View {
     @State private var activeSection: AppSection? = .hero
-    
+
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
             List(selection: $activeSection) {
@@ -70,7 +81,7 @@ struct LearnMoreView: View {
                         sidebarLink(for: section)
                     }
                 }
- 
+
                 Section {
                     ForEach(AppSection.allCases.dropFirst(5)) { section in
                         sidebarLink(for: section)
@@ -91,7 +102,7 @@ struct LearnMoreView: View {
         .navigationSplitViewStyle(.balanced)
         .toolbar(.hidden)
     }
-    
+
     @ViewBuilder
     private func sidebarLink(for section: AppSection) -> some View {
         NavigationLink(value: section) {
@@ -109,6 +120,99 @@ struct LearnMoreView: View {
                 Image(systemName: section.icon)
             }
         }
+    }
+}
+
+private struct LearnMoreLegacyView: View {
+    @State private var activeSection: AppSection = .hero
+
+    private let sidebarWidth: CGFloat = 320
+
+    var body: some View {
+        HStack(spacing: 0) {
+            sidebar
+                .frame(width: sidebarWidth)
+                .background(Color(white: 0.07).ignoresSafeArea())
+
+            Rectangle()
+                .fill(DesignTokens.hairline)
+                .frame(width: 1)
+                .ignoresSafeArea()
+
+            ChapterContainerView(activeSection: activeSection)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black.ignoresSafeArea())
+        }
+    }
+
+    private var sidebar: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 24) {
+                Text("Learn More")
+                    .font(.largeTitle.weight(.bold))
+                    .foregroundStyle(.primary)
+                    .padding(.top, 28)
+                    .padding(.horizontal, 20)
+
+                VStack(spacing: 2) {
+                    ForEach(AppSection.allCases.prefix(5)) { section in
+                        sidebarRow(for: section)
+                    }
+                }
+
+                Rectangle()
+                    .fill(DesignTokens.hairline)
+                    .frame(height: 1)
+                    .padding(.horizontal, 20)
+
+                VStack(spacing: 2) {
+                    ForEach(AppSection.allCases.dropFirst(5)) { section in
+                        sidebarRow(for: section)
+                    }
+                }
+
+                Spacer(minLength: 24)
+            }
+            .padding(.bottom, 24)
+        }
+    }
+
+    private func sidebarRow(for section: AppSection) -> some View {
+        let isActive = activeSection == section
+        return Button {
+            activeSection = section
+        } label: {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: section.icon)
+                    .font(.body)
+                    .foregroundStyle(.tint)
+                    .frame(width: 28, alignment: .center)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(section.title)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+                    if !section.subtitle.isEmpty {
+                        Text(section.subtitle)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .multilineTextAlignment(.leading)
+
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isActive ? Color.white.opacity(0.08) : Color.clear)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 12)
+        .accessibilityAddTraits(isActive ? .isSelected : [])
     }
 }
 
