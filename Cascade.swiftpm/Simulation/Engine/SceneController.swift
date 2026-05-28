@@ -419,10 +419,10 @@ class SceneController: ObservableObject {
             }
             
             guard let cgImage = image.cgImage else { return }
-            async let loadedAO = try? TextureResource(image: cgImage, options: .init(semantic: .raw))
-            async let loadedEarth = try? TextureResource(named: "earthmap")
-            async let loadedSpecular = try? TextureResource(named: "earth_specular")
-            async let loadedNormal = try? TextureResource(named: "earth_normal")
+            async let loadedAO = try? TextureResource.generate(from: cgImage, options: .init(semantic: .raw))
+            async let loadedEarth = try? TextureResource.load(named: "earthmap")
+            async let loadedSpecular = try? TextureResource.load(named: "earth_specular")
+            async let loadedNormal = try? TextureResource.load(named: "earth_normal")
             
             self.aoTexture = await loadedAO
             

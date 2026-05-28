@@ -47,11 +47,29 @@ extension View {
 extension View {
     @ViewBuilder
     func applyGlassStyle(isProminent: Bool, tint: Color?) -> some View {
-        if isProminent {
-            self.buttonStyle(.glassProminent)
-                .tint(tint)
+        if #available(iOS 26, *) {
+            if isProminent {
+                self.buttonStyle(.glassProminent)
+                    .tint(tint)
+            } else {
+                self.buttonStyle(.glass)
+            }
         } else {
-            self.buttonStyle(.glass)
+            if isProminent {
+                self.buttonStyle(.borderedProminent)
+                    .tint(tint)
+            } else {
+                self.buttonStyle(.bordered)
+            }
+        }
+    }
+
+    @ViewBuilder
+    func applyGlassPanel() -> some View {
+        if #available(iOS 26, *) {
+            self.glassEffect()
+        } else {
+            self.background(.ultraThinMaterial, in: Capsule())
         }
     }
 }
