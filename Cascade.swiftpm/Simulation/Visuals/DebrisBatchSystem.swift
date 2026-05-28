@@ -11,35 +11,9 @@ import simd
 import UIKit
 
 @MainActor
-class DebrisBatchSystem {
-    private let backend: any DebrisRenderBackend
-
-    var entity: ModelEntity { backend.entity }
-
-    init(maxDebris: Int, color: UIColor) {
-        if #available(iOS 18, *) {
-            backend = LowLevelMeshBackend(maxDebris: maxDebris, color: color)
-        } else {
-            backend = MeshDescriptorBackend(maxDebris: maxDebris, color: color)
-        }
-    }
-
-    func commitVertices(from buffer: FrameBuffer) { backend.commitVertices(from: buffer) }
-    func clear() { backend.clear() }
-    func updateColor(_ newColor: UIColor) { backend.updateColor(newColor) }
-}
-
-@MainActor
-private protocol DebrisRenderBackend {
-    var entity: ModelEntity { get }
-    func commitVertices(from buffer: FrameBuffer)
-    func clear()
-    func updateColor(_ newColor: UIColor)
-}
-
-@available(iOS 18, *)
-private final class LowLevelMeshBackend: DebrisRenderBackend {
+final class DebrisBatchSystem {
     let entity: ModelEntity
+
     private var meshes: [LowLevelMesh]
     private var meshResources: [MeshResource]
     private var currentMeshIndex: Int = 0
@@ -120,62 +94,5 @@ private final class LowLevelMeshBackend: DebrisRenderBackend {
             model.materials = [self.material]
             entity.model = model
         }
-    }
-}
-
-private final class MeshDescriptorBackend: DebrisRenderBackend {
-    let entity: ModelEntity
-    private var material: UnlitMaterial
-
-    private let maxDebris: Int
-    private let allIndices: [UInt32]
-
-    init(maxDebris: Int, color: UIColor) {
-        self.maxDebris = maxDebris
-
-        let baseIndices: [UInt32] = [0, 2, 1, 0, 3, 2, 0, 1, 3, 1, 2, 3]
-        var indices: [UInt32] = []
-        indices.reserveCapacity(maxDebris * 12)
-        for i in 0..<maxDebris {
-            let vOff = UInt32(i * 4)
-            for j in baseIndices { indices.append(vOff + j) }
-        }
-        self.allIndices = indices
-
-        self.material = UnlitMaterial(color: color)
-        self.entity = ModelEntity(mesh: Self.emptyMesh(), materials: [self.material])
-    }
-
-    func commitVertices(from buffer: FrameBuffer) {
-        let count = buffer.dirtyVertexCount
-        guard count >= 4 else { clear(); return }
-
-        let indexCount = (count / 4) * 12
-        var desc = MeshDescriptor()
-        desc.positions = MeshBuffers.Positions(Array(buffer.vertices[0..<count]))
-        desc.primitives = .triangles(Array(allIndices[0..<indexCount]))
-
-        if let resource = try? MeshResource.generate(from: [desc]) {
-            entity.model?.mesh = resource
-        }
-    }
-
-    func clear() {
-        entity.model?.mesh = Self.emptyMesh()
-    }
-
-    func updateColor(_ newColor: UIColor) {
-        self.material = UnlitMaterial(color: newColor)
-        if var model = entity.model {
-            model.materials = [self.material]
-            entity.model = model
-        }
-    }
-
-    private static func emptyMesh() -> MeshResource {
-        var desc = MeshDescriptor()
-        desc.positions = MeshBuffers.Positions([.zero, .zero, .zero])
-        desc.primitives = .triangles([0, 1, 2])
-        return (try? MeshResource.generate(from: [desc])) ?? .generateBox(size: 0.0001)
     }
 }
