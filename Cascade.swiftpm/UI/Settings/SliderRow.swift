@@ -7,6 +7,7 @@ struct SliderRow: View {
     var step: Double? = nil
     var format: String = "%.1f"
     var requiresRestart: Bool = false
+    var caption: String? = nil
 
     private var formatted: String { String(format: format, value) }
 
@@ -31,9 +32,17 @@ struct SliderRow: View {
             } else {
                 Slider(value: $value, in: range)
             }
+
+            if let caption {
+                Text(caption)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .padding(.vertical, 4)
         .accessibilityLabel(label)
         .accessibilityValue(formatted)
+        .accessibilityHint(caption ?? "")
     }
 }
