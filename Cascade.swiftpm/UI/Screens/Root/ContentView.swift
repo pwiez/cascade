@@ -20,12 +20,12 @@ struct ContentView: View {
             ZStack {
                 ZStack {
                     TabView(selection: $selectedTab) {
-                        Tab("Simulation", systemImage: "cube.transparent", value: AppTab.simulation) {
-                            SimulationScreen(simulation: simulation)
-                        }
-                        Tab("Learn More", systemImage: "book.closed.fill", value: AppTab.learnMore) {
-                            LearnMoreView()
-                        }
+                        SimulationScreen(simulation: simulation)
+                            .tabItem { Label("Simulation", systemImage: "cube.transparent") }
+                            .tag(AppTab.simulation)
+                        LearnMoreView()
+                            .tabItem { Label("Learn More", systemImage: "book.closed.fill") }
+                            .tag(AppTab.learnMore)
                     }
                     .blur(radius: showIntro ? 16 : 0)
                     .animation(.easeInOut(duration: 0.4), value: showIntro)

@@ -58,7 +58,7 @@ struct ScenarioSection: View {
                     Spacer()
                     Text("Restart Pending")
                         .foregroundStyle(.yellow)
-                        .font(.default.weight(.regular))
+                        .fontWeight(.regular)
                 }
             }
         } footer: {
