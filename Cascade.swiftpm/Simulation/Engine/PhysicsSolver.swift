@@ -116,7 +116,7 @@ actor PhysicsSolver {
         let minGridWidth: Float = 1500.0
         let requiredCellSize = minGridWidth / 128.0
         let safeCellSize = max(Float(settings.collisionRadius * 2.1), requiredCellSize)
-        self.grid = SpatialGrid(maxObjects: 6000, cellSize: safeCellSize)
+        self.grid = SpatialGrid(maxObjects: 8500, cellSize: safeCellSize)
 
         let coreCount = ProcessInfo.processInfo.activeProcessorCount
         self.threadBuckets = (0..<coreCount).map { _ in
@@ -192,7 +192,7 @@ actor PhysicsSolver {
             let minGridWidth: Float = 1500.0
             let requiredCellSize = minGridWidth / 128.0
             let safeCellSize = max(newRadius * 2.1, requiredCellSize)
-            self.grid = SpatialGrid(maxObjects: 6_000, cellSize: safeCellSize)
+            self.grid = SpatialGrid(maxObjects: 8500, cellSize: safeCellSize)
         }
 
         self.maxRadiusSq = pow(Float(newSettings.eliminationRadius), 2)
