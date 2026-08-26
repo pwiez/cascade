@@ -29,7 +29,9 @@ struct MechanicsChapter: View {
 
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 16) {
-                        Kicker(text: "The Kinetic Energy Equation")
+                        Text("The Kinetic Energy Equation")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(DesignTokens.dimText)
 
                         HStack(spacing: 6) {
                             Text("E")

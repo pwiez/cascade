@@ -8,9 +8,7 @@
 import SwiftUI
 
 struct RuledCallout<Content: View>: View {
-    let label: String
     var accent: Color = DesignTokens.ruleStrong
-    var labelColor: Color = DesignTokens.dimText
 
     @ViewBuilder let content: Content
 
@@ -21,7 +19,6 @@ struct RuledCallout<Content: View>: View {
                 .frame(width: 2)
 
             VStack(alignment: .leading, spacing: 12) {
-                Kicker(text: label, color: labelColor)
                 content
             }
             .padding(.vertical, 2)

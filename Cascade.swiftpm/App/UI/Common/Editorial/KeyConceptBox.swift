@@ -13,7 +13,7 @@ struct KeyConceptBox: View {
     let icon: String
 
     var body: some View {
-        RuledCallout(label: "Key Concept") {
+        RuledCallout {
             Label(title, systemImage: icon)
                 .font(.headline)
             Text(bodyText)

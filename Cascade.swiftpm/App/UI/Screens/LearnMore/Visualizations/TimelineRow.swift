@@ -32,7 +32,9 @@ struct TimelineRow: View {
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 6) {
-                Kicker(text: event.date)
+                Text(event.date)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(DesignTokens.dimText)
                 Text(event.title)
                     .font(.headline)
                 Text(event.summary)

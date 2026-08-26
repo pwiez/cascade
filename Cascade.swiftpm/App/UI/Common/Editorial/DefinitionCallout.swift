@@ -14,8 +14,6 @@ struct DefinitionCallout: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Kicker(text: "Definition", color: DesignTokens.signal)
-
             Text(term)
                 .font(.title.bold())
 

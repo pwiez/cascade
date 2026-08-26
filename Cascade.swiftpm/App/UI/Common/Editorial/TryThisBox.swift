@@ -11,7 +11,11 @@ struct TryThisBox: View {
     let instruction: String
 
     var body: some View {
-        RuledCallout(label: "Try It", accent: DesignTokens.signal, labelColor: DesignTokens.signal) {
+        RuledCallout(accent: DesignTokens.signal) {
+            Label("Try it", systemImage: "slider.horizontal.3")
+                .font(.headline)
+                .foregroundStyle(DesignTokens.signal)
+
             Text(instruction)
                 .font(.body)
                 .foregroundStyle(DesignTokens.bodyText)
