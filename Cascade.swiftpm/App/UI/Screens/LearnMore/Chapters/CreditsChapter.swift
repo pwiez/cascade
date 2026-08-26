@@ -41,28 +41,4 @@ struct CreditsChapter: View {
             }
         }
     }
-    
-    func CreditSection(role: String, entries: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(role)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(.blue)
-                .textCase(.uppercase)
-                .tracking(0.8)
-            
-            ForEach(entries, id: \.self) { entry in
-                HStack(alignment: .top, spacing: 10) {
-                    Circle()
-                        .fill(.primary.opacity(0.3))
-                        .frame(width: 4, height: 4)
-                        .padding(.top, 7)
-                    
-                    Text(LocalizedStringKey(entry))
-                        .font(.subheadline)
-                        .foregroundStyle(DesignTokens.bodyText)
-                        .lineSpacing(3)
-                }
-            }
-        }
-    }
 }

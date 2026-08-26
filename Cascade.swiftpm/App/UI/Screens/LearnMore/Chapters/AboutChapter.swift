@@ -16,8 +16,7 @@ struct AboutChapter: View {
                 TextParagraph("Cascade runs a custom deterministic physics engine written in Swift 6. It uses Apple's RealityKit framework for rendering. Tracking many objects while keeping a smooth framerate requires some pretty heavy math optimizations and architectural choices:")
 
                 ScientificCard {
-                    VStack(alignment: .leading, spacing: 18) {
-                        VStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 12) {
                             ModelParam(name: "Integrator", value: "Semi-Implicit Euler", detail: "Symplectic integration for stable orbits")
                             Divider().cascadeDivider()
                             ModelParam(name: "Collision Detection", value: "Spatial Hashing", detail: "Uniform grid partitioning strategy to reduce lookup speeds down from O(N^2)")
@@ -31,7 +30,6 @@ struct AboutChapter: View {
                             ModelParam(name: "Debris Rendering", value: "Single-Mesh Batching", detail: "Thousands of fragments are merged into one dynamic mesh to eliminate RealityKit entity rendering overhead")
                             Divider().cascadeDivider()
                             ModelParam(name: "Concurrency", value: "Actor-Isolated Engine", detail: "Cascade runs the heavy physics calculations safely on background threads using Swift strict concurrency")
-                        }
                     }
                 }
             }
@@ -42,37 +40,37 @@ struct AboutChapter: View {
                 TextParagraph("A full-fidelity orbital simulation with all variables and proper scales requires an extremely expensive supercomputer, in particular to simulate such a complex event. So, in order to run smoothly and as accurately as possible, Cascade makes a few major physics compromises:")
                 
                 VStack(spacing: 20) {
-                    SimplificationCard(
+                    IconCard(
                         title: "Event Timescale",
                         icon: "timer",
                         description: "A Kessler Syndrome event happens blazingly fast in Cascade, in a few seconds or minutes at most. In reality, it takes decades. Space is incredibly vast, the Earth is pretty big, and satellites are very small!"
                     )
                     
-                    SimplificationCard(
+                    IconCard(
                         title: "Scaling",
                         icon: "square.resize.up",
                         description: "Cascade shrinks the Earth and enlarges the satellites so you can actually see them. If rendered to scale, space would look completely empty and you would have to zoom in for a long time."
                     )
                     
-                    SimplificationCard(
+                    IconCard(
                         title: "No Debris-Debris Collisions",
                         icon: "bolt.slash.fill",
                         description: "The engine calculates satellite-on-satellite and satellite-on-debris impacts. Debris fragments do not collide with each other. As debris amounts grow, calculating those interactions would stall the CPU and destroy your battery life."
                     )
                     
-                    SimplificationCard(
+                    IconCard(
                         title: "Representative Density",
                         icon: "square.grid.3x3.middle.filled",
                         description: "Rendering over 140 million fragments is not feasible. Therefore, Cascade uses a simplified density representation. One visible piece of debris in the simulation represents a cloud of hundreds or thousands of real fragments, and each cube represents a few dozen real satellites."
                     )
                     
-                    SimplificationCard(
+                    IconCard(
                         title: "Idealized Gravity",
                         icon: "circle.dashed",
                         description: "Cascade treats Earth as a perfect sphere. In reality, Earth's mass distribution is very uneven, and its shape is jagged and rough. This causes gravitational anomalies, which can change orbits over time. These perturbations do not exist in the simulation."
                     )
                     
-                    SimplificationCard(
+                    IconCard(
                         title: "No Atmospheric Drag",
                         icon: "wind",
                         description: "To help with the visualization of collision events, Cascade ignores atmospheric drag to avoid debris deorbiting. Fragments that achieve a stable orbit remain there forever. However, if any of them hit the Earth's surface for any reason, such as excessive ejection force or low velocity, they are deleted from the simulation."
@@ -102,78 +100,5 @@ struct AboutChapter: View {
                     .foregroundStyle(.secondary)
             }
         }
-    }
-}
-
-struct SimplificationCard: View {
-    let title: String
-    let icon: String
-    let description: String
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Rectangle()
-                .fill(DesignTokens.hairline)
-                .frame(height: 1)
-
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.callout)
-                    .foregroundStyle(DesignTokens.signal)
-                    .frame(width: 22)
-                Text(title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-            }
-
-            Text(description)
-                .font(.body)
-                .foregroundStyle(DesignTokens.bodyText)
-                .lineSpacing(DesignTokens.bodyLineSpacing)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-struct ModelParam: View {
-    let name: String
-    let value: String
-    let detail: String
-    
-    var body: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(name)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(DesignTokens.mutedText)
-            }
-            Spacer()
-            Text(value)
-                .font(.subheadline.weight(.semibold).monospacedDigit())
-                .foregroundStyle(DesignTokens.signal)
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
-
-struct LearningObjective: View {
-    let text: String
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            Rectangle()
-                .fill(DesignTokens.signal)
-                .frame(width: 14, height: 2)
-                .padding(.top, 9)
-
-            Text(text)
-                .font(.body)
-                .foregroundStyle(DesignTokens.bodyText)
-                .lineSpacing(3)
-        }
-        .accessibilityElement(children: .combine)
     }
 }
