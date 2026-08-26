@@ -5,8 +5,10 @@
 //  Created by Pedro Wiezel on 13/02/26.
 //
 
+import CascadeEngine
 import SwiftUI
 
+/// The parameter panel that slides in over the simulation.
 struct SettingsView: View {
     let simulation: Simulation
     var onClose: () -> Void
@@ -25,7 +27,7 @@ struct SettingsView: View {
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done", action: onClose).fontWeight(.semibold)
+                    Button("Done", action: onClose).bold()
                 }
             }
         }

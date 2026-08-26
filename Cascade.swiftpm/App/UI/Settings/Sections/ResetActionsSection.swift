@@ -1,3 +1,4 @@
+import CascadeEngine
 import SwiftUI
 
 struct ResetActionsSection: View {
@@ -5,42 +6,40 @@ struct ResetActionsSection: View {
 
     @State private var showRestartConfirmation = false
 
-    private var hasPendingChanges: Bool {
-        simulation.draft.orbitAltitude != simulation.activeOrbitAltitude ||
-        simulation.draft.orbitVariance != simulation.activeOrbitVariance ||
-        simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ||
-        simulation.draft.satelliteCount != simulation.activeSatelliteCount
-    }
-
     var body: some View {
         Section {
-            Button("Reset Defaults") {
-                withAnimation { simulation.resetSettingsToDefaults() }
-            }
-            .foregroundStyle(.blue)
+            Button("Reset Defaults", action: resetDefaults)
+                .foregroundStyle(.blue)
 
-            Button(role: hasPendingChanges ? .none : .destructive) {
+            // No role while a restart is pending: the button is then the way to
+            // *apply* the user's edits, not to throw work away.
+            Button(role: simulation.hasPendingChanges ? nil : .destructive) {
                 showRestartConfirmation = true
             } label: {
-                if hasPendingChanges {
+                if simulation.hasPendingChanges {
                     LabeledContent("Apply Changes & Restart") {
                         Image(systemName: "arrow.triangle.2.circlepath")
+                            .accessibilityHidden(true)
                     }
                     .foregroundStyle(.yellow)
-                    .fontWeight(.semibold)
+                    .bold()
                 } else {
                     Text("Restart Simulation")
                 }
             }
             .confirmationDialog("Restart?", isPresented: $showRestartConfirmation) {
-                Button("Restart", role: .destructive) {
-                    simulation.resetSimulation()
-                }
+                Button("Restart", role: .destructive, action: simulation.resetSimulation)
             } message: {
-                Text(hasPendingChanges
+                Text(simulation.hasPendingChanges
                      ? "Applying these changes will restart the simulation."
                      : "This will clear satellites and debris, and reset the simulation.")
             }
+        }
+    }
+
+    private func resetDefaults() {
+        withAnimation {
+            simulation.resetSettingsToDefaults()
         }
     }
 }

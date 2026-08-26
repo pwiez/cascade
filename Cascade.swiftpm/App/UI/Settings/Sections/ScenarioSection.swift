@@ -1,13 +1,15 @@
+import CascadeEngine
 import SwiftUI
 
+/// Scenario parameters, which only take effect when the universe is rebuilt.
+///
+/// Every control here edits `draft`; the yellow highlighting is driven by how far
+/// `draft` has drifted from the `active` scenario the simulation is running.
 struct ScenarioSection: View {
     @Bindable var simulation: Simulation
 
-    private var hasPendingChanges: Bool {
-        simulation.draft.orbitAltitude != simulation.activeOrbitAltitude ||
-        simulation.draft.orbitVariance != simulation.activeOrbitVariance ||
-        simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ||
-        simulation.draft.satelliteCount != simulation.activeSatelliteCount
+    private var inclinationChanged: Bool {
+        simulation.draft.useRandomInclination != simulation.active.useRandomInclination
     }
 
     var body: some View {
@@ -15,28 +17,31 @@ struct ScenarioSection: View {
             SliderRow(
                 label: "Initial Satellites",
                 value: $simulation.draft.satelliteCount,
-                range: 200...500,
+                range: Scenario.satelliteCountRange,
                 step: 25,
-                format: "%.0f",
-                requiresRestart: simulation.draft.satelliteCount != simulation.activeSatelliteCount
+                fractionDigits: 0,
+                requiresRestart: simulation.draft.satelliteCount != simulation.active.satelliteCount
             )
 
             SliderRow(
                 label: "Orbit Altitude",
                 value: $simulation.draft.orbitAltitude,
-                range: 250...320,
+                range: Scenario.orbitAltitudeRange,
                 step: 5,
-                format: "%.0f Units",
-                requiresRestart: simulation.draft.orbitAltitude != simulation.activeOrbitAltitude
+                fractionDigits: 0,
+                unit: " Units",
+                requiresRestart: simulation.draft.orbitAltitude != simulation.active.orbitAltitude
             )
 
             SliderRow(
                 label: "Altitude Variance",
                 value: $simulation.draft.orbitVariance,
-                range: 0...40,
+                range: Scenario.orbitVarianceRange,
                 step: 1,
-                format: "±%.0f Units",
-                requiresRestart: simulation.draft.orbitVariance != simulation.activeOrbitVariance
+                fractionDigits: 0,
+                unit: " Units",
+                prefix: "±",
+                requiresRestart: simulation.draft.orbitVariance != simulation.active.orbitVariance
             )
 
             Toggle(isOn: $simulation.draft.useRandomInclination) {
@@ -46,15 +51,14 @@ struct ScenarioSection: View {
                          ? "Satellites will form a shell around Earth."
                          : "Satellites will form a flat ring around Earth.")
                         .font(.caption)
-                        .foregroundStyle(simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ? .yellow : .secondary)
+                        .foregroundStyle(inclinationChanged ? .yellow : .secondary)
                 }
             }
-            .foregroundStyle(simulation.draft.useRandomInclination != simulation.activeUseRandomInclination ? .yellow : .primary)
-
+            .foregroundStyle(inclinationChanged ? .yellow : .primary)
         } header: {
             HStack {
                 Text("Scenario Setup")
-                if hasPendingChanges {
+                if simulation.hasPendingChanges {
                     Spacer()
                     Text("Restart Pending")
                         .foregroundStyle(.yellow)
@@ -62,7 +66,7 @@ struct ScenarioSection: View {
                 }
             }
         } footer: {
-            if hasPendingChanges {
+            if simulation.hasPendingChanges {
                 Text("Applying these changes will restart the simulation.")
                     .foregroundStyle(.yellow)
             }
