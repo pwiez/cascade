@@ -40,7 +40,7 @@ struct DebrisChart: View {
         .init(year: 2025, count: 42500, annotation: nil),
         .init(year: 2026, count: 45000, annotation: "Current")
     ]
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 6) {
@@ -51,7 +51,7 @@ struct DebrisChart: View {
                     .lineSpacing(3)
             }
             .padding(.bottom, 32)
-            
+
             Chart {
                 ForEach(data) { point in
                     AreaMark(
@@ -75,8 +75,7 @@ struct DebrisChart: View {
                     .lineStyle(StrokeStyle(lineWidth: 2))
                     .interpolationMethod(.catmullRom)
                 }
-                
-                
+
                 RuleMark(x: .value("Event", 2007))
                     .foregroundStyle(.orange.opacity(0.4))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
@@ -89,7 +88,7 @@ struct DebrisChart: View {
                             .background(.orange.opacity(DesignTokens.iconBackgroundOpacity))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
-                
+
                 RuleMark(x: .value("Event", 2009))
                     .foregroundStyle(.red.opacity(0.4))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))

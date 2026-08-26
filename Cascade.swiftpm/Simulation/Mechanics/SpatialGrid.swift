@@ -73,11 +73,11 @@ struct SpatialGrid {
     mutating func add(objectIndex: Int, position: SIMD3<Float>) {
         let cellID = getCellIndex(for: position)
         guard cellID != -1 else { return }
-        
+
         if headCell[cellID] == -1 {
             usedCells.append(cellID)
         }
-        
+
         nextParticle[objectIndex] = headCell[cellID]
         headCell[cellID] = Int32(objectIndex)
     }

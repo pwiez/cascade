@@ -3,6 +3,9 @@
 Packages/
 Package.resolved
 
+# --- Swift Playgrounds / Xcode package scratch state ---
+.swiftpm/
+
 # --- Xcode User Data (Personal Settings) ---
 xcuserdata/
 *.xcworkspace/xcuserdata/*

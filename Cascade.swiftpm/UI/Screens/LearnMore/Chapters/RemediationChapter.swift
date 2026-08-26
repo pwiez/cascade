@@ -16,13 +16,13 @@ struct RemediationChapter: View {
                 EditorialSectionHeader(title: "Atmospheric Drag")
 
                 TextParagraph("This is our main ally in this. Did you know Earth's atmosphere does not just end when you get to space? Instead, it tapers off gradually. Gas molecules at very high altitudes are few and far between, but they exert a persistent drag force on orbiting objects. Over time, this drag lowers an object's altitude until it burns up in the thicker atmosphere.")
-                
+
                 ScientificCard {
                     VStack(alignment: .leading, spacing: 24) {
                         Text("How long does it take for an object to deorbit through drag forces?")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(DesignTokens.dimText)
-                        
+
                         VStack(spacing: 12) {
                             DragLifetimeRow(altitude: "300 km", lifetime: "Weeks to months", intensity: 1.0, color: .green)
                             DragLifetimeRow(altitude: "400 km", lifetime: "~1 year", intensity: 0.75, color: .green)
@@ -33,7 +33,7 @@ struct RemediationChapter: View {
                     }
                 }
                 .padding(.vertical)
-                
+
                 TextParagraph("Below 600 km, drag can clear most debris within a few decades. The real challenge lies in higher orbits, where drag is negligible and debris can persist for centuries.")
             }
 
@@ -41,32 +41,32 @@ struct RemediationChapter: View {
                 EditorialSectionHeader(title: "Active Removal Technologies")
 
                 TextParagraph("Atmospheric drag is powerful, but it is insufficient. We need engineered interventions to clear higher orbits or at least make them safer. Several approaches are currently under development. Some of them may seem like they came out of science fiction, but they are very real ideas being researched and tested currently.")
-                
+
                 VStack(spacing: 20) {
                     StrategyCard(
                         title: "Graveyard Orbits",
                         icon: "arrowshape.up.fill",
                         description: "Instead of deorbiting, operators can use the satellite's very last reserves of propellant to push it about 300 kilometers higher into a graveyard orbit, also known as a disposal orbit. This safely removes it from the highly congested operational lanes. It's like parking the satellite permanently out of the way. This is done for satellites in GEO, where speeds are lower and graveyard orbits are safer.",
                     )
-                    
+
                     StrategyCard(
                         title: "Drag Augmentation",
                         icon: "wind",
                         description: "Deployable sails or inflatable structures dramatically increase a satellite's cross-sectional area, which in turn increases its susceptibility to drag forces. Since they can be integrated in craft design far before it is even launched, this is a mechanical and preventive measure which is quite effective.",
                     )
-                    
+
                     StrategyCard(
                         title: "Harpoons & Nets",
                         icon: "lasso",
                         description: "A chaser spacecraft approaches a defunct satellite or rocket body and secures it using a tethered harpoon or a deployable net. The chaser then fires its engines to deorbit the captured debris. The RemoveDEBRIS mission demonstrated net capture in 2018. It was supposed to demonstrate the drag sail technique as well, but the drag sails failed to deploy. ESA's ClearSpace-1 mission plans to perform the first full-scale removal operation, deorbiting ESA's own PROBA-1 satellite. It is planned to launch in 2029.",
                     )
-                    
+
                     StrategyCard(
                         title: "Laser Ablation",
                         icon: "dot.radiowaves.left.and.right",
                         description: "Ground-based or orbital lasers target the surface of a piece of debris. The focused laser energy vaporizes a tiny amount of material, and the ejected vapor acts as a miniature thruster. Over time, with repeated laser passes, the object can be slowed enough to deorbit or be pushed up into a safer orbit. Cost-wise, this is a very effective solution since it does not necessarily involve launching specialized crafts into space.",
                     )
-                    
+
                     StrategyCard(
                         title: "Magnetic Stabilization & Braking",
                         icon: "gyroscope",
@@ -89,14 +89,14 @@ struct DragLifetimeRow: View {
     let lifetime: String
     let intensity: Double
     let color: Color
-    
+
     var body: some View {
         HStack(spacing: 12) {
             Text(altitude)
                 .font(.caption.weight(.semibold).monospacedDigit())
                 .foregroundStyle(.primary)
                 .frame(width: 70, alignment: .leading)
-            
+
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
@@ -108,7 +108,7 @@ struct DragLifetimeRow: View {
             }
             .frame(height: DesignTokens.trackHeight + 1)
             .clipShape(Capsule())
-            
+
             Text(lifetime)
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(DesignTokens.mutedText)
@@ -123,7 +123,7 @@ struct StrategyCard: View {
     let title: String
     let icon: String
     let description: String
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Rectangle()

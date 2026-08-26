@@ -16,7 +16,7 @@ enum AppSection: String, CaseIterable, Identifiable {
     case glossary = "05. Glossary"
     case about = "06. About"
     case credits = "07. Credits"
-    
+
     var id: String { rawValue }
 
     var title: String {
@@ -31,7 +31,7 @@ enum AppSection: String, CaseIterable, Identifiable {
         case .credits: return "Sources & Credits"
         }
     }
-    
+
     var subtitle: String {
         switch self {
         case .hero: return ""
@@ -44,7 +44,7 @@ enum AppSection: String, CaseIterable, Identifiable {
         case .credits: return ""
         }
     }
-    
+
     var icon: String {
         switch self {
         case .hero: return "globe.americas.fill"
@@ -218,13 +218,13 @@ private struct LearnMoreLegacyView: View {
 
 struct ChapterContainerView: View {
     let activeSection: AppSection
-    
+
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 32) {
                     Color.clear.frame(height: 0).id("top")
-                    
+
                     VStack(alignment: .leading, spacing: 12) {
                         Text(activeSection.title)
                             .font(.largeTitle.weight(.bold))
@@ -245,7 +245,7 @@ struct ChapterContainerView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityElement(children: .combine)
-                    
+
                     Group {
                         switch activeSection {
                         case .hero:        IntroChapter()
