@@ -5,6 +5,7 @@
 //  Created by Pedro Wiezel on 13/02/26.
 //
 
+import CascadeEngine
 import SwiftUI
 
 struct SettingsView: View {
@@ -25,7 +26,7 @@ struct SettingsView: View {
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done", action: onClose).fontWeight(.semibold)
+                    Button("Done", action: onClose).bold()
                 }
             }
         }

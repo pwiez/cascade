@@ -1,15 +1,32 @@
+//
+//  SliderRow.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 08/05/26.
+//
+
+import CascadeEngine
 import SwiftUI
 
 struct SliderRow: View {
     let label: String
     @Binding var value: Double
     let range: ClosedRange<Double>
-    var step: Double? = nil
-    var format: String = "%.1f"
-    var requiresRestart: Bool = false
-    var caption: String? = nil
 
-    private var formatted: String { String(format: format, value) }
+    var step: Double?
+
+    var fractionDigits = 1
+
+    var unit = ""
+
+    var prefix = ""
+
+    var requiresRestart = false
+    var caption: String?
+
+    private var formatted: String {
+        prefix + value.formatted(.number.precision(.fractionLength(fractionDigits))) + unit
+    }
 
     var body: some View {
         VStack(spacing: 4) {
@@ -17,12 +34,13 @@ struct SliderRow: View {
                 HStack(spacing: 6) {
                     if requiresRestart {
                         Image(systemName: "arrow.triangle.2.circlepath")
-                            .font(.caption2.weight(.bold))
                             .imageScale(.small)
+                            .accessibilityHidden(true)
                     }
                     Text(formatted)
                         .monospacedDigit()
                 }
+                .font(.caption.bold())
                 .foregroundStyle(requiresRestart ? .yellow : .secondary)
                 .animation(.snappy, value: requiresRestart)
             }
@@ -41,8 +59,14 @@ struct SliderRow: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
         .accessibilityLabel(label)
         .accessibilityValue(formatted)
-        .accessibilityHint(caption ?? "")
+        .accessibilityHint(accessibilityHintText)
+    }
+
+    private var accessibilityHintText: String {
+        let restartNote = requiresRestart ? "Takes effect after restarting the simulation." : ""
+        return [caption, restartNote].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
     }
 }
