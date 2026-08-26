@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// One labelled counter, animating between values rather than snapping.
 struct MetricItem: View {
     let title: String
     let value: Int
@@ -12,11 +13,14 @@ struct MetricItem: View {
                 .foregroundStyle(.primary)
 
             Text(value.formatted())
-                .font(.system(.body).weight(.bold))
+                .font(.body.bold())
                 .monospacedDigit()
                 .foregroundStyle(color)
                 .contentTransition(.numericText())
                 .animation(.snappy, value: value)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title.localizedCapitalized)
+        .accessibilityValue(value.formatted())
     }
 }

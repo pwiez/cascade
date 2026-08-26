@@ -1,8 +1,9 @@
+import CascadeEngine
 import SwiftUI
 
+/// The live satellite and debris counts shown along the bottom edge.
 struct SimulationMetrics: View {
     let telemetry: Telemetry
-    let initialSatellites: Int
     let satelliteColor: Color
     let debrisColor: Color
 
