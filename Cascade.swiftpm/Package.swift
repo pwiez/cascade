@@ -1,7 +1,7 @@
 // swift-tools-version: 6.0
 
-import PackageDescription
 import AppleProductTypes
+import PackageDescription
 
 let package = Package(
     name: "Cascade",
@@ -33,7 +33,19 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AppModule",
-            path: "."
+            dependencies: ["CascadeEngine"],
+            path: "App"
+        ),
+
+        .target(
+            name: "CascadeEngine",
+            path: "Engine"
+        ),
+
+        .testTarget(
+            name: "CascadeEngineTests",
+            dependencies: ["CascadeEngine"],
+            path: "Tests/CascadeEngineTests"
         )
     ],
     swiftLanguageModes: [.version("6")]
