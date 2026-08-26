@@ -1,3 +1,10 @@
+//
+//  MetricItem.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 16/02/26.
+//
+
 import SwiftUI
 
 struct MetricItem: View {
@@ -12,11 +19,14 @@ struct MetricItem: View {
                 .foregroundStyle(.primary)
 
             Text(value.formatted())
-                .font(.system(.body).weight(.bold))
+                .font(.body.bold())
                 .monospacedDigit()
                 .foregroundStyle(color)
                 .contentTransition(.numericText())
                 .animation(.snappy, value: value)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title.localizedCapitalized)
+        .accessibilityValue(value.formatted())
     }
 }

@@ -1,8 +1,15 @@
+//
+//  SimulationMetrics.swift
+//  Cascade
+//
+//  Created by Pedro Wiezel on 18/02/26.
+//
+
+import CascadeEngine
 import SwiftUI
 
 struct SimulationMetrics: View {
     let telemetry: Telemetry
-    let initialSatellites: Int
     let satelliteColor: Color
     let debrisColor: Color
 
