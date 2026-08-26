@@ -16,6 +16,28 @@ git clone https://github.com/pwiez/cascade.git
 open cascade/Cascade.swiftpm
 ```
 
+## Layout
+
+The package has three targets. `AppModule` (`App/`) is the SwiftUI layer, `CascadeEngine` (`Engine/`) is the simulation, and nothing in the engine imports SwiftUI's view layer — the boundary is enforced by the module, not by convention. Splitting them is also what makes the engine testable, since an `.iOSApplication` executable target can't be.
+
+```
+App/     SwiftUI views, screens and design tokens
+Engine/  Core/       shared constants, RNG, buffers
+         State/      settings, scenario, the observable façade
+         Scene/      RealityKit scene controller and physics solver
+         Mechanics/  debris pool and spatial grid
+         Visuals/    camera rig and debris batching
+Tests/   engine regression and invariant tests
+```
+
+## Tests
+
+The engine's numeric core is deterministic and UI-free, so it's covered by unit tests. Swift Playgrounds doesn't run them; use Xcode, or:
+
+```bash
+xcodebuild test -scheme Cascade -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4)'
+```
+
 ## Credits
 
 The simulation and explainer draw on public research and reports from NASA and the ESA Space Debris Office. Earth textures by [Tom Patterson](https://shadedrelief.com/natural3/) and [Solar System Scope](https://www.solarsystemscope.com), both based on NASA imaging.

@@ -1,7 +1,7 @@
 // swift-tools-version: 6.0
 
-import PackageDescription
 import AppleProductTypes
+import PackageDescription
 
 let package = Package(
     name: "Cascade",
@@ -31,9 +31,26 @@ let package = Package(
         )
     ],
     targets: [
+        // The SwiftUI layer. Depends on the engine, and nothing depends on it.
         .executableTarget(
             name: "AppModule",
-            path: "."
+            dependencies: ["CascadeEngine"],
+            path: "App"
+        ),
+
+        // The simulation itself. Split out as its own module so the boundary
+        // between UI and engine is enforced by the compiler rather than by
+        // convention — and so it can be tested, which an `.iOSApplication`
+        // executable target cannot be.
+        .target(
+            name: "CascadeEngine",
+            path: "Engine"
+        ),
+
+        .testTarget(
+            name: "CascadeEngineTests",
+            dependencies: ["CascadeEngine"],
+            path: "Tests/CascadeEngineTests"
         )
     ],
     swiftLanguageModes: [.version("6")]
