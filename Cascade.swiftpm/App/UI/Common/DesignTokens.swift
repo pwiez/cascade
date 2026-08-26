@@ -8,39 +8,33 @@
 import SwiftUI
 
 enum DesignTokens {
+
     static let cardRadius: CGFloat = 16
-    static let iconRadius: CGFloat = 10
     static let cardPadding: CGFloat = 20
-    static let compactPadding: CGFloat = 16
-
-    static let iconSize: CGFloat = 40
-    static let iconBackgroundOpacity: Double = 0.12
-
-    static let cardBackground = Color(white: 0.08)
-    static let cardBorder = Color.white.opacity(0.20)
-
-    static let accentBorderOpacity: Double = 0.12
-    static let borderWidth: CGFloat = 1
-    static let dividerColor = Color.white.opacity(0.20)
 
     static let bodyText = Color(white: 0.82)
     static let dimText = Color(white: 0.55)
     static let mutedText = Color.gray
+    static let ink = Color(white: 0.92)
     static let bodyLineSpacing: CGFloat = 5
+
+    static let hairline = Color.white.opacity(0.12)
+    static let ruleStrong = Color.white.opacity(0.22)
+    static let dividerColor = Color.white.opacity(0.20)
+    static let dataSurface = Color.white.opacity(0.022)
+    static let sidebarBackground = Color(white: 0.07)
+    static let chapterBackground = Color.black
+
+    static let signal = Color.blue
+    static let iconBackgroundOpacity: Double = 0.12
 
     static let trackColor = Color(white: 0.12)
     static let trackHeight: CGFloat = 4
-
-    static let signal = Color.blue
-    static let ink = Color(white: 0.92)
-    static let hairline = Color.white.opacity(0.12)
-    static let ruleStrong = Color.white.opacity(0.22)
-    static let dataSurface = Color.white.opacity(0.022)
 }
 
 extension View {
     func cascadeDivider() -> some View {
-        self.overlay(DesignTokens.dividerColor)
+        overlay(DesignTokens.dividerColor)
     }
 }
 
@@ -49,17 +43,15 @@ extension View {
     func applyGlassStyle(isProminent: Bool, tint: Color?) -> some View {
         if #available(iOS 26, *) {
             if isProminent {
-                self.buttonStyle(.glassProminent)
-                    .tint(tint)
+                buttonStyle(.glassProminent).tint(tint)
             } else {
-                self.buttonStyle(.glass)
+                buttonStyle(.glass)
             }
         } else {
             if isProminent {
-                self.buttonStyle(.borderedProminent)
-                    .tint(tint)
+                buttonStyle(.borderedProminent).tint(tint)
             } else {
-                self.buttonStyle(.bordered)
+                buttonStyle(.bordered)
             }
         }
     }
@@ -67,9 +59,9 @@ extension View {
     @ViewBuilder
     func applyGlassPanel() -> some View {
         if #available(iOS 26, *) {
-            self.glassEffect()
+            glassEffect()
         } else {
-            self.background(.ultraThinMaterial, in: Capsule())
+            background(.ultraThinMaterial, in: .capsule)
         }
     }
 }
