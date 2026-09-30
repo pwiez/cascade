@@ -161,4 +161,41 @@ struct PhysicsSolverTests {
         frame = await Self.step(solver, satellites: [])
         #expect(frame.debrisCount == 0)
     }
+
+    @Test("A retained frame stays unchanged when the solver reuses its buffer slot")
+    func retainedFramesAreImmutable() async {
+        let solver = Self.makeSolver()
+        await solver.spawnExplosion(at: SIMD3(300, 0, 0), velocity: SIMD3(0, 0, 20))
+
+        let original = await Self.step(solver, satellites: [])
+        let originalCount = original.vertexBuffer.activeVertexCount
+        let originalVertices = Array(original.vertexBuffer.vertices.prefix(originalCount))
+
+        await solver.spawnExplosion(at: SIMD3(-300, 0, 0), velocity: SIMD3(0, 0, -20))
+        for _ in 0..<3 {
+            _ = await Self.step(solver, satellites: [])
+        }
+
+        #expect(original.vertexBuffer.activeVertexCount == originalCount)
+        #expect(Array(original.vertexBuffer.vertices.prefix(originalCount)) == originalVertices)
+    }
+
+    @Test("Changing debris scale refreshes the cached fragment geometry")
+    func debrisScaleUpdatesVertices() async {
+        var sim = Self.settings().sim
+        sim.debrisRotation = false
+        let settings = EngineSettings(sim: sim, scenario: .defaults)
+        let solver = PhysicsSolver(settings: settings, earthRadius: Self.earthRadius)
+        let position = SIMD3<Float>(300, 0, 0)
+        await solver.spawnExplosion(at: position, velocity: .zero)
+
+        let before = await Self.step(solver, satellites: [], dt: 0)
+        #expect(before.vertexBuffer.vertices[0] == position + DebrisMesh.corners[0])
+
+        var scaled = settings.sim
+        scaled.debrisScale = 2
+        await solver.updateSettings(EngineSettings(sim: scaled, scenario: settings.scenario))
+        let after = await Self.step(solver, satellites: [], dt: 0)
+        #expect(after.vertexBuffer.vertices[0] == position + DebrisMesh.corners[0] * 2)
+    }
 }

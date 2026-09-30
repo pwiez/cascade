@@ -18,6 +18,7 @@ actor PhysicsSolver {
         let event: CollisionEvent
     }
 
+    // Each synchronous worker owns one bucket; the actor reads it only after all workers join.
     private final class ThreadResult: @unchecked Sendable {
         var satelliteHits: [Hit] = []
         var debrisHits: [Hit] = []
@@ -32,6 +33,7 @@ actor PhysicsSolver {
     private var debrisPool: DebrisPool
     private var grid: SpatialGrid
     private var settings: EngineSettings
+    private var scaledCorners: [SIMD3<Float>]
 
     private let killRadiusSq: Float
     private var maxRadiusSq: Float
@@ -54,6 +56,7 @@ actor PhysicsSolver {
 
     init(settings: EngineSettings, earthRadius: Float) {
         self.settings = settings
+        self.scaledCorners = DebrisMesh.corners.map { $0 * Float(settings.sim.debrisScale) }
 
         let killRadius = earthRadius + 2.0
         self.killRadiusSq = killRadius * killRadius
@@ -119,9 +122,9 @@ actor PhysicsSolver {
             )
         }
 
+        computeVertices(into: &frameBuffers[bufferIndex], cameraPosition: cameraPosition)
         let buffer = frameBuffers[bufferIndex]
         bufferIndex = 1 - bufferIndex
-        computeVertices(into: buffer, cameraPosition: cameraPosition)
 
         return SimulationFrame(
             debrisCount: debrisPool.activeCount,
@@ -136,6 +139,10 @@ actor PhysicsSolver {
 
         if newCellSize != grid.cellSize {
             grid = SpatialGrid(maxObjects: Capacity.gridObjects, cellSize: newCellSize)
+        }
+
+        if newSettings.sim.debrisScale != settings.sim.debrisScale {
+            scaledCorners = DebrisMesh.corners.map { $0 * Float(newSettings.sim.debrisScale) }
         }
 
         maxRadiusSq = Float(newSettings.sim.eliminationRadius * newSettings.sim.eliminationRadius)
@@ -199,17 +206,17 @@ actor PhysicsSolver {
 
     // MARK: - Vertex assembly
 
+    // Borrows remain valid until concurrentPerform returns. Workers write disjoint vertex ranges.
     private struct VertexContext: @unchecked Sendable {
         let verts: UnsafeMutableBufferPointer<DebrisVertex>
         let debris: DebrisPool.VertexBuffers
     }
 
-    private func computeVertices(into buffer: FrameBuffer, cameraPosition: SIMD3<Float>) {
+    private func computeVertices(into buffer: inout FrameBuffer, cameraPosition: SIMD3<Float>) {
         let count = debrisPool.activeCount
         buffer.prepare(activeCount: count)
 
-        let scale = Float(settings.sim.debrisScale)
-        let corners = DebrisMesh.corners.map { $0 * scale }
+        let corners = scaledCorners
         let spinEnabled = settings.sim.debrisRotation
 
         buffer.vertices.withUnsafeMutableBufferPointer { verts in
@@ -227,13 +234,6 @@ actor PhysicsSolver {
                         Self.writeVertices(start: start, end: min(start + chunkSize, count), context: context,
                                            spinEnabled: spinEnabled, camera: cameraPosition, corners: corners)
                     }
-                }
-
-                let staleStart = buffer.activeVertexCount
-                let staleEnd = buffer.dirtyVertexCount
-                if staleStart < staleEnd, let base = verts.baseAddress {
-                    let stride = MemoryLayout<DebrisVertex>.stride
-                    memset(UnsafeMutableRawPointer(base + staleStart), 0, (staleEnd - staleStart) * stride)
                 }
             }
         }
@@ -268,6 +268,7 @@ actor PhysicsSolver {
 
     // MARK: - Collisions
 
+    // Workers only read these borrows, and concurrentPerform joins before any borrow ends.
     private struct CollisionContext: @unchecked Sendable {
         let satPos: UnsafeBufferPointer<SIMD3<Float>>
         let satVel: UnsafeBufferPointer<SIMD3<Float>>
@@ -295,9 +296,9 @@ actor PhysicsSolver {
         let localGrid = grid
         let workerCount = min(
             max(1, (satCount + debrisCount) / Self.objectsPerCore),
-            threadBuckets.count
+            min(satCount, threadBuckets.count)
         )
-        let buckets = threadBuckets
+        let buckets = threadBuckets.prefix(workerCount)
 
         for bucket in buckets {
             bucket.removeAll()
@@ -333,7 +334,7 @@ actor PhysicsSolver {
         return frameDeaths
     }
 
-    private func reduce(_ buckets: [ThreadResult], debrisCount: Int) {
+    private func reduce(_ buckets: ArraySlice<ThreadResult>, debrisCount: Int) {
         frameDeaths.removeAll(keepingCapacity: true)
         frameExplosions.removeAll(keepingCapacity: true)
 
@@ -373,6 +374,7 @@ actor PhysicsSolver {
         let posA = context.satPos[i]
         let cellID = grid.cellIndex(for: posA)
         guard cellID != -1 else { return }
+        var recordedSourceHit = false
 
         for offset in SpatialGrid.neighborOffsets {
             let neighborCell = grid.neighborCell(of: cellID, offset: offset)
@@ -386,17 +388,14 @@ actor PhysicsSolver {
                 guard candidate > i else { continue }
 
                 let posB: SIMD3<Float>
-                let velB: SIMD3<Float>
                 let isDebris = candidate >= satCount
 
                 if isDebris {
                     let d = candidate - satCount
                     guard d < debrisCount else { continue }
                     posB = SIMD3(context.debris.posX[d], context.debris.posY[d], context.debris.posZ[d])
-                    velB = SIMD3(context.debris.velX[d], context.debris.velY[d], context.debris.velZ[d])
                 } else {
                     posB = context.satPos[candidate]
-                    velB = context.satVel[candidate]
                 }
 
                 let effectiveRadius = isDebris ? radius : satRadius
@@ -406,15 +405,22 @@ actor PhysicsSolver {
                       delta.z <= effectiveRadius,
                       length_squared(posA - posB) < effectiveRadius * effectiveRadius else { continue }
 
-                bucket.satelliteHits.append(
-                    Hit(index: context.satIdx[i], event: CollisionEvent(position: posA, velocity: context.satVel[i]))
-                )
+                if !recordedSourceHit {
+                    bucket.satelliteHits.append(
+                        Hit(index: context.satIdx[i], event: CollisionEvent(position: posA, velocity: context.satVel[i]))
+                    )
+                    recordedSourceHit = true
+                }
 
-                let event = CollisionEvent(position: posB, velocity: velB)
                 if isDebris {
-                    bucket.debrisHits.append(Hit(index: candidate - satCount, event: event))
+                    let d = candidate - satCount
+                    let velocity = SIMD3(context.debris.velX[d], context.debris.velY[d], context.debris.velZ[d])
+                    bucket.debrisHits.append(Hit(index: d, event: CollisionEvent(position: posB, velocity: velocity)))
                 } else {
-                    bucket.satelliteHits.append(Hit(index: context.satIdx[candidate], event: event))
+                    bucket.satelliteHits.append(
+                        Hit(index: context.satIdx[candidate],
+                            event: CollisionEvent(position: posB, velocity: context.satVel[candidate]))
+                    )
                 }
             }
         }

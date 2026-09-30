@@ -53,6 +53,7 @@ struct SpatialGrid {
     }
 
     mutating func clear() {
+        // Reset only occupied cells instead of walking the entire 128-cubed grid each frame.
         headCell.withUnsafeMutableBufferPointer { head in
             usedCells.withUnsafeBufferPointer { used in
                 for cell in used { head[cell] = -1 }

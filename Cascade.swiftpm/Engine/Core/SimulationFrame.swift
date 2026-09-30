@@ -3,7 +3,7 @@
 //  Cascade
 //
 
-struct SimulationFrame: @unchecked Sendable {
+struct SimulationFrame: Sendable {
     let debrisCount: Int
     let vertexBuffer: FrameBuffer
     let killedSatelliteIndices: [Int]

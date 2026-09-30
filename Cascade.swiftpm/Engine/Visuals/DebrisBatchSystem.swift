@@ -15,10 +15,8 @@ final class DebrisBatchSystem {
 
     private static let ringSize = 3
 
-    private let meshes: [LowLevelMesh]
-    private let meshResources: [MeshResource]
+    private let buffers: [(mesh: LowLevelMesh, resource: MeshResource)]
     private var currentMeshIndex = 0
-    private var material: UnlitMaterial
 
     init(maxDebris: Int, color: UIColor) {
         let totalVertices = maxDebris * DebrisMesh.verticesPerFragment
@@ -28,12 +26,12 @@ final class DebrisBatchSystem {
         descriptor.vertexCapacity = totalVertices
         descriptor.indexCapacity = totalIndices
         descriptor.vertexAttributes = [.init(semantic: .position, format: .float3, offset: 0)]
-        descriptor.vertexLayouts = [.init(bufferIndex: 0, bufferStride: 16)]
+        descriptor.vertexLayouts = [.init(bufferIndex: 0, bufferStride: MemoryLayout<DebrisVertex>.stride)]
         descriptor.indexType = .uint32
 
         let bounds = BoundingBox(min: [-1000, -1000, -1000], max: [1000, 1000, 1000])
 
-        var built: [LowLevelMesh] = []
+        var built: [(mesh: LowLevelMesh, resource: MeshResource)] = []
         built.reserveCapacity(Self.ringSize)
 
         for _ in 0..<Self.ringSize {
@@ -49,54 +47,55 @@ final class DebrisBatchSystem {
                 }
             }
             mesh.parts.replaceAll([
-                LowLevelMesh.Part(indexCount: totalIndices, topology: .triangle, bounds: bounds)
+                LowLevelMesh.Part(indexCount: 0, topology: .triangle, bounds: bounds)
             ])
-            built.append(mesh)
+            // Keep each resource paired with its writable mesh even if allocation fails.
+            guard let resource = try? MeshResource(from: mesh) else { continue }
+            built.append((mesh, resource))
         }
 
-        meshes = built
-        meshResources = built.compactMap { try? MeshResource(from: $0) }
-        material = UnlitMaterial(color: color)
+        buffers = built
 
         entity = ModelEntity()
-        if let first = meshResources.first {
-            entity.model = ModelComponent(mesh: first, materials: [material])
+        if let first = buffers.first {
+            entity.model = ModelComponent(mesh: first.resource, materials: [UnlitMaterial(color: color)])
         }
     }
 
     func commitVertices(from buffer: FrameBuffer) {
-        guard !meshes.isEmpty else { return }
-        let next = (currentMeshIndex + 1) % meshes.count
+        guard !buffers.isEmpty else { return }
+        let next = (currentMeshIndex + 1) % buffers.count
+        let mesh = buffers[next].mesh
+        precondition(buffer.activeVertexCount <= mesh.vertexCapacity)
 
-        meshes[next].withUnsafeMutableBytes(bufferIndex: 0) { destination in
-            buffer.vertices.withUnsafeBufferPointer { source in
-                let byteCount = buffer.dirtyVertexCount * MemoryLayout<DebrisVertex>.stride
-                guard byteCount > 0,
-                      let destinationBase = destination.baseAddress,
-                      let sourceBase = source.baseAddress else { return }
-                memcpy(destinationBase, sourceBase, min(byteCount, destination.count))
+        if buffer.activeVertexCount > 0 {
+            mesh.withUnsafeMutableBytes(bufferIndex: 0) { destination in
+                buffer.vertices.withUnsafeBufferPointer { source in
+                    let byteCount = buffer.activeVertexCount * MemoryLayout<DebrisVertex>.stride
+                    guard let destinationBase = destination.baseAddress,
+                          let sourceBase = source.baseAddress else { return }
+                    memcpy(destinationBase, sourceBase, byteCount)
+                }
             }
         }
 
-        entity.model?.mesh = meshResources[next]
+        // Draw only the active prefix; older vertices in a reused mesh remain outside the draw range.
+        mesh.parts[0].indexCount = buffer.activeVertexCount / DebrisMesh.verticesPerFragment
+            * DebrisMesh.indicesPerFragment
+        entity.model?.mesh = buffers[next].resource
         currentMeshIndex = next
     }
 
     func clear() {
-        guard !meshes.isEmpty else { return }
-        let next = (currentMeshIndex + 1) % meshes.count
+        guard !buffers.isEmpty else { return }
+        let next = (currentMeshIndex + 1) % buffers.count
 
-        meshes[next].withUnsafeMutableBytes(bufferIndex: 0) { buffer in
-            guard let base = buffer.baseAddress else { return }
-            memset(base, 0, buffer.count)
-        }
-
-        entity.model?.mesh = meshResources[next]
+        buffers[next].mesh.parts[0].indexCount = 0
+        entity.model?.mesh = buffers[next].resource
         currentMeshIndex = next
     }
 
     func updateColor(_ newColor: UIColor) {
-        material = UnlitMaterial(color: newColor)
-        entity.model?.materials = [material]
+        entity.model?.materials = [UnlitMaterial(color: newColor)]
     }
 }

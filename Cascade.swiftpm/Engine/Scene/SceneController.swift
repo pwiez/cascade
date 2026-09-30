@@ -52,7 +52,7 @@ final class SceneController {
     // MARK: Frame state
     private var physicsTask: Task<Void, Never>?
 
-    private var solverQueue: Task<Void, Never> = Task {}
+    private let solverQueue = SimulationWorkQueue()
 
     private var lastFrameTime: TimeInterval = 0
     private var frameCounter = 0
@@ -119,7 +119,8 @@ final class SceneController {
         guard tickFrameClock() else { return }
 
         processCommandQueue()
-        guard !isPaused else { return }
+        // Keep satellites, Earth and debris on the same accepted simulation tick.
+        guard !isPaused, physicsTask == nil else { return }
 
         let deltaTime = Self.fixedTimeStep * Float(settings.sim.timeScale)
         let effectiveEarthMass = earthMass * Float(settings.sim.gravityMultiplier)
@@ -127,17 +128,12 @@ final class SceneController {
         updateSatellites(dt: deltaTime, earthMass: effectiveEarthMass)
         updateEarthRotation(dt: deltaTime)
 
-        guard physicsTask == nil else { return }
-
         captureSatelliteState()
         let cameraPosition = cameraRig?.camera.position(relativeTo: nil) ?? .zero
         let positions = satPosBuffer
         let velocities = satVelBuffer
         let indices = satIdxBuffer
-        let queue = solverQueue
-
-        physicsTask = Task { [solver] in
-            await queue.value
+        physicsTask = solverQueue.enqueue { [weak self, solver] in
             let frame = await solver.step(
                 dt: deltaTime,
                 earthMass: effectiveEarthMass,
@@ -146,10 +142,9 @@ final class SceneController {
                 satelliteIndices: indices,
                 cameraPosition: cameraPosition
             )
-            guard !Task.isCancelled else {
-                self.physicsTask = nil
-                return
-            }
+            // A reset may have installed a newer task while this one awaited the
+            // solver. Discard cancelled results without clearing that new handle.
+            guard !Task.isCancelled, let self else { return }
             self.apply(frame)
             self.physicsTask = nil
         }
@@ -245,10 +240,8 @@ final class SceneController {
     }
 
     private func onSolver(_ work: @escaping @Sendable (PhysicsSolver) async -> Void) {
-        let previous = solverQueue
         let solver = self.solver
-        solverQueue = Task {
-            await previous.value
+        solverQueue.enqueue {
             await work(solver)
         }
     }
@@ -265,6 +258,7 @@ final class SceneController {
 
         spawnSatellites(count: satelliteCount)
         activeSatelliteCount = satellites.count
+        frameCounter = 0
         cameraRig?.reset()
 
         onStatsChange?(SimStats(debris: 0, satellites: activeSatelliteCount))
@@ -289,62 +283,16 @@ final class SceneController {
     // MARK: - World building
 
     private func spawnSatellites(count: Int) {
-        let scenario = settings.scenario
-        let altitude = Float(scenario.orbitAltitude)
-        let variance = Float(scenario.orbitVariance)
-        let gm = gravitationalConstant * earthMass * Float(settings.sim.gravityMultiplier)
-        let scale = Float(settings.sim.satelliteScale)
-
-        satellites.reserveCapacity(count)
-
-        for i in 0..<count {
-            let radius = altitude + .random(in: -variance...variance)
-            let orbitalSpeed = sqrt(gm / radius)
-
-            let (position, velocity) = scenario.useRandomInclination
-                ? Self.shellOrbit(index: i, count: count, radius: radius, speed: orbitalSpeed)
-                : Self.ringOrbit(index: i, count: count, radius: radius, speed: orbitalSpeed)
-
-            let entity = ModelEntity(mesh: satelliteMesh, materials: [satelliteMaterial])
-            entity.scale = SIMD3(repeating: scale)
-            entity.position = position
-            entity.components.set(OrbitalData(velocity: velocity))
-
-            rootAnchor.addChild(entity)
-            satellites.append(entity)
-        }
-    }
-
-    private static func shellOrbit(index: Int, count: Int, radius: Float, speed: Float)
-        -> (position: SIMD3<Float>, velocity: SIMD3<Float>) {
-
-        let goldenAngle: Float = 2.399963229
-        let z = 1.0 - (2.0 * Float(index) + 1.0) / Float(count)
-        let sinTheta = sqrt(max(0.0, 1.0 - z * z))
-        let phi = goldenAngle * Float(index)
-
-        let radial = SIMD3<Float>(sinTheta * cos(phi), z, sinTheta * sin(phi))
-
-        var tangent = SIMD3<Float>(.random(in: -1...1), .random(in: -1...1), .random(in: -1...1))
-        tangent -= radial * dot(tangent, radial)
-        if length(tangent) < 0.001 {
-            tangent = abs(radial.x) < 0.9 ? cross(radial, SIMD3(1, 0, 0)) : cross(radial, SIMD3(0, 1, 0))
-        }
-
-        return (radial * radius, normalize(tangent) * speed)
-    }
-
-    private static func ringOrbit(index: Int, count: Int, radius: Float, speed: Float)
-        -> (position: SIMD3<Float>, velocity: SIMD3<Float>) {
-
-        let anomaly = (Float(index) / Float(count)) * 2.0 * .pi
-        return (
-            SIMD3(cos(anomaly), 0, sin(anomaly)) * radius,
-            SIMD3(-sin(anomaly), 0, cos(anomaly)) * speed
+        satellites = SatelliteSpawner.makeSatellites(
+            count: count, settings: settings, earthMass: gravitationalConstant * earthMass,
+            mesh: satelliteMesh, material: satelliteMaterial
         )
+        for satellite in satellites {
+            rootAnchor.addChild(satellite)
+        }
     }
 
-    // MARK: - Settings
+    // MARK: - Live settings
 
     private func handleSettingsUpdate(_ newSettings: EngineSettings) {
         let old = settings
@@ -421,18 +369,20 @@ final class SceneController {
             mainSun.look(at: .zero, from: [500, 0, -500], relativeTo: nil)
         }
 
-        guard let earth = earthEntity,
-              var model = earth.model,
-              var material = model.materials.first as? PhysicallyBasedMaterial else { return }
+        for entity in [earthEntity, atmosphereEntity] {
+            guard let entity,
+                  var model = entity.model,
+                  var material = model.materials.first as? PhysicallyBasedMaterial else { continue }
 
-        if settings.sim.useOmniLight {
-            material.ambientOcclusion = PhysicallyBasedMaterial.AmbientOcclusion()
-        } else if let texture = ambientOcclusionTexture {
-            material.ambientOcclusion = .init(texture: .init(texture))
+            if settings.sim.useOmniLight {
+                material.ambientOcclusion = PhysicallyBasedMaterial.AmbientOcclusion()
+            } else if let texture = ambientOcclusionTexture {
+                material.ambientOcclusion = .init(texture: .init(texture))
+            }
+
+            model.materials[0] = material
+            entity.model = model
         }
-
-        model.materials = [material]
-        earth.model = model
     }
 
     private func setupEarth() {
@@ -474,10 +424,6 @@ final class SceneController {
 
         ambientOcclusionTexture = Self.flatAmbientOcclusionTexture()
 
-        if !settings.sim.useOmniLight, let texture = ambientOcclusionTexture {
-            earthMaterial.ambientOcclusion = .init(texture: .init(texture))
-            atmosphere.ambientOcclusion = .init(texture: .init(texture))
-        }
         if let texture = await albedo {
             earthMaterial.baseColor = .init(tint: .white, texture: .init(texture))
         }
@@ -489,6 +435,12 @@ final class SceneController {
         }
 
         guard !Task.isCancelled else { return }
+        // Loading suspends: use the current lighting mode, which may have changed
+        // since the texture requests began.
+        if !settings.sim.useOmniLight, let texture = ambientOcclusionTexture {
+            earthMaterial.ambientOcclusion = .init(texture: .init(texture))
+            atmosphere.ambientOcclusion = .init(texture: .init(texture))
+        }
         earthEntity?.model?.materials = [earthMaterial]
         atmosphereEntity?.model?.materials = [atmosphere]
     }

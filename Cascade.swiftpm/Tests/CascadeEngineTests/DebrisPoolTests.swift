@@ -25,7 +25,9 @@ struct DebrisPoolTests {
         #expect(pool.position(at: 0) == SIMD3(0, 0, 0))
         #expect(pool.position(at: 1) == SIMD3(3, 6, 9))
         #expect(pool.position(at: 2) == SIMD3(2, 4, 6))
-        #expect(pool.velX[1] == 30)
+        pool.withCollisionBuffers { buffers in
+            #expect(buffers.velX[1] == 30)
+        }
     }
 
     @Test("Killing the last fragment needs no swap")
@@ -72,6 +74,23 @@ struct DebrisPoolTests {
 
         #expect(pool.activeCount == 1)
         #expect(pool.position(at: 0).x == 300)
+    }
+
+    @Test("Non-finite fragments are culled without losing valid neighbors",
+          arguments: [Float.nan, .infinity, -.infinity])
+    func cullsNonFiniteFragments(bad: Float) {
+        let pool = DebrisPool(capacity: 4)
+        pool.spawn(at: SIMD3(bad, 0, 0), velocity: .zero)
+        pool.spawn(at: SIMD3(300, 0, 0), velocity: .zero)
+        pool.spawn(at: SIMD3(0, 300, 0), velocity: SIMD3(0, bad, 0))
+        pool.spawn(at: SIMD3(0, 0, 300), velocity: .zero)
+
+        pool.updatePhysics(dt: 1.0 / 300.0, earthMass: 0,
+                           killRadiusSq: 242 * 242, maxRadiusSq: 600 * 600)
+
+        #expect(pool.activeCount == 2)
+        let positions = Set((0..<pool.activeCount).map { pool.position(at: $0) })
+        #expect(positions == [SIMD3(300, 0, 0), SIMD3(0, 0, 300)])
     }
 
     @Test("A circular orbit stays circular over ten thousand steps")

@@ -10,19 +10,20 @@ import simd
 
 final class DebrisPool {
 
-    private(set) var posX: [Float]
-    private(set) var posY: [Float]
-    private(set) var posZ: [Float]
+    // A dense prefix keeps vectorized integration contiguous; removal swaps in the last fragment.
+    private var posX: [Float]
+    private var posY: [Float]
+    private var posZ: [Float]
 
-    private(set) var velX: [Float]
-    private(set) var velY: [Float]
-    private(set) var velZ: [Float]
+    private var velX: [Float]
+    private var velY: [Float]
+    private var velZ: [Float]
 
-    private(set) var rotAxisX: [Float]
-    private(set) var rotAxisY: [Float]
-    private(set) var rotAxisZ: [Float]
-    private(set) var spinRate: [Float]
-    private(set) var rotAngle: [Float]
+    private var rotAxisX: [Float]
+    private var rotAxisY: [Float]
+    private var rotAxisZ: [Float]
+    private var spinRate: [Float]
+    private var rotAngle: [Float]
 
     private(set) var activeCount = 0
     let capacity: Int
@@ -195,7 +196,7 @@ final class DebrisPool {
         var i = 0
         while i < activeCount {
             let distanceSq = scratchA[i]
-            if distanceSq < killRadiusSq || distanceSq > maxRadiusSq {
+            if !distanceSq.isFinite || distanceSq < killRadiusSq || distanceSq > maxRadiusSq {
                 kill(at: i)
                 scratchA[i] = scratchA[activeCount]
             } else {
@@ -211,12 +212,13 @@ final class DebrisPool {
         SIMD3(posX[i], posY[i], posZ[i])
     }
 
-    struct CollisionBuffers: @unchecked Sendable {
+    struct CollisionBuffers {
         let posX, posY, posZ: UnsafeBufferPointer<Float>
         let velX, velY, velZ: UnsafeBufferPointer<Float>
     }
 
-    func withCollisionBuffers<R>(_ body: (CollisionBuffers) -> R) -> R {
+    // These read-only borrows must not escape the synchronous body or overlap pool mutation.
+    func withCollisionBuffers(_ body: (CollisionBuffers) -> Void) {
         posX.withUnsafeBufferPointer { pX in
         posY.withUnsafeBufferPointer { pY in
         posZ.withUnsafeBufferPointer { pZ in
@@ -227,13 +229,13 @@ final class DebrisPool {
         }}}}}}
     }
 
-    struct VertexBuffers: @unchecked Sendable {
+    struct VertexBuffers {
         let posX, posY, posZ: UnsafeBufferPointer<Float>
         let rotAxisX, rotAxisY, rotAxisZ: UnsafeBufferPointer<Float>
         let rotAngle: UnsafeBufferPointer<Float>
     }
 
-    func withVertexBuffers<R>(_ body: (VertexBuffers) -> R) -> R {
+    func withVertexBuffers(_ body: (VertexBuffers) -> Void) {
         posX.withUnsafeBufferPointer { pX in
         posY.withUnsafeBufferPointer { pY in
         posZ.withUnsafeBufferPointer { pZ in

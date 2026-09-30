@@ -3,23 +3,20 @@
 //  Cascade
 //
 
-final class FrameBuffer: @unchecked Sendable {
+/// A frame owns a value snapshot; copy-on-write storage lets the solver reuse its
+/// buffers without mutating vertices still held by a consumer.
+struct FrameBuffer: Sendable {
     var vertices: ContiguousArray<DebrisVertex>
 
     private(set) var activeVertexCount = 0
-
-    private(set) var dirtyVertexCount = 0
-
-    private var lastWrittenCount = 0
 
     init(maxDebris: Int) {
         vertices = ContiguousArray(repeating: .zero, count: maxDebris * DebrisMesh.verticesPerFragment)
     }
 
-    func prepare(activeCount: Int) {
-        let activeVerts = activeCount * DebrisMesh.verticesPerFragment
-        activeVertexCount = activeVerts
-        dirtyVertexCount = max(activeVerts, lastWrittenCount)
-        lastWrittenCount = activeVerts
+    mutating func prepare(activeCount: Int) {
+        precondition(activeCount >= 0 && activeCount <= vertices.count / DebrisMesh.verticesPerFragment,
+                     "Active fragments must fit within the allocated vertex buffer.")
+        activeVertexCount = activeCount * DebrisMesh.verticesPerFragment
     }
 }
