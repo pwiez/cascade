@@ -22,13 +22,11 @@ enum DesignTokens {
     static let ruleStrong = Color.white.opacity(0.22)
     static let dividerColor = Color.white.opacity(0.20)
     static let dataSurface = Color.white.opacity(0.022)
-    static let sidebarBackground = Color(white: 0.07)
     static let chapterBackground = Color.black
 
     static let signal = Color.blue
     static let iconBackgroundOpacity: Double = 0.12
 
-    static let trackColor = Color(white: 0.12)
     static let trackHeight: CGFloat = 4
 }
 
@@ -41,27 +39,10 @@ extension View {
 extension View {
     @ViewBuilder
     func applyGlassStyle(isProminent: Bool, tint: Color?) -> some View {
-        if #available(iOS 26, *) {
-            if isProminent {
-                buttonStyle(.glassProminent).tint(tint)
-            } else {
-                buttonStyle(.glass)
-            }
+        if isProminent {
+            buttonStyle(.glassProminent).tint(tint)
         } else {
-            if isProminent {
-                buttonStyle(.borderedProminent).tint(tint)
-            } else {
-                buttonStyle(.bordered)
-            }
-        }
-    }
-
-    @ViewBuilder
-    func applyGlassPanel() -> some View {
-        if #available(iOS 26, *) {
-            glassEffect()
-        } else {
-            background(.ultraThinMaterial, in: .capsule)
+            buttonStyle(.glass)
         }
     }
 }

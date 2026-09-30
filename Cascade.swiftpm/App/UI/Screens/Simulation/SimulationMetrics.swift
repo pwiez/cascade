@@ -25,6 +25,6 @@ struct SimulationMetrics: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 12)
-        .applyGlassPanel()
+        .glassEffect()
     }
 }

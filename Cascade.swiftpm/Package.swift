@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Cascade",
     platforms: [
-        .iOS("18.0")
+        .iOS("26.0")
     ],
     products: [
         .iOSApplication(

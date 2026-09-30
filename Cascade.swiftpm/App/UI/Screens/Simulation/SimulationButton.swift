@@ -34,16 +34,10 @@ struct SimulationButton: View {
 private extension View {
     @ViewBuilder
     func simulationButtonBackground(isProminent: Bool, tint: Color?) -> some View {
-        if #available(iOS 26, *) {
-            if isProminent, let tint {
-                glassEffect(.regular.tint(tint), in: .circle)
-            } else {
-                glassEffect(.regular, in: .circle)
-            }
-        } else if isProminent {
-            background(tint ?? .accentColor, in: .circle)
+        if isProminent, let tint {
+            glassEffect(.regular.tint(tint), in: .circle)
         } else {
-            background(.ultraThinMaterial, in: .circle)
+            glassEffect(.regular, in: .circle)
         }
     }
 }
