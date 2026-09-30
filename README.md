@@ -36,15 +36,14 @@ Scenario edits stay in `Simulation.draft` until a restart applies them. `SceneCo
 
 ## Tests
 
-Tests cover orbital motion, collisions, settings, task ordering, satellite creation, and debris mesh reuse. Run them in Xcode with the **Cascade** scheme and an iPad simulator selected, or use the commands below from the repository root. Replace `<IPAD_SIMULATOR_UDID>` with an ID from the device list.
+The local suite combines engine tests with UI tests for onboarding, simulation controls, settings, orientation changes, and Learn More. Use an iPad simulator running iPadOS 26 or later. From the repository root:
 
 ```bash
 xcrun simctl list devices available
-cd Cascade.swiftpm
-xcodebuild test -scheme Cascade -destination 'platform=iOS Simulator,id=<IPAD_SIMULATOR_UDID>'
+./scripts/test.sh all <IPAD_SIMULATOR_UDID>
 ```
 
-Swift Playgrounds doesn't run the test target.
+Use `unit` or `ui` in place of `all` to run one suite. The script prints a summary and the path to its logs and result bundles. Engine runs also collect code coverage. It leaves an already-booted simulator running and shuts down one it boots itself. See [Testing](docs/TESTING.md) for coverage, Xcode usage, and manual checks. Swift Playgrounds doesn't run the test targets.
 
 ## Credits
 
