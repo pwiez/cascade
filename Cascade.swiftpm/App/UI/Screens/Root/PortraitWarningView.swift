@@ -34,6 +34,7 @@ struct PortraitWarningView: View {
                     .padding(.horizontal, 32)
             }
             .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("orientation.warning")
         }
     }
 }

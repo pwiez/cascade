@@ -28,6 +28,7 @@ struct OnboardingOverlay: View {
                 HStack {
                     Spacer()
                     Button("Skip", action: onDismiss)
+                        .accessibilityIdentifier("onboarding.skip")
                         .controlSize(.large)
                         .applyGlassStyle(isProminent: false, tint: nil)
                 }

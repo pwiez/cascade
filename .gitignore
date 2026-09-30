@@ -10,7 +10,7 @@ Package.resolved
 xcuserdata/
 *.xcworkspace/xcuserdata/*
 *.xcodeproj/xcuserdata/*
-*.xcodeproj/project.xcworkspace/*
+**/*.xcodeproj/project.xcworkspace/*
 
 # --- Build Artifacts ---
 DerivedData/

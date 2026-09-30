@@ -33,6 +33,7 @@ struct ChapterContainerView: View {
             .frame(maxWidth: 720, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .center)
         }
+        .accessibilityIdentifier("learnMore.chapter")
         .scrollPosition($scrollPosition)
         .onChange(of: activeSection) { _, _ in
             scrollPosition.scrollTo(edge: .top)
@@ -60,5 +61,6 @@ struct ChapterContainerView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
+        .accessibilityIdentifier("learnMore.chapterTitle")
     }
 }

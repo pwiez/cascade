@@ -22,11 +22,13 @@ struct SettingsView: View {
                 SpreadSection(simulation: simulation)
                 ResetActionsSection(simulation: simulation)
             }
+            .accessibilityIdentifier("settings.form")
             .navigationTitle("Parameters")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done", action: onClose).bold()
+                        .accessibilityIdentifier("settings.done")
                 }
             }
         }

@@ -25,6 +25,7 @@ struct TimeScaleSection: View {
                 } maximumValueLabel: {
                     Image(systemName: "hare.fill").accessibilityHidden(true)
                 }
+                .accessibilityIdentifier("settings.slider.Time Scale")
             }
             .padding(.vertical, 3)
         }

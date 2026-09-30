@@ -19,6 +19,7 @@ struct LearnMoreView: View {
                             NavigationLink(value: section) {
                                 LearnMoreSidebarLabel(section: section)
                             }
+                            .accessibilityIdentifier("learnMore.\(section.rawValue)")
                         }
                     }
                 }

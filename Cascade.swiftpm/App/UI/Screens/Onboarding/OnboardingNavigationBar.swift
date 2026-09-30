@@ -18,6 +18,7 @@ struct OnboardingNavigationBar: View {
             HStack {
                 if page.previous != nil {
                     Button("Back", systemImage: "chevron.left", action: onBack)
+                        .accessibilityIdentifier("onboarding.back")
                         .controlSize(.large)
                         .applyGlassStyle(isProminent: false, tint: nil)
                 }
@@ -34,6 +35,7 @@ struct OnboardingNavigationBar: View {
                     Text(page.isLast ? "Enter the Cascade" : "Next")
                         .frame(width: 184)
                 }
+                .accessibilityIdentifier("onboarding.advance")
                 .controlSize(.large)
                 .applyGlassStyle(isProminent: true, tint: .blue)
             }

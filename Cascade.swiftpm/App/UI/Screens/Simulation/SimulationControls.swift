@@ -26,6 +26,7 @@ struct SimulationControls: View {
                 tint: .red,
                 action: onDetonate
             )
+            .accessibilityIdentifier("simulation.detonate")
 
             SimulationButton(
                 title: "Restart Simulation",
@@ -33,6 +34,7 @@ struct SimulationControls: View {
                 hint: "Clears all satellites and debris and starts over",
                 action: { showRestartConfirmation = true }
             )
+            .accessibilityIdentifier("simulation.restart")
             .confirmationDialog("Restart?", isPresented: $showRestartConfirmation) {
                 Button("Restart", role: .destructive, action: onRestart)
             } message: {
@@ -45,6 +47,7 @@ struct SimulationControls: View {
                 hint: isPaused ? "Resumes the orbital simulation" : "Pauses the orbital simulation",
                 action: { isPaused.toggle() }
             )
+            .accessibilityIdentifier("simulation.playback")
 
             SimulationButton(
                 title: "Reset Camera",
@@ -52,6 +55,7 @@ struct SimulationControls: View {
                 hint: "Returns the camera to its default position",
                 action: onResetCamera
             )
+            .accessibilityIdentifier("simulation.resetCamera")
 
             SimulationButton(
                 title: "Settings",
@@ -59,6 +63,7 @@ struct SimulationControls: View {
                 hint: "Opens the simulation parameters panel",
                 action: { showSettings.toggle() }
             )
+            .accessibilityIdentifier("simulation.settings")
         }
     }
 }

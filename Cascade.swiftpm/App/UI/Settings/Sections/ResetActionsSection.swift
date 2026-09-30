@@ -17,6 +17,7 @@ struct ResetActionsSection: View {
         Section {
             Button("Reset Defaults", action: resetDefaults)
                 .foregroundStyle(.blue)
+                .accessibilityIdentifier("settings.resetDefaults")
 
             Button(role: simulation.hasPendingChanges ? nil : .destructive) {
                 showRestartConfirmation = true
@@ -32,6 +33,7 @@ struct ResetActionsSection: View {
                     Text("Restart Simulation")
                 }
             }
+            .accessibilityIdentifier("settings.restart")
             .confirmationDialog("Restart?", isPresented: $showRestartConfirmation) {
                 Button("Restart", role: .destructive, action: simulation.resetSimulation)
             } message: {

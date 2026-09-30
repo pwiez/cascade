@@ -41,22 +41,30 @@ struct SliderRow: View {
                 .foregroundStyle(requiresRestart ? .yellow : .secondary)
                 .animation(.snappy, value: requiresRestart)
             }
+            .accessibilityHidden(true)
 
-            if let step {
-                Slider(value: $value, in: range, step: step)
-            } else {
-                Slider(value: $value, in: range)
-            }
+            slider(formattedValue: formattedValue)
 
             if let caption {
                 Text(caption)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityHidden(true)
             }
         }
         .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
+    }
+
+    private func slider(formattedValue: String) -> some View {
+        Group {
+            if let step {
+                Slider(value: $value, in: range, step: step)
+            } else {
+                Slider(value: $value, in: range)
+            }
+        }
+        .accessibilityIdentifier("settings.slider.\(label)")
         .accessibilityLabel(label)
         .accessibilityValue(formattedValue)
         .accessibilityHint(accessibilityHintText)

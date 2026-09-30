@@ -16,12 +16,14 @@ struct SimulationMetrics: View {
     var body: some View {
         HStack(spacing: 16) {
             MetricItem(title: "SATELLITES", value: telemetry.stats.satellites, color: satelliteColor)
+                .accessibilityIdentifier("metric.satellites")
 
             Divider()
                 .cascadeDivider()
                 .frame(height: 16)
 
             MetricItem(title: "DEBRIS", value: telemetry.stats.debris, color: debrisColor)
+                .accessibilityIdentifier("metric.debris")
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 12)
