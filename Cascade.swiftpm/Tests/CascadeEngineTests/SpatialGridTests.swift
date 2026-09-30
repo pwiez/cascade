@@ -94,4 +94,114 @@ struct SpatialGridTests {
         #expect(SpatialGrid.neighborOffsets.count == 27)
         #expect(Set(SpatialGrid.neighborOffsets.map { [$0.x, $0.y, $0.z] }).count == 27)
     }
+
+    @Test("Grid boundaries are half-open and neighboring cells never wrap across a face")
+    func boundariesDoNotWrap() {
+        let grid = SpatialGrid(maxObjects: 1, cellSize: 8)
+        let extent = Float(SpatialGrid.gridSize) * grid.cellSize / 2
+
+        for axis in 0..<3 {
+            var position = SIMD3<Float>.zero
+            position[axis] = -extent
+            #expect(grid.cellIndex(for: position) != -1)
+            position[axis] = -extent - 0.25
+            #expect(grid.cellIndex(for: position) == -1)
+            position[axis] = extent - 0.25
+            #expect(grid.cellIndex(for: position) != -1)
+            position[axis] = extent
+            #expect(grid.cellIndex(for: position) == -1)
+
+            for direction in [Int32(-1), 1] {
+                position[axis] = Float(direction) * (extent - grid.cellSize / 2)
+                let cell = grid.cellIndex(for: position)
+                var offset = SIMD3<Int32>.zero
+                offset[axis] = direction
+                #expect(grid.neighborCell(of: cell, offset: offset) == -1)
+
+                offset[axis] = -direction
+                position[axis] -= Float(direction) * grid.cellSize
+                #expect(grid.neighborCell(of: cell, offset: offset) == grid.cellIndex(for: position))
+            }
+        }
+    }
+
+    @Test("Clearing a dense cell removes old links before reusing object slots elsewhere")
+    func clearAndReinsertObjects() {
+        var grid = SpatialGrid(maxObjects: 16, cellSize: 8)
+        let oldCell = grid.cellIndex(for: .zero)
+        for index in 0..<16 {
+            grid.add(objectIndex: index, position: .zero)
+        }
+        grid.clear()
+
+        let indices = [3, 7, 15]
+        let positions: [SIMD3<Float>] = [SIMD3(100, 0, 0), SIMD3(0, 100, 0), SIMD3(0, 0, 100)]
+        for (index, position) in zip(indices, positions) {
+            grid.add(objectIndex: index, position: position)
+        }
+
+        #expect(grid.firstObject(inCell: oldCell) == -1)
+        for (index, position) in zip(indices, positions) {
+            #expect(grid.firstObject(inCell: grid.cellIndex(for: position)) == index)
+            #expect(grid.nextObject(after: index) == -1)
+        }
+        grid.clear()
+        grid.clear()
+        for position in positions {
+            #expect(grid.firstObject(inCell: grid.cellIndex(for: position)) == -1)
+        }
+    }
+
+    @Test("Neighbor queries find every nearby object from a brute-force reference")
+    func neighborsMatchPairwiseReference() {
+        let coordinates: [Float] = [-11, -0.25, 0.25, 11]
+        var positions: [SIMD3<Float>] = []
+        for x in coordinates {
+            for y in coordinates {
+                for z in coordinates {
+                    positions.append(SIMD3(x, y, z))
+                }
+            }
+        }
+        var grid = SpatialGrid(maxObjects: positions.count, cellSize: 8)
+        for (index, position) in positions.enumerated() {
+            grid.add(objectIndex: index, position: position)
+        }
+
+        for position in positions {
+            let cell = grid.cellIndex(for: position)
+            var candidates: Set<Int> = []
+            for offset in SpatialGrid.neighborOffsets {
+                let neighbor = grid.neighborCell(of: cell, offset: offset)
+                var object = grid.firstObject(inCell: neighbor)
+                for _ in 0..<positions.count {
+                    guard object != -1 else { break }
+                    candidates.insert(object)
+                    object = grid.nextObject(after: object)
+                }
+                #expect(object == -1, "Every cell chain must terminate")
+            }
+            let expected = Set(positions.indices.filter { distance(positions[$0], position) < 8 })
+            let actual = Set(candidates.filter { distance(positions[$0], position) < 8 })
+            #expect(actual == expected)
+        }
+    }
+
+    @Test("A grid snapshot remains valid after its source is cleared and rebuilt")
+    func copiedGridKeepsItsObjects() {
+        var grid = SpatialGrid(maxObjects: 2, cellSize: 8)
+        grid.add(objectIndex: 0, position: .zero)
+        grid.add(objectIndex: 1, position: .zero)
+        let snapshot = grid
+
+        grid.clear()
+        grid.add(objectIndex: 0, position: SIMD3(100, 0, 0))
+
+        let originalCell = snapshot.cellIndex(for: .zero)
+        #expect(snapshot.firstObject(inCell: originalCell) == 1)
+        #expect(snapshot.nextObject(after: 1) == 0)
+        #expect(snapshot.nextObject(after: 0) == -1)
+        #expect(grid.firstObject(inCell: originalCell) == -1)
+        #expect(grid.firstObject(inCell: grid.cellIndex(for: SIMD3(100, 0, 0))) == 0)
+    }
 }

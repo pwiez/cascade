@@ -12,14 +12,34 @@ struct SimulationSettingsTests {
     @Test("Resetting restores every tunable, not just the ones someone listed")
     @MainActor
     func resetRestoresEverySetting() {
-        let simulation = Simulation()
+        let simulation = Simulation(controller: SimulationControllerSpy())
 
-        simulation.settings.debrisPerCollision = 10
-        simulation.settings.maxDebris = 7_000
-        simulation.settings.debrisRotation = false
-        simulation.settings.showSatellites = false
-        simulation.settings.timeScale = 4.2
-        simulation.draft.satelliteCount = 475
+        simulation.settings = SimSettings(
+            debrisPerCollision: 10,
+            explosionForce: 2,
+            collisionRadius: 2,
+            maxDebris: 7_000,
+            eliminationRadius: 800,
+            spreadTangential: 1.2,
+            spreadVertical: 1.3,
+            spreadRadial: 1.4,
+            timeScale: 4.2,
+            gravityMultiplier: 1.5,
+            satelliteColor: .blue,
+            debrisColor: .yellow,
+            backgroundColor: .black,
+            satelliteScale: 2,
+            debrisScale: 3,
+            debrisRotation: false,
+            useOmniLight: true,
+            showEarth: false,
+            showSatellites: false,
+            showDebris: false
+        )
+        simulation.draft = Scenario(
+            satelliteCount: 475, orbitAltitude: 310, orbitVariance: 25,
+            useRandomInclination: false
+        )
 
         simulation.resetSettingsToDefaults()
 
@@ -30,7 +50,7 @@ struct SimulationSettingsTests {
     @Test("Scenario edits stay pending until the simulation is restarted")
     @MainActor
     func scenarioEditsRequireRestart() {
-        let simulation = Simulation()
+        let simulation = Simulation(controller: SimulationControllerSpy())
         #expect(!simulation.hasPendingChanges)
 
         simulation.draft.orbitAltitude = 310

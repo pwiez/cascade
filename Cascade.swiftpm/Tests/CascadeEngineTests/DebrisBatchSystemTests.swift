@@ -5,6 +5,7 @@
 
 import RealityKit
 import Testing
+import UIKit
 @testable import CascadeEngine
 
 @Suite("DebrisBatchSystem")
@@ -62,5 +63,51 @@ struct DebrisBatchSystemTests {
             let resumed = try #require(batch.entity.model?.mesh.lowLevelMesh)
             #expect(resumed.parts[0].indexCount == DebrisMesh.indicesPerFragment)
         }
+    }
+
+    @Test("Every fragment has four distinct triangular faces within its own vertices")
+    func fragmentTopologyIsSelfContained() throws {
+        let batch = DebrisBatchSystem(maxDebris: 8, color: .white)
+        let mesh = try #require(batch.entity.model?.mesh.lowLevelMesh)
+
+        mesh.withUnsafeIndices { bytes in
+            let indices = bytes.bindMemory(to: UInt32.self)
+            for fragment in 0..<8 {
+                let vertexStart = UInt32(fragment * DebrisMesh.verticesPerFragment)
+                let vertexEnd = vertexStart + UInt32(DebrisMesh.verticesPerFragment)
+                let indexStart = fragment * DebrisMesh.indicesPerFragment
+                var faces = Set<Set<UInt32>>()
+                for face in 0..<4 {
+                    let start = indexStart + face * 3
+                    let triangle = Set(indices[start..<(start + 3)])
+                    #expect(triangle.count == 3)
+                    #expect(triangle.allSatisfy { $0 >= vertexStart && $0 < vertexEnd })
+                    faces.insert(triangle)
+                }
+                #expect(faces.count == 4)
+            }
+        }
+    }
+
+    @Test("Color changes survive frame rotation and clearing without altering visibility")
+    func colorAndVisibilitySurviveMeshUpdates() throws {
+        let batch = DebrisBatchSystem(maxDebris: 2, color: .red)
+        let originalMaterial = try #require(batch.entity.model?.materials.first as? UnlitMaterial)
+        try expectColor(originalMaterial.color.tint, red: 1, green: 0, blue: 0)
+        batch.entity.isEnabled = false
+        batch.updateColor(.cyan)
+
+        var frame = FrameBuffer(maxDebris: 2)
+        frame.prepare(activeCount: 1)
+        for _ in 0..<5 {
+            batch.commitVertices(from: frame)
+            let material = try #require(batch.entity.model?.materials.first as? UnlitMaterial)
+            try expectColor(material.color.tint, red: 0, green: 1, blue: 1)
+            #expect(!batch.entity.isEnabled)
+        }
+        batch.clear()
+        let material = try #require(batch.entity.model?.materials.first as? UnlitMaterial)
+        try expectColor(material.color.tint, red: 0, green: 1, blue: 1)
+        #expect(!batch.entity.isEnabled)
     }
 }

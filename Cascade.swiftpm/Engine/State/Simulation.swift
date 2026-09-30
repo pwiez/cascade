@@ -35,9 +35,14 @@ public final class Simulation {
 
     public private(set) var hasStarted = false
 
-    @ObservationIgnored private let controller = SceneController()
+    @ObservationIgnored private let controller: any SimulationControlling
 
-    public init() {
+    public convenience init() {
+        self.init(controller: SceneController())
+    }
+
+    init(controller: any SimulationControlling) {
+        self.controller = controller
         controller.onStatsChange = { [weak self] stats in
             guard let self, telemetry.stats != stats else { return }
             telemetry.stats = stats

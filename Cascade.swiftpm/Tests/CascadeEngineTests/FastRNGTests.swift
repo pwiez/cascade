@@ -52,4 +52,35 @@ struct FastRNGTests {
 
         #expect((0..<100).allSatisfy { _ in a.nextU32() == b.nextU32() })
     }
+
+    @Test("Ranged draws support negative, mixed-sign, and single-value intervals",
+          arguments: [Float(-5)...(-1), Float(-2)...3, Float(4)...4, Float(0)...0])
+    func variedRanges(range: ClosedRange<Float>) {
+        var rng = FastRNG(seed: 42)
+        for _ in 0..<1_024 {
+            let value = rng.next(in: range)
+            #expect(value.isFinite && range.contains(value))
+        }
+    }
+
+    @Test("Symmetric draws reach both sides of zero rather than collapsing to their mean")
+    func symmetricDrawsCoverBothSigns() {
+        var rng = FastRNG(seed: 42)
+        let draws = (0..<4_096).map { _ in rng.nextSym() }
+
+        #expect(draws.contains { $0 < -0.5 })
+        #expect(draws.contains { $0 > 0.5 })
+    }
+
+    @Test("Copying a generator preserves its current sequence independently")
+    func copiedGeneratorContinuesFromCheckpoint() {
+        var original = FastRNG(seed: 42)
+        for _ in 0..<37 { _ = original.nextU32() }
+        var checkpoint = original
+
+        let firstContinuation = (0..<128).map { _ in original.nextU32() }
+        let copiedContinuation = (0..<128).map { _ in checkpoint.nextU32() }
+
+        #expect(firstContinuation == copiedContinuation)
+    }
 }

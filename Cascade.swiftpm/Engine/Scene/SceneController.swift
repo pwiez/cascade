@@ -11,7 +11,7 @@ import UIKit
 import simd
 
 @MainActor
-final class SceneController {
+final class SceneController: SimulationControlling {
 
     var onStatsChange: ((SimStats) -> Void)?
 
