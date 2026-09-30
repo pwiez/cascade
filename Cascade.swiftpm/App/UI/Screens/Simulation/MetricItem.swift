@@ -13,12 +13,14 @@ struct MetricItem: View {
     let color: Color
 
     var body: some View {
+        let formattedValue = value.formatted()
+
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.primary)
 
-            Text(value.formatted())
+            Text(formattedValue)
                 .font(.body.bold())
                 .monospacedDigit()
                 .foregroundStyle(color)
@@ -27,6 +29,6 @@ struct MetricItem: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title.localizedCapitalized)
-        .accessibilityValue(value.formatted())
+        .accessibilityValue(formattedValue)
     }
 }

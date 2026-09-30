@@ -24,5 +24,7 @@ struct SimulationView: UIViewRepresentable {
         return arView
     }
 
-    func updateUIView(_ uiView: ARView, context: Context) {}
+    func updateUIView(_ uiView: ARView, context: Context) {
+        // SceneController applies model changes through RealityKit's scene update loop.
+    }
 }

@@ -10,8 +10,8 @@ import SwiftUI
 struct TimelineVertical: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(TimelineEvent.all.enumerated()), id: \.element.id) { index, event in
-                TimelineRow(event: event, isLast: index == TimelineEvent.all.count - 1)
+            ForEach(TimelineEvent.all) { event in
+                TimelineRow(event: event, isLast: event.id == TimelineEvent.all.last?.id)
             }
         }
     }

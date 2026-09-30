@@ -11,10 +11,10 @@ struct CausalFlowDiagram: View {
     var body: some View {
         VStack(spacing: 22) {
             HStack(alignment: .top, spacing: 0) {
-                ForEach(Array(CascadeStep.all.enumerated()), id: \.element.id) { index, step in
+                ForEach(CascadeStep.all) { step in
                     CascadeStepNode(step: step)
 
-                    if index != CascadeStep.all.count - 1 {
+                    if step.id != CascadeStep.all.last?.id {
                         Image(systemName: "chevron.compact.right")
                             .font(.title3.weight(.semibold))
                             .foregroundStyle(DesignTokens.dimText)

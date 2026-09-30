@@ -8,13 +8,17 @@
 import Observation
 import RealityKit
 
+/// Owns UI state and forwards coalesced commands to the rendering controller.
 @MainActor @Observable
 public final class Simulation {
 
     public var settings = SimSettings.defaults {
-        didSet { pushSettings() }
+        didSet {
+            if settings != oldValue { pushSettings() }
+        }
     }
 
+    /// Scenario edits take effect together when the universe is rebuilt.
     public var draft = Scenario.defaults
 
     public private(set) var active = Scenario.defaults
@@ -35,7 +39,8 @@ public final class Simulation {
 
     public init() {
         controller.onStatsChange = { [weak self] stats in
-            self?.telemetry.stats = stats
+            guard let self, telemetry.stats != stats else { return }
+            telemetry.stats = stats
         }
         pushSettings()
     }

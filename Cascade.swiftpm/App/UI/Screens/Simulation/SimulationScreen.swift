@@ -26,17 +26,8 @@ struct SimulationScreen: View {
                 .ignoresSafeArea()
                 .zIndex(0)
 
-            if simulation.showStats {
-                VStack {
-                    Spacer()
-                    SimulationMetrics(
-                        telemetry: simulation.telemetry,
-                        satelliteColor: simulation.settings.satelliteColor,
-                        debrisColor: simulation.settings.debrisColor
-                    )
-                }
+            SimulationStatsOverlay(simulation: simulation)
                 .zIndex(1)
-            }
 
             HStack {
                 SimulationControls(

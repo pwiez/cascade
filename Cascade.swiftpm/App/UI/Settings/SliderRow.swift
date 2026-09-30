@@ -5,7 +5,6 @@
 //  Created by Pedro Wiezel on 08/05/26.
 //
 
-import CascadeEngine
 import SwiftUI
 
 struct SliderRow: View {
@@ -24,11 +23,9 @@ struct SliderRow: View {
     var requiresRestart = false
     var caption: String?
 
-    private var formatted: String {
-        prefix + value.formatted(.number.precision(.fractionLength(fractionDigits))) + unit
-    }
-
     var body: some View {
+        let formattedValue = prefix + value.formatted(.number.precision(.fractionLength(fractionDigits))) + unit
+
         VStack(spacing: 4) {
             LabeledContent(label) {
                 HStack(spacing: 6) {
@@ -37,7 +34,7 @@ struct SliderRow: View {
                             .imageScale(.small)
                             .accessibilityHidden(true)
                     }
-                    Text(formatted)
+                    Text(formattedValue)
                         .monospacedDigit()
                 }
                 .font(.caption.bold())
@@ -61,7 +58,7 @@ struct SliderRow: View {
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(label)
-        .accessibilityValue(formatted)
+        .accessibilityValue(formattedValue)
         .accessibilityHint(accessibilityHintText)
     }
 
